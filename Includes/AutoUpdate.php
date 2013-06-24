@@ -64,7 +64,8 @@ Class AutoUpdate {
     */
     public function updatePeachy() {
         global $pgIP;
-        pecho( "Updating Peachy...\n\n", PECHO_NORMAL );    
+        pecho( "Updating Peachy...\n\n", PECHO_NORMAL ); 
+        if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 775);   
         $data = json_decode( $this->get_http()->get('https://api.github.com/repos/cyberpower678/Peachy/commits'), true );
         if( file_exists( $pgIP . 'Includes/Update.log' ) ) {
             $log = unserialize( file_get_contents( $pgIP . 'Includes/Update.log' ) );
@@ -84,7 +85,6 @@ Class AutoUpdate {
                 if( isset($data[0]['sha']) && $commitdata[0]['sha'] == $data[0]['sha']) {
                     $success = $this->pullcontents( 'https://api.github.com/repos/cyberpower678/Peachy/contents', false, $downloaddata, true );                
                 } elseif( isset($data[0]['sha']) && $commitdata[0]['sha'] != $data[0]['sha']) {
-                    if( file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 775);
                     if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
                     if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
                     file_put_contents( $pgIP.'tmp/commit.tmp', serialize($data) );
