@@ -15,6 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Peachy is not responsible for any damage caused to the system running it.
 */
 
 /**
@@ -27,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * The version that Peachy is running 
  */
-define( 'PEACHYVERSION', '2.0 (alpha)' );
+define( 'PEACHYVERSION', '2.0 (alpha 3)' );
 
 /**
  * Minimum MediaWiki version that is required for Peachy 
@@ -72,6 +74,7 @@ define( 'PECHO_FATAL', 4 );
 $pgIP = dirname(__FILE__) . '/';
 
 require_once( $pgIP . 'Includes/Exceptions.php' );
+require_once( $pgIP . 'Includes/AutoUpdate.php' );
 
 peachyCheckPHPVersion();
 
@@ -119,6 +122,9 @@ class Peachy {
 		global $pgIP;
 		
 		pecho( "Loading Peachy (version " . PEACHYVERSION . ")...\n\n", PECHO_NORMAL );
+        $updater = new AutoUpdate();
+        $Uptodate = $updater->Checkforupdate();
+        if( !$Uptodate ) $updater->updatePeachy();
 		
 		if( !is_null( $config_name ) ) {
 			$config_params = self::parse_config( $config_name );

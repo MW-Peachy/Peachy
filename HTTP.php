@@ -42,7 +42,7 @@ class HTTP {
 	 * @var string
 	 * @access private
 	 */
-	private $cookie_hash;
+	private $cookie_hash;                                       
 	
 	/**
 	 * Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal.
@@ -75,7 +75,7 @@ class HTTP {
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
 	 * @return void
 	 */	
-	function __construct( $echo = false ) {
+	function __construct( $echo = false, $verifyssl = true ) {
 		global $pgUA;
 		
 		if( !function_exists( 'curl_init' ) ) {
@@ -100,6 +100,10 @@ class HTTP {
 		curl_setopt($this->curl_instance,CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($this->curl_instance,CURLOPT_TIMEOUT,100);
 		curl_setopt($this->curl_instance,CURLOPT_CONNECTTIMEOUT,10);
+        if( !$verifyssl ) {
+            curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, FALSE);     
+        }
 		
 		$this->setUserAgent( $pgUA );
 
