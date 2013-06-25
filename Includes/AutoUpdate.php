@@ -142,8 +142,13 @@ Class AutoUpdate {
         }
         //process the new files.
         foreach( $files as $path=>$data ) {
-            if( $data['status'] == 'removed' ) unlink($path);
-            else file_put_contents($path, $data['content']);
+            if( $data['status'] == 'removed' ) {
+                $result = unlink($path);
+                if( !$result ) return false;
+            } else {
+                $result = file_put_contents($path, $data['content']);
+                if( !$result ) return false;
+            }
         }
         return true;       
     }
@@ -208,7 +213,8 @@ Class AutoUpdate {
             //Load all the files.
             pecho( "Retrieved files from Github...\n\n", PECHO_VERBOSE );
             foreach( $files as $filepath=>$contents ) {
-                file_put_contents( $filepath, $contents );
+                $result = file_put_contents( $filepath, $contents );
+                if( !$result ) return false;
             }
         }
         return true;                      
