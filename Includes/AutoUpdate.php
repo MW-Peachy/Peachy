@@ -65,7 +65,7 @@ Class AutoUpdate {
     public function updatePeachy() {
         global $pgIP;
         pecho( "Updating Peachy...\n\n", PECHO_NORMAL ); 
-        if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 775);   
+        if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);   
         $data = json_decode( $this->get_http()->get('https://api.github.com/repos/cyberpower678/Peachy/commits'), true );
         if( file_exists( $pgIP . 'Includes/Update.log' ) ) {
             $log = unserialize( file_get_contents( $pgIP . 'Includes/Update.log' ) );
@@ -93,7 +93,7 @@ Class AutoUpdate {
                    $success = false; 
                 }
             } else {
-                if( file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 775);
+                if( file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);
                 file_put_contents( $pgIP.'tmp/commit.tmp', serialize($data) );
                 //$data = $this->processreturn( $data );
                 $success = $this->pullcontents();
@@ -177,7 +177,7 @@ Class AutoUpdate {
                         if( !$files ) return false;
                     } 
                 } elseif( isset($item['type']) && $item['type'] == 'dir' ) {
-                    if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 775 );
+                    if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 2775 );
                     $files = $this->pullcontents( $item['url'], true, $files, true );
                     if( !$files ) return false;
                 } else {
@@ -199,7 +199,7 @@ Class AutoUpdate {
                     if( !$files ) return false;
                 } 
             } elseif( isset($item['type']) && $item['type'] == 'dir' ) {
-                if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 775 );
+                if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 2775 );
                 $files = $this->pullcontents( $item['url'], true, $files, true );
                 if( !$files ) return false;
             } else {
