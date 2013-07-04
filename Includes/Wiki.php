@@ -545,7 +545,10 @@ class Wiki {
 				$this->base_url,
 				$arrayParams
 			));
-			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) die( "API Error...\n\nFatal Error: API is not responding.  Terminating program.\n\n" );
+			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
+                pecho( "API Error...\n\nFatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                exit(1);
+            }
 
 			Hooks::runHook( 'PostAPIPostQuery', array( &$data ) );
 			
@@ -587,6 +590,11 @@ class Wiki {
 				$arrayParams
 			));
 
+            if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
+                pecho( "API Error...\n\nFatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                exit(1);
+            }
+            
 			Hooks::runHook( 'APIQueryCheckError', array( &$data['error'] ) );
 			if( isset( $data['error'] ) && $errorcheck ) {
 				

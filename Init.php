@@ -86,13 +86,11 @@ require_once( $pgIP . 'Includes/Hooks.php' );
 require_once( $pgIP . 'HTTP.php' );
 $pgHTTP = new HTTP;
 
-
 require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
 
 $pgVerbose = array(0,1,2,3,4);
 $pgIRCTrigger = array( '!', '.' );
-
 
 //Last version check
 $tmp = null;
@@ -100,6 +98,11 @@ $tmp = null;
 if( function_exists( 'mb_internal_encoding' ) ) {
 	mb_internal_encoding( "UTF-8" );
 }
+
+//Check for updates before loading Peachy.
+$updater = new AutoUpdate();
+$Uptodate = $updater->Checkforupdate();
+if( !$Uptodate ) $updater->updatePeachy();
 
 
 /**
@@ -122,9 +125,9 @@ class Peachy {
 		global $pgIP;
 		
 		pecho( "Loading Peachy (version " . PEACHYVERSION . ")...\n\n", PECHO_NORMAL );
-        $updater = new AutoUpdate();
+        /*$updater = new AutoUpdate();
         $Uptodate = $updater->Checkforupdate();
-        if( !$Uptodate ) $updater->updatePeachy();
+        if( !$Uptodate ) $updater->updatePeachy();*/
 		
 		if( !is_null( $config_name ) ) {
 			$config_params = self::parse_config( $config_name );
