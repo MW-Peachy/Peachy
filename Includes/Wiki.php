@@ -704,6 +704,7 @@ class Wiki {
 		$continue = null;
 		$offset = null;
 		$start = null;
+        $from = null;
 		
 		pecho( "Running list handler function with params " . implode( ";", $tArray ) . "...\n\n", PECHO_VERBOSE );
 		
@@ -712,6 +713,7 @@ class Wiki {
 			if( !is_null( $continue ) ) $tArray[$code . 'continue'] = $continue;
 			if( !is_null( $offset ) ) $tArray[$code . 'offset'] = $offset;
 			if( !is_null( $start ) ) $tArray[$code . 'start'] = $start;
+            if( !is_null( $from ) ) $tArray[$code . 'from'] = $from;
 			
 			$tRes = $this->apiQuery( $tArray );
 			if(!isset($tRes['query'])) break;
@@ -731,7 +733,7 @@ class Wiki {
 				}
 			}
 			
-			if(!is_null($limit) && !$limit == 'max'){
+			if(!is_null($limit) && $limit != 'max'){
 				if(count($endArray) >= $limit){
 					$endArray = array_slice($endArray,0,$limit);
                     break;
