@@ -748,7 +748,9 @@ class Wiki {
 						$offset = $z[$code . 'offset'];
 					} elseif ( isset( $z[$code . 'start'] ) ){
 						$start = $z[$code . 'start'];
-					}
+					} elseif ( isset( $z[$code . 'from'] ) ) {
+                        $from = $z[$code . 'from'];
+                    }
 				}
 			}
 			else {
