@@ -1838,10 +1838,11 @@ class Page {
 	 * @access public
 	 * @param string $summary Summary to parse. Default null.
 	 * @param string $id Parse the content of this revision
-	 * @param array $prop Properties to retrieve. Default array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml' )
-	 * @return array
+	 * @param array $prop Properties to retrieve. array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties' )
+	 * @param string $section Only retrieve the content of this section number.  Default null.
+     * @return array
 	 */
-	public function parse( $summary = null, $id = null, $prop = array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml' ), $uselang = 'en' ) {
+	public function parse( $summary = null, $id = null, $prop = array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties' ), $uselang = 'en', $section = null ) {
 		return $this->wiki->parse( null, null, $summary, false, false, $prop, $uselang, $this->title, $id );
 	}
 

@@ -2140,5 +2140,77 @@ class Wiki {
 			pecho( "Blacklist check error...\n\n" . print_r($result, true), PECHO_FATAL );
 			return false;
 		}
-	}	
+	}
+    
+    /*
+     * Search the wiki using the OpenSearch protocol.
+     *
+     * @access public
+     * @param string $text Search string.  Default empty.
+     * @param int $limit Maximum amount of results to return. Default 10.
+     * @param array $namespaces Namespaces to search.  Default array(0).
+     * @param bool $suggest Do nothing if $wgEnableOpenSearchSuggest is false. Default true.
+     * @return array
+     */
+    public function opensearch( $text = '', $limit = 10, $namespaces = array(0), $suggest = true ) {
+        
+        $apiArray = array(
+            'search' => $text,
+            'action' => 'opensearch',
+            'limit' => $limit,
+            'namespace' => implode( '|', $namespaces )
+        );
+        if( $suggest ) $apiArray['suggest'] = 'yes';
+        
+        $OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );        
+        return json_decode( $OSres, true );
+
+    }
+    
+    /*
+     * Export an RSD (Really Simple Discovery) schema.
+     *
+     * @access public 
+     * @return array
+     */
+    public function rsd() {
+        
+        $apiArray = array(
+            'action' => 'rsd'
+        );
+        
+        $OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );        
+        return $this->parsexml( $OSres );
+    }
+    
+    /*
+     * Parse an XML string into an array.  For more features, use the XML plugins.
+     *
+     * @access public
+     * @param object $xml The XML blob to be parsed.
+     * @param bool $recurse Part of the parsing parameters.  Leave false.
+     * @param int $level Part of the parsing parameters.  Leave set to 1. 
+     * @return array
+     */
+    public function parsexml( $xml, $recurse = false, $level = 1 ) {
+        if( !$recurse ) {
+            $parser = xml_parser_create();
+            xml_parse_into_struct( $parser, $xml, $values );
+            xml_parser_free( $parser ); 
+        } else $values = $xml;
+        $endarray = array();
+        foreach( $values as $id=>$value ) {
+            if( $value['type'] == 'open' ) {
+                unset( $values[$id] );
+                if( $value['level'] == $level ) $endarray[$value['tag']] = $this->parsexml( $values, true, $value['level'] + 1 );
+            } elseif( $value['type'] == 'complete' ) {
+                if( $level == $value['level'] ) $endarray[$value['tag']] = $value['value'];
+                unset( $values[$id] );
+            } else {
+                if( $value['level'] == $level - 1 ) return $endarray;
+                unset( $values[$id] );
+            }
+        }
+        return $endarray;
+    }	
 }

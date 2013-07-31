@@ -29,7 +29,7 @@ Peachy is not responsible for any damage caused to the system running it.
 /**
  * The version that Peachy is running 
  */
-define( 'PEACHYVERSION', '2.0 (alpha 3)' );
+define( 'PEACHYVERSION', '2.0 (alpha 4)' );
 
 /**
  * Minimum MediaWiki version that is required for Peachy 

@@ -143,8 +143,7 @@ Class AutoUpdate {
         //process the new files.
         foreach( $files as $path=>$data ) {
             if( $data['status'] == 'removed' ) {
-                $result = unlink($path);
-                if( !$result ) return false;
+                unlink($path);
             } else {
                 $result = file_put_contents($path, $data['content']);
                 if( !$result ) return false;
