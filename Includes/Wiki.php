@@ -1083,6 +1083,7 @@ class Wiki {
 	 * @param array $prop What properties to retrieve (default: array('size', 'wordcount', 'timestamp', 'snippet') ).
 	 * @param bool $includeredirects Whether to include redirects or not (default: true).
 	 * @param int $limit A hard limit on the number of results to retrieve (default: null i.e. all).
+	 * @return array
 	 */
 	public function search($search, $fulltext = true, $namespaces = array(0), $prop = array('size', 'wordcount', 'timestamp', 'snippet'), $includeredirects = true, $limit = 50) {
 	
