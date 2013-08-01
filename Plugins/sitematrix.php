@@ -18,13 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 class SiteMatrix {
-	
+
 	/**
 	 * Loads list of all SiteMatrix wikis
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
+	 * @throws DependencyError
 	 * @return array List of all wikis
 	 */
 	public static function load( &$wikiClass ) {

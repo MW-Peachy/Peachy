@@ -61,13 +61,14 @@ class sfYamlInline
     return $result;
   }
 
-  /**
-   * Dumps a given PHP variable to a YAML string.
-   *
-   * @param mixed $value The PHP variable to convert
-   *
-   * @return string The YAML string representing the PHP array
-   */
+	/**
+	 * Dumps a given PHP variable to a YAML string.
+	 *
+	 * @param mixed $value The PHP variable to convert
+	 *
+	 * @throws InvalidArgumentException
+	 * @return string The YAML string representing the PHP array
+	 */
   static public function dump($value)
   {
     if ('1.1' === sfYaml::getSpecVersion())
@@ -153,17 +154,19 @@ class sfYamlInline
     return sprintf('{ %s }', implode(', ', $output));
   }
 
-  /**
-   * Parses a scalar to a YAML string.
-   *
-   * @param scalar  $scalar
-   * @param string  $delimiters
-   * @param array   $stringDelimiter
-   * @param integer $i
-   * @param boolean $evaluate
-   *
-   * @return string A YAML string
-   */
+	/**
+	 * Parses a scalar to a YAML string.
+	 *
+	 * @param scalar $scalar
+	 * @param string $delimiters
+	 * @param array $stringDelimiters
+	 * @param integer $i
+	 * @param boolean $evaluate
+	 *
+	 * @throws InvalidArgumentException
+	 * @internal param array $stringDelimiter
+	 * @return string A YAML string
+	 */
   static public function parseScalar($scalar, $delimiters = null, $stringDelimiters = array('"', "'"), &$i = 0, $evaluate = true)
   {
     if (in_array($scalar[$i], $stringDelimiters))
@@ -201,14 +204,15 @@ class sfYamlInline
     return $output;
   }
 
-  /**
-   * Parses a quoted scalar to YAML.
-   *
-   * @param string  $scalar
-   * @param integer $i
-   *
-   * @return string A YAML string
-   */
+	/**
+	 * Parses a quoted scalar to YAML.
+	 *
+	 * @param string $scalar
+	 * @param integer $i
+	 *
+	 * @throws InvalidArgumentException
+	 * @return string A YAML string
+	 */
   static protected function parseQuotedScalar($scalar, &$i)
   {
     if (!preg_match('/'.self::REGEX_QUOTED_STRING.'/Au', substr($scalar, $i), $match))
@@ -234,14 +238,15 @@ class sfYamlInline
     return $output;
   }
 
-  /**
-   * Parses a sequence to a YAML string.
-   *
-   * @param string  $sequence
-   * @param integer $i
-   *
-   * @return string A YAML string
-   */
+	/**
+	 * Parses a sequence to a YAML string.
+	 *
+	 * @param string $sequence
+	 * @param integer $i
+	 *
+	 * @throws InvalidArgumentException
+	 * @return string A YAML string
+	 */
   static protected function parseSequence($sequence, &$i = 0)
   {
     $output = array();
@@ -294,14 +299,15 @@ class sfYamlInline
     throw new InvalidArgumentException(sprintf('Malformed inline YAML string %s', $sequence));
   }
 
-  /**
-   * Parses a mapping to a YAML string.
-   *
-   * @param string  $mapping
-   * @param integer $i
-   *
-   * @return string A YAML string
-   */
+	/**
+	 * Parses a mapping to a YAML string.
+	 *
+	 * @param string $mapping
+	 * @param integer $i
+	 *
+	 * @throws InvalidArgumentException
+	 * @return string A YAML string
+	 */
   static protected function parseMapping($mapping, &$i = 0)
   {
     $output = array();

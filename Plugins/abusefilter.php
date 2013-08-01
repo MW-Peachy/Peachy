@@ -26,13 +26,14 @@ class AbuseFilter {
 	 * @access private
 	 */
 	private $wiki;
-	
+
 	/**
 	 * Construction method for the AbuseFilter class
-	 * 
+	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @return void
+	 * @throws DependancyError
+	 * @return \AbuseFilter
 	 */
 	function __construct( &$wikiClass ) {
 		$this->wiki = $wikiClass;

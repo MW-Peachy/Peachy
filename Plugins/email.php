@@ -60,14 +60,15 @@ class Email {
      * @var array
      */
 	private $mRT = array();
-	
+
 	/**
-     * Construct function, adds the From: field, subject, and message
-     * @param string $fromEmail Email address of sender
-     * @param string $fromName Name of sender.
-     * @param string $subject Subject of email
-     * @param string $message Message to send
-     */
+	 * Construct function, adds the From: field, subject, and message
+	 * @param string $fromEmail Email address of sender
+	 * @param string $fromName Name of sender.
+	 * @param string $subject Subject of email
+	 * @param string $message Message to send
+	 * @throws DependancyError
+	 */
 	function __construct( $fromEmail, $fromName, $subject, $message ) {
 		
 		if( !function_exists( 'mail' ) ) {

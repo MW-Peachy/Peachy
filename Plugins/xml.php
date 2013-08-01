@@ -55,6 +55,7 @@ class Xml {
 	 * The values are passed to Sanitizer::encodeAttribute.
 	 * Return null if no attributes given.
 	 * @param $attribs Array of attributes for an XML element
+	 * @throws Exception
 	 * @return null|string
 	 */
 	public static function expandAttributes( $attribs ) {

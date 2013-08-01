@@ -208,11 +208,11 @@ class Page {
 	 * @access protected
 	 */
 	protected $starttimestamp;
-	
-	
+
+
 	/**
 	 * Construction method for the Page class
-	 * 
+	 *
 	 * @access public
 	 * @param Wiki $wikiClass The Wiki class object
 	 * @param mixed $title Title of the page (default: null)
@@ -220,7 +220,8 @@ class Page {
 	 * @param bool $followRedir Should it follow a redirect when retrieving the page (default: true)
 	 * @param bool $normalize Should the class automatically normalize the title (default: true)
 	 * @param string $timestamp Set the start of a program or start reference to avoid edit conflicts.
-	 * @return void
+	 * @throws NoTitle
+	 * @return \Page
 	 */
 	function __construct( &$wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
 		$this->wiki =& $wikiClass;
@@ -1039,12 +1040,13 @@ class Page {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Returns the title of the discussion (talk) page associated with a page, if it exists.
-	 * 
+	 *
+	 * @throws BadEntryError
 	 * @return string Title of discussion page
-	 */	
+	 */
 	public function get_discussion() {
 		if($this->namespace_id < 0 || $this->namespace_id === "") {
 			// No discussion page exists
@@ -1557,11 +1559,12 @@ class Page {
 		
 		return $this->hits;
 	}
-	
-	/**   
+
+	/**
 	 * Regenerates lastedit, length, and hits
-	 * 
+	 *
 	 * @param array $pageInfoArray2 Array of values to merge with defaults (default: null)
+	 * @throws BadTitle
 	 * @return array Information gathered
 	 * @access protected
 	 */

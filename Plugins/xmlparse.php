@@ -21,10 +21,12 @@ class XMLParse {
 
 	/**
 	 * Converts an XML url or string to a PHP array format
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param string $data Either an url to an xml file, or a raw XML string. Peachy will autodetect which is which.
+	 * @throws XMLError
+	 * @throws DependancyError
 	 * @return array Parsed XML
 	 */
 	public static function load( $data ) {
