@@ -79,7 +79,18 @@ class PeachyAWBFunctions {
 		"id", "class", "name", "style" 
 	);
 	
-	public static $html_colors = array( '#00FFFF'=> 'aqua', '#F0FFFF'=> 'azure', '#F5F5DC'=> 'beige', '#FFE4C4'=> 'bisque', '#000000'=> 'black', '#0000FF'=> 'blue', '#A52A2A'=> 'brown', '#FF7F50'=> 'coral', '#FFF8DC'=> 'cornsilk', '#DC143C'=> 'crimson', '#00FFFF'=> 'cyan', '#00008B'=> 'darkBlue', '#008B8B'=> 'darkCyan', '#A9A9A9'=> 'darkGray', '#A9A9A9'=> 'darkGrey', '#8B0000'=> 'darkRed', '#FF1493'=> 'deepPink', '#696969'=> 'dimGray', '#696969'=> 'dimGrey', '#FF00FF'=> 'fuchsia', '#FFD700'=> 'gold', '#808080'=> 'gray', '#808080'=> 'grey', '#008000'=> 'green', '#F0FFF0'=> 'honeyDew', '#FF69B4'=> 'hotPink', '#4B0082'=> 'indigo', '#FFFFF0'=> 'ivory', '#F0E68C'=> 'khaki', '#E6E6FA'=> 'lavender', '#00FF00'=> 'lime', '#FAF0E6'=> 'linen', '#FF00FF'=> 'magenta', '#800000'=> 'maroon', '#FFE4B5'=> 'moccasin', '#000080'=> 'navy', '#FDF5E6'=> 'oldLace', '#808000'=> 'olive', '#FFA500'=> 'orange', '#DA70D6'=> 'orchid', '#CD853F'=> 'peru', '#FFC0CB'=> 'pink', '#DDA0DD'=> 'plum', '#800080'=> 'purple', '#FF0000'=> 'red', '#FA8072'=> 'salmon', '#2E8B57'=> 'seaGreen', '#FFF5EE'=> 'seaShell', '#A0522D'=> 'sienna', '#C0C0C0'=> 'silver', '#87CEEB'=> 'skyBlue', '#FFFAFA'=> 'snow', '#D2B48C'=> 'tan', '#008080'=> 'teal', '#D8BFD8'=> 'thistle', '#FF6347'=> 'tomato', '#EE82EE'=> 'violet', '#F5DEB3'=> 'wheat', '#FFFFFF'=> 'white', '#FFFF00'=> 'yellow', );
+	public static $html_colors = array( '#F0FFFF'=> 'azure', '#F5F5DC'=> 'beige', '#FFE4C4'=> 'bisque',
+		'#000000'=> 'black', '#0000FF'=> 'blue', '#A52A2A'=> 'brown', '#FF7F50'=> 'coral', '#FFF8DC'=> 'cornsilk',
+		'#DC143C'=> 'crimson', '#00FFFF'=> 'cyan', '#00008B'=> 'darkBlue', '#008B8B'=> 'darkCyan', '#A9A9A9'=> 'darkGrey',
+		'#8B0000'=> 'darkRed', '#FF1493'=> 'deepPink', '#696969'=> 'dimGrey', '#FFD700'=> 'gold', '#808080'=> 'grey',
+		'#008000'=> 'green', '#F0FFF0'=> 'honeyDew', '#FF69B4'=> 'hotPink', '#4B0082'=> 'indigo', '#FFFFF0'=> 'ivory',
+		'#F0E68C'=> 'khaki', '#E6E6FA'=> 'lavender', '#00FF00'=> 'lime', '#FAF0E6'=> 'linen', '#FF00FF'=> 'magenta',
+		'#800000'=> 'maroon', '#FFE4B5'=> 'moccasin', '#000080'=> 'navy', '#FDF5E6'=> 'oldLace', '#808000'=> 'olive',
+		'#FFA500'=> 'orange', '#DA70D6'=> 'orchid', '#CD853F'=> 'peru', '#FFC0CB'=> 'pink', '#DDA0DD'=> 'plum',
+		'#800080'=> 'purple', '#FF0000'=> 'red', '#FA8072'=> 'salmon', '#2E8B57'=> 'seaGreen', '#FFF5EE'=> 'seaShell',
+		'#A0522D'=> 'sienna', '#C0C0C0'=> 'silver', '#87CEEB'=> 'skyBlue', '#FFFAFA'=> 'snow', '#D2B48C'=> 'tan',
+		'#008080'=> 'teal', '#D8BFD8'=> 'thistle', '#FF6347'=> 'tomato', '#EE82EE'=> 'violet', '#F5DEB3'=> 'wheat',
+		'#FFFFFF'=> 'white', '#FFFF00'=> 'yellow', );
 	
 	
 	public static $stub_search = '[Ss]tub';
