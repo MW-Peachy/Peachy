@@ -61,14 +61,15 @@ class MWReleases {
 	public function get_min_version() {
 		return min( $this->versions['all'] );
 	}
-	
+
 	/**
 	 * Loads list of all SiteMatrix wikis
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param bool $peachyCheck Whether or not to check the Peachy version, used for detecting updates. You will not need to use this. Default false. 
+	 * @param bool $peachyCheck Whether or not to check the Peachy version, used for detecting updates. You will not need to use this. Default false.
+	 * @throws DependencyError
 	 * @return array List of all wikis
 	 */
 	public static function load( &$wikiClass, $peachyCheck = false ) {

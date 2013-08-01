@@ -344,6 +344,7 @@ class WebRequest {
 	/**
 	 * Return the path portion of the request URI.
 	 *
+	 * @throws Exception
 	 * @return String
 	 */
 	public function getRequestURL() {

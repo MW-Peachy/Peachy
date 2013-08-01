@@ -112,13 +112,15 @@ class Peachy {
 
 	/**
 	 * Initializes Peachy, logs in with a either configuration file or a given username and password
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param string $config_name Name of the config file stored in the Configs directory, minus the .cfg extension. Default null
 	 * @param string $username Username to log in if no config file specified. Default null
 	 * @param string $password Password to log in with if no config file specified. Default null
 	 * @param string $base_url URL to api.php if no config file specified. Defaults to English Wikipedia's API.
+	 * @param string $classname
+	 * @throws LoginError
 	 * @return Wiki Instance of the Wiki class, where most functions are stored
 	 */
 	public static function newWiki( $config_name = null, $username = null, $password = null, $base_url = 'http://en.wikipedia.org/w/api.php', $classname = 'Wiki' ) {
@@ -160,14 +162,15 @@ class Peachy {
 		
 		return $w;
 	}
-	
+
 	/**
 	 * Performs various checks and settings
 	 * Checks if MW version is at least {@link MINMW}
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param string $base_url URL to api.php
+	 * @throws DependencyError
 	 * @return array Installed extensions
 	 */
 	public static function wikiChecks( $base_url ) {
@@ -232,13 +235,14 @@ class Peachy {
 		self::deprectaedWarn( null, null, "Warning: Peachy::loadAllPlugins() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
 
 	}
-	
+
 	/**
-	 * Checks for config files, parses them. 
-	 * 
+	 * Checks for config files, parses them.
+	 *
 	 * @access private
 	 * @static
 	 * @param string $config_name Name of config file
+	 * @throws BadEntryError
 	 * @return array Config params
 	 */
 	private static function parse_config( $config_name ) {
@@ -311,6 +315,8 @@ class Peachy {
 
 /**
  * Simple phpversion() wrapper
+ * @param null $check_version
+ * @throws DependancyError
  * @return void
  */
 function peachyCheckPHPVersion( $check_version = null ) {
