@@ -460,17 +460,20 @@ class Image {
 		return $this->wiki->rotateImage( $this->rawtitle, $degree );
 		
 	}
-	
+
 	/**
 	 * Upload an image to the wiki
-	 * 
+	 *
 	 * @access public
-	 * @param mixed $localname Location of the file to upload. Either an absolute path, or the name of an image in the Images/ directory will work. Default null (/path/to/peachy/Images/<$this->localname>)
+	 * @param null $file
 	 * @param string $text Text on the image file page (default: '')
 	 * @param string $comment Comment for inthe upload in logs (default: '')
 	 * @param bool $watch Should the upload be added to the watchlist (default: false)
 	 * @param bool $ignorewarnings Ignore warnings about the upload (default: true)
 	 * @param bool $async Make potentially large file operations asynchronous when possible.  Default false.
+	 * @param bool $tboverride
+	 * @throws BadEntryError
+	 * @internal param mixed $localname Location of the file to upload. Either an absolute path, or the name of an image in the Images/ directory will work. Default null (/path/to/peachy/Images/<$this->localname>)
 	 * @return bool|void
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false, $tboverride = false ) {
@@ -702,20 +705,22 @@ class Image {
 		else {
 			pecho( "Error in getting image URL.\n\n" . print_r($ii) . "\n\n", PECHO_FATAL );
 		}
-	}	
-	
+	}
+
 	/**
 	 * Resize an image
-	 * 
+	 *
 	 * @access public
 	 * @param int $width Width of resized image. Default null
 	 * @param int $height Height of resized image. Default null.
 	 * @param bool $reupload Whether or not to automatically upload the image again. Default false
 	 * @param string $newname New filename when reuploading. If not null, upload over the old file. Default null.
 	 * @param string $text Text to use for the image name
-	 * @param string $comment Upload comment. 
+	 * @param string $comment Upload comment.
 	 * @param bool $watch Whether or not to watch the image on uploading
 	 * @param bool $ignorewarnings Whether or not to ignore upload warnings
+	 * @throws BadEntryError
+	 * @throws DependancyError
 	 * @return void
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $newname = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {

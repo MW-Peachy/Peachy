@@ -202,6 +202,7 @@ class User {
 	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string $language Language code to set as default for the user (optional, defaults to content language). Default null.
 	 * @param string $domain Domain for external authentication (optional). Default null.
+	 * @return bool
 	 */
 	 public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
 		
@@ -573,15 +574,17 @@ class User {
 	 public function username() {
 		return $this->username;
 	}
-	
+
 	/**
 	 * Send an email to another wiki user
-	 * 
+	 *
 	 * @access public
 	 * @param string $text Text to send
 	 * @param string $subject Subject of email. Default 'Wikipedia Email'
 	 * @param bool $ccme Whether or not to send a copy of the email to "myself". Default false.
 	 * $return void
+	 * @throws EmailError
+	 * @return bool
 	 */
 	public function email( $text = null, $subject = "Wikipedia Email", $ccme = false ) {
 		if( !$this->has_email() ) {

@@ -55,6 +55,8 @@ class Xml {
 	 * The values are passed to Sanitizer::encodeAttribute.
 	 * Return null if no attributes given.
 	 * @param $attribs Array of attributes for an XML element
+	 * @throws Exception
+	 * @return null|string
 	 */
 	public static function expandAttributes( $attribs ) {
 		$out = '';
@@ -379,6 +381,7 @@ class Xml {
 	 * @param $legend Legend of the fieldset. If evaluates to false, legend is not added.
 	 * @param $content Pre-escaped content for the fieldset. If false, only open fieldset is returned.
 	 * @param $attribs Any attributes to fieldset-element.
+	 * @return string
 	 */
 	public static function fieldset( $legend = false, $content = false, $attribs = array() ) {
 		$s = Xml::openElement( 'fieldset', $attribs ) . "\n";
@@ -401,6 +404,7 @@ class Xml {
 	 * @param $cols The number of columns for the textarea
 	 * @param $rows The number of rows for the textarea
 	 * @param $attribs Any other attributes for the textarea
+	 * @return string
 	 */
 	public static function textarea( $name, $content, $cols = 40, $rows = 5, $attribs = array() ) {
 		return self::element( 'textarea',

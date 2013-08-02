@@ -344,6 +344,7 @@ class WebRequest {
 	/**
 	 * Return the path portion of the request URI.
 	 *
+	 * @throws Exception
 	 * @return String
 	 */
 	public function getRequestURL() {
@@ -424,6 +425,7 @@ class WebRequest {
 	/**
 	 * Get a request header, or false if it isn't set
 	 * @param $name String: case-insensitive header name
+	 * @return bool
 	 */
 	public function getHeader( $name ) {
 		$name = strtoupper( $name );

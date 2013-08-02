@@ -20,11 +20,12 @@ class sfYaml
   static protected
     $spec = '1.2';
 
-  /**
-   * Sets the YAML specification version to use.
-   *
-   * @param string $version The YAML specification version
-   */
+	/**
+	 * Sets the YAML specification version to use.
+	 *
+	 * @param string $version The YAML specification version
+	 * @throws InvalidArgumentException
+	 */
   static public function setSpecVersion($version)
   {
     if (!in_array($version, array('1.1', '1.2')))

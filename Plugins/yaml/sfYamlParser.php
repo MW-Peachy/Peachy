@@ -296,13 +296,14 @@ class sfYamlParser
     return strlen($this->currentLine) - strlen(ltrim($this->currentLine, ' '));
   }
 
-  /**
-   * Returns the next embed block of YAML.
-   *
-   * @param integer $indentation The indent level at which the block is to be read, or null for default
-   *
-   * @return string A YAML string
-   */
+	/**
+	 * Returns the next embed block of YAML.
+	 *
+	 * @param integer $indentation The indent level at which the block is to be read, or null for default
+	 *
+	 * @throws InvalidArgumentException
+	 * @return string A YAML string
+	 */
   protected function getNextEmbedBlock($indentation = null)
   {
     $this->moveToNextLine();
@@ -384,13 +385,14 @@ class sfYamlParser
     $this->currentLine = $this->lines[--$this->currentLineNb];
   }
 
-  /**
-   * Parses a YAML value.
-   *
-   * @param  string $value A YAML value
-   *
-   * @return mixed  A PHP value
-   */
+	/**
+	 * Parses a YAML value.
+	 *
+	 * @param  string $value A YAML value
+	 *
+	 * @throws InvalidArgumentException
+	 * @return mixed  A PHP value
+	 */
   protected function parseValue($value)
   {
     if ('*' === substr($value, 0, 1))

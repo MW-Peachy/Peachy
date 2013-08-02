@@ -216,17 +216,18 @@ class Wiki {
 	 * @access public
 	 */
 	public $mwversion;
-	
+
 	/**
 	 * Contruct function for the wiki. Handles login and related functions.
-	 * 
+	 *
 	 * @access public
 	 * @see Peachy::newWiki()
 	 * @param array $configuration Array with configuration data. At least needs username, password, and base_url.
 	 * @param array $extensions Array of names of extensions installed on the wiki and their versions (default: array())
 	 * @param int $recursed Is the function recursing itself? Used internally, don't use (default: 0)
 	 * @param mixed $token Token if the wiki needs a token. Used internally, don't use (default: null)
-	 * @return void
+	 * @throws LoginError
+	 * @return \Wiki
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
 		global $pgProxy, $pgVerbose;
@@ -507,14 +508,17 @@ class Wiki {
 	public function set_runpage( $page = null ) {
 		$this->runpage = $page;
 	}
-	
+
 	/**
 	 * Queries the API.
-	 * 
+	 *
 	 * @access public
 	 * @param array $arrayParams Parameters given to query with (default: array())
 	 * @param bool $post Should it be a POST reqeust? (default: false)
+	 * @param bool $errorcheck
 	 * @param bool $recursed Is this a recursed reqest (default: false)
+	 * @param bool $forcenoassert
+	 * @throws LoggedOut
 	 * @return array Returns an array with the API result
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $forcenoassert = false ) {
@@ -643,13 +647,14 @@ class Wiki {
 	public function get_mw_version() {
 		return $this->mwversion;
 	}
-	
+
 	/**
 	 * Simplifies the running of API queries, especially with continues and other parameters.
-	 * 
+	 *
 	 * @access public
 	 * @link http://wiki.peachy.compwhizii.net/wiki/Manual/Wiki::listHandler
 	 * @param array $tArray Parameters given to query with (default: array()). In addition to those recognised by the API, ['_code'] should be set to the first two characters of all the parameters in a list=XXX API call - for example, with allpages, the parameters start with 'ap', with recentchanges, the parameters start with 'rc' -  and is required; ['_limit'] imposes a hard limit on the number of results returned (optional) and ['_lhtitle'] simplifies a multidimensional result into a unidimensional result - lhtitle is the key of the sub-array to return. (optional)
+	 * @throws BadEntryError
 	 * @return array Returns an array with the API result
 	 */
 	public function listHandler( $tArray = array() ) {
@@ -1083,6 +1088,7 @@ class Wiki {
 	 * @param array $prop What properties to retrieve (default: array('size', 'wordcount', 'timestamp', 'snippet') ).
 	 * @param bool $includeredirects Whether to include redirects or not (default: true).
 	 * @param int $limit A hard limit on the number of results to retrieve (default: null i.e. all).
+	 * @return array
 	 */
 	public function search($search, $fulltext = true, $namespaces = array(0), $prop = array('size', 'wordcount', 'timestamp', 'snippet'), $includeredirects = true, $limit = 50) {
 	

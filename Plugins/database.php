@@ -132,12 +132,13 @@ abstract class DatabaseBase {
 	 */
 	function close() {
 		return true;
-	} 
-	
+	}
+
 	/**
 	 * Run a MySQL query
 	 * @param string $sql Query to run
-	 * @return ResultWrapper|bool 
+	 * @throws DBError
+	 * @return ResultWrapper|bool
 	 */
 	public function query( $sql ) {
 		$this->mLastQuery = $sql;

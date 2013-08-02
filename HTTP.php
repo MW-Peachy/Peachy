@@ -67,14 +67,16 @@ class HTTP {
 	 * @access private
 	 */
 	private $cookie_jar;
-	
+
 	/**
 	 * Construction method for the HTTP class
-	 * 
+	 *
 	 * @access public
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
-	 * @return void
-	 */	
+	 * @param bool $verifyssl
+	 * @throws DependencyError
+	 * @return \HTTP
+	 */
 	function __construct( $echo = false, $verifyssl = true ) {
 		global $pgUA;
 		
@@ -125,13 +127,14 @@ class HTTP {
 		
 		curl_setopt($this->curl_instance,CURLOPT_USERAGENT, $user_agent);
 	}
-	
+
 	/**
 	 * Get an url with HTTP GET
-	 * 
+	 *
 	 * @access public
 	 * @param string $url URL to get
 	 * @param array $data Array of data to pass. Gets transformed into the URL inside the function. Default null.
+	 * @throws CURLError
 	 * @return bool|string Result
 	 */
 	function get( $url, $data = null ) {
@@ -190,13 +193,14 @@ class HTTP {
 		$ci = curl_getinfo( $this->curl_instance );
 		return $ci['http_code'];
 	}
-	
+
 	/**
 	 * Sends data via HTTP POST
-	 * 
+	 *
 	 * @access public
 	 * @param string $url URL to send
 	 * @param array $data Array of data to pass.
+	 * @throws CURLError
 	 * @return bool|string Result
 	 */
 	function post( $url, $data ) {
@@ -240,13 +244,14 @@ class HTTP {
 
 		return $data;
 	}
-	
+
 	/**
 	 * Downloads an URL to the local disk
-	 * 
+	 *
 	 * @access public
 	 * @param string $url URL to get
 	 * @param array $local Local filename to download to
+	 * @throws CURLError
 	 * @return bool
 	 */
 	function download( $url, $local ) {

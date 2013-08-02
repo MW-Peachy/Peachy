@@ -85,11 +85,13 @@ class GlobalUserInfo {
 
 	/**
 	 * Construction method for the GlobalUserInfo class
-	 * 
+	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
 	 * @param mixed $username Username
-	 * @return void
+	 * @throws APIError
+	 * @throws DependancyError
+	 * @return \GlobalUserInfo
 	 */
 	function __construct( &$wikiClass, $username ) {
 	

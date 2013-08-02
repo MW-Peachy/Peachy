@@ -23,13 +23,14 @@
 
 
 class YAML {
-	
+
 	/**
 	 * __construct function.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $data. (default: null)
-	 * @return void
+	 * @throws DependancyError
+	 * @return \YAML
 	 */
 	function __construct($data = null) {
 		$version = peachyCheckPHPVersion();
@@ -60,11 +61,12 @@ class YAML {
 	public static function parse($data,$indent = 5) {
 		return self::__invoke($data,$indent);
 	}
-	
+
 	/**
 	 * toArray function.
-	 * 
+	 *
 	 * @access public
+	 * @throws BadEntryError
 	 * @return void
 	 */
 	public function toArray() {
@@ -86,11 +88,13 @@ class YAML {
 		return $parsed;
 		
 	}
-	
+
 	/**
 	 * toYaml function.
-	 * 
+	 *
 	 * @access public
+	 * @param int $indent
+	 * @throws BadEntryError
 	 * @return void
 	 */
 	public function toYaml( $indent = 5 ) {

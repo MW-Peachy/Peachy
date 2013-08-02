@@ -32,9 +32,10 @@ class DatabaseMySQL extends DatabaseBase {
 		$ret = mysql_query( $sql, $this->mConn );
 		return $ret; 
 	}
-	
+
 	/**
 	 * Connects to a mysql database
+	 * @throws DependancyError
 	 * @return bool Whether or not the connection was opened
 	 */
 	public function open() {
@@ -89,10 +90,11 @@ class DatabaseMySQL extends DatabaseBase {
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Returns a MySQL object using mysql_fetch_object()
 	 * @param resource $res MySQL result from mysql_query()
+	 * @throws DBError
 	 * @return object
 	 */
 	public function fetchObject( $res ) {
@@ -107,10 +109,11 @@ class DatabaseMySQL extends DatabaseBase {
 		
 		return $row;
 	}
-	
+
 	/**
 	 * Returns a MySQL array using mysql_fetch_assoc()
 	 * @param resource $res MySQL result from mysql_query()
+	 * @throws DBError
 	 * @return array
 	 */
 	public function fetchRow( $res ) {
@@ -124,10 +127,11 @@ class DatabaseMySQL extends DatabaseBase {
 		
 		return $row;
 	}
-	
+
 	/**
 	 * Returns the number of rows that were modified/returned
 	 * @param resource $res MySQL result from mysql_query()
+	 * @throws DBError
 	 * @return int
 	 */
 	public function numRows( $res ) {
@@ -142,10 +146,11 @@ class DatabaseMySQL extends DatabaseBase {
 		
 		return $row;
 	}
-	
+
 	/**
 	 * Returns the number of fields in a result using mysql_fetch_fields()
 	 * @param resource $res MySQL result from mysql_query()
+	 * @throws DBError
 	 * @return int
 	 */
 	public function numFields( $res ) {
