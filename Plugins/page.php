@@ -726,7 +726,6 @@ class Page {
 	 * @param bool $force Override nobots check (default: false)
 	 * @param string $pend Set to 'pre' or 'ap' to prepend or append, respectively (default: null)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false) 
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string $section Section number. 0 for the top section, 'new' for a new section.  Default null.
 	 * @param string $sectiontitle The title for a new section. Default null.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
@@ -740,7 +739,6 @@ class Page {
 		$force = false,
 		$pend = false, 
 		$create = false,
-		$tboverride = false,
 		$section = null,
 		$sectiontitle = null,
 		$watch = null
@@ -806,13 +804,6 @@ class Page {
 		elseif( $create == "only" ) $editarray['createonly'] = 'yes';
 		elseif( $create == "recreate" ) $editarray['recreate'] = 'yes';
 		
-		$tb = $this->wiki->tboverride( $this->title, "createpage", $tboverride );
-		if( !$tb && !$create == "never" && !$this->exists ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$this->title." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
-		}
-		
 		if( $this->wiki->get_maxlag() ) $editarray['maxlag'] = $this->wiki->get_maxlag();
 		
 		if( !empty( $summary ) ) $editarray['summary'] = $summary;
@@ -830,13 +821,6 @@ class Page {
 				pecho( "Error: $e\n\n", PECHO_FATAL );
 				return false;
 			}
-		}
-		
-		$tb = $this->wiki->tboverride( $this->title, "edit", $tboverride );
-		if( !$tb ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$this->title." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
 		}
 		
 		Hooks::runHook( 'StartEdit', array( &$editarray ) );
@@ -880,12 +864,11 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false) 
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
-	public function prepend( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $tboverride = false, $watch = null )  {
-		return $this->edit( $text, $summary, $minor, $bot, $force, 'pre', $create, $tboverride, null, null, $watch );
+	public function prepend( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $watch = null )  {
+		return $this->edit( $text, $summary, $minor, $bot, $force, 'pre', $create, null, null, $watch );
 	}
 	
 	/**
@@ -899,12 +882,11 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false) 
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
-	public function append( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $tboverride = false, $watch = null )  {
-		return $this->edit( $text, $summary, $minor, $bot, $force, 'ap', $create, $tboverride, null, null, $watch );
+	public function append( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $watch = null )  {
+		return $this->edit( $text, $summary, $minor, $bot, $force, 'ap', $create, null, null, $watch );
 	}
 	
 	/**
@@ -919,13 +901,12 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)* @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false) 
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false) 
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
-	public function newsection( $text, $sectiontitle, $summary = null, $minor = false, $bot = true, $force = false, $create = false, $tboverride = false, $watch = null ) {
+	public function newsection( $text, $sectiontitle, $summary = null, $minor = false, $bot = true, $force = false, $create = false, $watch = null ) {
 		if( is_null( $summary ) ) $summary = "/* ".$sectiontitle." */ new section";
-		return $this->edit( $text, $summary, $minor, $bot, $force, false, $create, $tboverride, 'new', $sectiontitle, $watch );
+		return $this->edit( $text, $summary, $minor, $bot, $force, false, $create, 'new', $sectiontitle, $watch );
 	}
 	
 	/*
@@ -935,11 +916,10 @@ class Page {
 	 * @param bool $force Force an undo, despite e.g. new messages (default false).
 	 * @param string $summary Override the default edit summary (default null).
 	 * @param int $revisions The number of revisions to undo (default 1).
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
 	 * @return int The new revision id of the page edited.
 	 */
-	public function undo($summary = null, $revisions = 1, $force = false, $tboverride = false, $watch = null) {
+	public function undo($summary = null, $revisions = 1, $force = false, $watch = null) {
 		$info = $this->history($revisions);
 		$oldrev = $info[(count($info) - 1)]['revid'];
 		$newrev = $info[0]['revid'];
@@ -989,13 +969,6 @@ class Page {
 				pecho( "Error: $e\n\n", PECHO_FATAL );
 				return false;
 			}
-		}
-		
-		$tb = $this->wiki->tboverride( $this->title, "edit", $tboverride );
-		if( !$tb ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$this->title." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
 		}
 		
 		pecho( "Undoing revision(s) on {$this->title}...\n\n", PECHO_NORMAL );
@@ -1071,10 +1044,9 @@ class Page {
 	 * @param bool $noredirect Whether or not to suppress the leaving of a redirect to the new title at the old title.
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
 	 * @param bool $nowarnings Ignore any warnings. Default false.
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @return bool True on success
 	 */	
-	public function move( $newTitle, $reason = '', $movetalk = true, $movesubpages = true, $noredirect = false, $watch = null, $nowarnings = false, $tboverride = false ) {
+	public function move( $newTitle, $reason = '', $movetalk = true, $movesubpages = true, $noredirect = false, $watch = null, $nowarnings = false ) {
 		$tokens = $this->wiki->get_tokens();
 		
 		if( $tokens['move'] == '+\\' ) {
@@ -1117,13 +1089,6 @@ class Page {
 		
 		if( $this->wiki->get_maxlag() ) {
 			$editarray['maxlag'] = $this->wiki->get_maxlag();
-		}
-		
-		$tb = $this->wiki->tboverride( $newTitle, "move", $tboverride );
-		if( !$tb ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$newtitle." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
 		}
 		
 		Hooks::runHook( 'StartMove', array( &$editarray ) );
@@ -1657,7 +1622,7 @@ class Page {
 	 * @param bool $force Whether to force an (attempt at an) edit, regardless of news messages, etc.
 	 * @param string $summary Override the default edit summary for this rollback. Default null.
 	 * @param bool $markbot If set, both the rollback and the revisions being rolled back will be marked as bot edits.
-	 * @param string or bool Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
 	 * @return array Details of the rollback perform. ['revid']: The revision ID of the rollback. ['old_revid']: The revision ID of the first (most recent) revision that was rolled back. ['last_revid']: The revision ID of the last (oldest) revision that was rolled back.
 	 */
 	public function rollback($force = false, $summary = null, $markbot = false, $watch = null){

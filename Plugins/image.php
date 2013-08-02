@@ -414,6 +414,40 @@ class Image {
 			return false;
 		}
 	}
+    
+    /**
+     * Rotate the image clockwise a certain degree.
+     *
+     * @param int|string $degree Degrees to rotate image clockwise
+     * @return bool|void
+     */
+     public function rotate ( $degree = 90 ) {
+        $tokens = $this->get_tokens();
+        
+        $apiArray = array(
+            'action' => 'imagerotate',
+            'token' => $tokens['edit'],
+            'titles' => $this->title
+        );
+        pecho( "Rotating image(s) $degree degrees...\n\n", PECHO_NOTICE );
+        
+        $result = $this->apiQuery( $apiArray, true );
+        
+        if( isset( $result['imagerotate'] ) ) {
+            if( isset( $result['imagerotate']['result'] ) && $result['imagerotate']['result'] == "Success" ) {
+                $this->__construct( $this->wiki, $this->title );
+                return true;
+            }
+            else {
+                pecho( "Rotate error...\n\n" . print_r($result['imagerotate'], true) . "\n\n", PECHO_FATAL );
+                return false;
+            }
+        }
+        else {
+            pecho( "Rotate error...\n\n" . print_r($result, true), PECHO_FATAL );
+            return false;
+        }
+    }
 	
 	/**
 	 * Rotate the image clockwise a certain degree.
@@ -513,8 +547,8 @@ class Image {
 		$apiArr = array(
 			'action' => 'upload',
 			'filename' => $this->rawtitle,
-			'comment' => $comment.' (Peachy 2 beta)',
-			'text' => $text.' (Uploaded using Peachy v2.0 beta)',
+			'comment' => $comment,
+			'text' => $text,
 			'token' => $tokens['edit'],
 			'ignorewarnings' => intval( $ignorewarnings )
 		);
@@ -782,6 +816,59 @@ class Image {
 			return $this->rawtitle;
 		}
 	}
+    
+    /**
+     * Deletes the image.
+     * 
+     * @param string $reason A reason for the deletion. Defaults to null (blank).
+     * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+     * @param string $oldimage The name of the old image to delete as provided by iiprop=archivename
+     * @return bool True on success
+     */
+    public function delete( $reason = null, $watch = null, $oldimage = null ) {
+        if( !in_array( 'delete', $this->wiki->get_userrights() ) ) {
+            pecho( "User is not allowed to delete pages", PECHO_FATAL );
+            return false;
+        }
+        
+        $tokens = $this->wiki->get_tokens();
+        
+        $editarray = array(
+            'action' => 'delete',
+            'title' => $this->title,
+            'token' => $tokens['delete'],
+            'reason' => $reason
+        );
+        
+        if( !is_null( $watch ) ) {
+            if( $watch ) $editarray['watchlist'] = 'watch';
+            elseif( !$watch ) $editarray['watchlist'] = 'nochange';
+            elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
+            else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+        }
+        if( !is_null( $oldimage ) ) $editarray['oldimage'] = $oldimage;
+        
+        Hooks::runHook( 'StartDelete', array( &$editarray ) );
+        
+        pecho( "Deleting {$this->title}...\n\n", PECHO_NOTICE );
+        
+        $result = $this->wiki->apiQuery( $editarray, true);
+        
+        if( isset( $result['delete'] ) ) {
+            if( isset( $result['delete']['title'] ) ) {
+                $this->__construct( $this->wiki, $this->title );
+                return true;
+            }
+            else {
+                pecho( "Delete error...\n\n" . print_r($result['delete'], true) . "\n\n", PECHO_FATAL );
+                return false;
+            }
+        }
+        else {
+            pecho( "Delete error...\n\n" . print_r($result, true), PECHO_FATAL );
+            return false;
+        }
+    }
 	
 	/**
 	 * Returns the sanitized local disk name

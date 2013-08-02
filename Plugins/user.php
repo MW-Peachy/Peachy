@@ -227,30 +227,23 @@ class User {
 		if( !$reason == null ) $apiArray['reason'] = $reason;
 		if( !$language == null ) $apiArray['language'] = $language;
 		
-		$tb = $this->wiki->tboverride( "User:".$this->username, "new-account", $tboverride );
-		if( !$tb ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$this->username." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
-		}
-		
 		if( $this->exists() ) {
-			pecho( "Fatal Error: User account already exists.\n\n", PECHO_FATAL );
+			pecho( "Error: User account already exists.\n\n", PECHO_ERROR );
 			return false;
 		}
 		if( $password == null && !$mailpassword ) {
-			pecho( "Fatal Error: neither a password or the mailpassword have been set.\n\n", PECHO_FATAL);
+			pecho( "Error: neither a password or the mailpassword have been set.\n\n", PECHO_ERROR);
 			return false;
 		}
 		if( $mailpassword ) {
 			if( $email == null ) {
-				pecho( "Fatal Error: Email not specified.\n\n", PECHO_FATAL );
+				pecho( "Error: Email not specified.\n\n", PECHO_ERROR );
 				return false;
 			}
 			else $apiArray['mailpassword'] = 'yes';
 		} else {
 			if( is_null( $password ) ) {
-				pecho("Fatal Error: No password specified.\n\n", PECHO_FATAL);
+				pecho("Error: No password specified.\n\n", PECHO_ERROR);
 				return false;
 			}
 		}
@@ -658,7 +651,7 @@ class User {
             'token' => $token,
             'add' => implode( '|', $add ),
             'remove' => implode( '|', $remove ),
-			'reason' => $reason.' (Peachy 2 beta)'
+			'reason' => $reason
         );
 				
 		Hooks::runHook( 'StartUserrights', array( &$apiArr ) );

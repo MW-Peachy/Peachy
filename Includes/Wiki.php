@@ -1998,13 +1998,13 @@ class Wiki {
 	 * Get the difference between 2 pages
 	 *
 	 * @access public
-	 * @param fromtitle First title to compare
-	 * @param fromid First page ID to compare
-	 * @param fromrev First revision to compare
-	 * @param totitle Second title to compare
-	 * @param toid Second page ID to compare
-	 * @param torev Second revision to compare
-	 * @return results
+	 * @param string $fromtitle First title to compare
+	 * @param string $fromid First page ID to compare
+	 * @param string $fromrev First revision to compare
+	 * @param string $totitle Second title to compare
+	 * @param string $toid Second page ID to compare
+	 * @param string $torev Second revision to compare
+	 * @return array
 	 */
 	public function compare( $fromtitle = null, $fromid = null, $fromrev = null, $totitle = null, $toid = null, $torev = null ) {
 	
@@ -2039,75 +2039,6 @@ class Wiki {
 		if( isset( $results['compare']['*'] ) ) return $results['compare']['*'];
 		else {
 			pecho( "Compare failure... Please check your parameters.\n\n", PECHO_FATAL );
-			return false;
-		}
-	}
-	
-	/**
-	 * Rotate the image clockwise a certain degree.
-	 *
-	 * @param string|array $titles A list of titles to work on. Default null.
-	 * @param int|string $degree Degrees to rotate image clockwise. Default 90.
-	 * @param string|array $pageids A list of page IDs to work on. Default null.
-	 * @param string|array $revids A list of revision IDs to work on. Default null.
-	 * @param bool $redirects Automatically resolve redirects. Default true.
-	 * @param bool $convert Convert titles to other variants if necessary. Default false.
-	 * @param string $generator Get the list of pages to work on by executing the specified query module. Default null.
-	 * @return bool|void
-	 */
-	 public function rotateImage ( $titles = null, $degree = 90, $pageids = null, $revids = null, $redirects = true, $convert = false, $generator = null ) {
-		$tokens = $this->get_tokens();
-		
-		$apiArray = array(
-			'action' => 'imagerotate',
-			'token' => $tokens['edit']
-		);
-		pecho( "Rotating image(s) $degree degrees...\n\n", PECHO_NOTICE );
-		if( !is_null( $titles ) || !is_null( $pageids ) || !is_null( $revids ) ) {
-			if( !is_null( $titles ) ) {
-				if( is_array( $titles ) ) $apiArray['titles'] = implode ( '|', $titles );
-				else $apiArray['titles'] = $titles;
-			}
-			if( !is_null( $pageids ) ) {
-				if( is_array( $pageids ) ) $apiArray['pageids'] = implode ( '|', $pageids );
-				else $apiArray['pageids'] = $pageids;
-			}
-			if( !is_null( $revids ) ) {
-				if( is_array( $revids ) ) $apiArray['revids'] = implode ( '|', $revids );
-				else $apiArray['revids'] = $revids;
-			}
-		} else {
-			pecho( "Error: No titles, pageids, or revids have been sepcified.\n\n", PECHO_FATAL );
-			return false;
-		}
-		if( $degree == 90 || $degree == 180 || $degree == 270 || $degree == '90' || $degree == '180' || $degree == '270' ) $apiArray['rotation'] = $degree;
-		else {
-			pecho( "Degree parameter must be set correctly.\n\n", PECHO_FATAL );
-			return false;
-		}
-		if( $redirects ) $apiArray['redirects'] = 'yes';
-		if( $convert ) $apiArray['converttitles'] = 'yes';
-		
-		$genparams = $this->generatorvalues;
-		if( !is_null( $generator ) ) {
-			if( in_array( $generator, $genparams ) ) $apiArr['generator'] = 'g'.$generator;
-			else pecho( "Invalid generator value detected.  Omitting...\n\n", PECHO_WARNING );
-		}
-		
-		$result = $this->apiQuery( $apiArray, true );
-		
-		if( isset( $result['imagerotate'] ) ) {
-			if( isset( $result['imagerotate']['result'] ) && $result['imagerotate']['result'] == "Success" ) {
-				$this->__construct( $this->wiki, $this->title );
-				return true;
-			}
-			else {
-				pecho( "Rotate error...\n\n" . print_r($result['imagerotate'], true) . "\n\n", PECHO_FATAL );
-				return false;
-			}
-		}
-		else {
-			pecho( "Rotate error...\n\n" . print_r($result, true), PECHO_FATAL );
 			return false;
 		}
 	}
@@ -2212,5 +2143,44 @@ class Wiki {
             }
         }
         return $endarray;
+    }
+    
+    /*
+     * Change preferences of the current user.
+     *
+     * @access public
+     * @param bool $reset Resets preferences to the site defaults. Default false.
+     * @param array|string $resetoptions List of types of options to reset when the "reset" option is set. Default 'all'.
+     * @param array|string $changeoptions PartList of changes, formatted name=value (e.g. skin=vector), value cannot contain pipe characters. If no value is given (not even an equals sign), e.g., optionname|otheroption|..., the option will be reset to its default value. Default empty.
+     * @param string $optionname A name of a option which should have an optionvalue set. Default null.
+     * @param string $optionvalue A value of the option specified by the optionname, can contain pipe characters. Default null.
+     * @return array
+     */
+    public function options( $reset = false, $resetoptions = array( 'all' ), $changeoptions = array(), $optionname = null, $optionvalue = null ) {
+        $this->get_tokens();
+        $apiArray = array(
+            'action' => 'options',
+            'token' => $this->tokens['options']
+        );
+        
+        if( $reset ) {
+            $apiArray['reset'] = 'yes';
+            $apiArray['resetkinds'] = implode( '|', $resetoptions );
+        }
+        
+        if( !empty( $changeoptions ) ) $apiArray['change'] = implode( '|', $changeoptions );
+        
+        if( !is_null( $optionname ) ) $apiArray['optionname'] = $optionname;
+        if( !is_null( $optionvalue ) ) $apiArray['optionvalue'] = $optionvalue;
+        
+        $result = $this->apiQuery( $apiArray, true );
+        if( isset( $result['options'] ) && $result['options'] == 'success' ) {
+            if( isset( $result['warnings'] ) ) pecho( "Options set successfully, however a warning was thrown:\n". print_r( $result['warnings'], true ), PECHO_WARN );
+            return true;
+        }
+        else {
+            pecho( "Options error...\n\n" . print_r($result, true), PECHO_FATAL );
+            return false;
+        }
     }	
 }
