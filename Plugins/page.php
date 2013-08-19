@@ -533,7 +533,9 @@ class Page {
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#categories_.2F_cl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
-	 * @return bool|array False on error, returns array of categories
+	 * @param array|string $prop Which additional properties to get for each category. Default all
+     * @param bool $hidden Show hidden categories. Default false
+     * @return bool|array False on error, returns array of categories
 	 */
 	public function get_categories( $force = false, $prop = array( 'sortkey', 'timestamp', 'hidden' ), $hidden = false ) {
 
@@ -575,9 +577,10 @@ class Page {
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#images_.2F_im
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
-	 * @return bool|array False on error, returns array of image titles
+	 * @param string|array $images Only list these images. Default null.
+     * @return bool|array False on error, returns array of image titles
 	 */
-	public function get_images( $force = false ) {
+	public function get_images( $force = false, $images = null ) {
 		
 		if( !$force && count( $this->images ) > 0 ) {
 			return $this->images;
@@ -593,6 +596,11 @@ class Page {
 		);
 		
 		$this->images = array();
+        
+        if( !is_null($images) ) {
+            if( is_array($images) ) $tArray['imimages'] = implode( '|', $images );
+            else $tArray['imimage'] = $images;
+        }
 		
 		pecho( "Getting images used on {$this->title}..\n\n", PECHO_NORMAL );
 		

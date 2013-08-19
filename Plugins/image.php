@@ -231,7 +231,10 @@ class Image {
 	 * @param string $start Timestamp to start at. Default null
 	 * @param string $end Timestamp to end at. Default null
 	 * @param array $prop Properties to retrieve. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
-	 * @return array
+	 * @param string $version Version of metadata to use. Default 'latest'
+     * @param string $urlparam A handler specific parameter string. Default null
+     * @param bool $localonly Look only for files in the local repository. Default false
+     * @return array
 	 */
 	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array( 'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'thumbmime', 'mediatype', 'metadata', 'archivename', 'bitdepth' ), $version = 'latest', $urlparam = null, $localonly = false ) {
 	
