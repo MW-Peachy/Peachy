@@ -2133,7 +2133,16 @@ class Wiki {
         foreach( $values as $id=>$value ) {
             if( $value['type'] == 'open' ) {
                 unset( $values[$id] );
-                if( $value['level'] == $level ) $endarray[$value['tag']] = $this->parsexml( $values, true, $value['level'] + 1 );
+                if( $value['level'] == $level ) {
+                    if( !isset( $endarray[$value['tag']] ) ) $endarray[$value['tag']] = $this->parsexml( $values, true, $value['level'] + 1 );
+                    else {
+                        if( is_array($endarray[$value['tag']]) ) $endarray[$value['tag']][] = $this->parsexml( $values, true, $value['level'] + 1 );
+                        else {
+                            $endarray[$value['tag']] = array( $endarray[$value['tag']] );
+                            $endarray[$value['tag']][] = $this->parsexml( $values, true, $value['level'] + 1 );
+                        }  
+                    }
+                }
             } elseif( $value['type'] == 'complete' ) {
                 if( $level == $value['level'] ) $endarray[$value['tag']] = $value['value'];
                 unset( $values[$id] );

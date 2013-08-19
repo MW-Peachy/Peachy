@@ -535,7 +535,7 @@ class Page {
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return bool|array False on error, returns array of categories
 	 */
-	public function get_categories( $force = false ) {
+	public function get_categories( $force = false, $prop = array( 'sortkey', 'timestamp', 'hidden' ), $hidden = false ) {
 
 		if( !$force && count( $this->categories ) > 0 ) {
 			return $this->categories;
@@ -547,8 +547,11 @@ class Page {
 			'prop' => 'categories',
 			'titles' => $this->title,
 			'_code' => 'cl',
-			'_lhtitle' => 'categories'
+			'_lhtitle' => 'categories',
+            'clprop' => implode( '|', $prop )
 		);
+        
+        if( $hidden ) $tArray['clshow'] = 'yes';
 		
 		$this->categories = array();
 		

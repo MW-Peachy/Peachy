@@ -233,27 +233,27 @@ class Image {
 	 * @param array $prop Properties to retrieve. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
 	 * @return array
 	 */
-	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array( 'timestamp', 'user', 'comment', 'url', 'size', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' ) ) {
+	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array( 'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'thumbmime', 'mediatype', 'metadata', 'archivename', 'bitdepth' ), $version = 'latest', $urlparam = null, $localonly = false ) {
 	
 		$imageInfoArray = array(
-			'action' => 'query',
 			'prop' => 'imageinfo',
-			'iilimit' => $limit,
+            '_code'=>'ii',
+			'_limit' => $limit,
 			'iiprop' => implode('|',$prop),
 			'iiurlwidth' => $width,
 			'iiurlheight' => $height,
-			'titles' => $this->title
+			'titles' => $this->title,
+            'iimetadataversion' => $version
 		);
 		
 		if( !is_null( $start ) ) $imageInfoArray['iistart'] = $start;
 		if( !is_null( $end ) ) $imageInfoArray['iiend'] = $end;
-		
+		if( !is_null( $urlparam ) ) $imageInfoArray['iiurlparam'] = $urlparam;
+        if( $localonly ) $imageInfoArray['iilocalonly'] = 'yes';
 		
 		pecho( "Getting image info for {$this->title}...\n\n", PECHO_NORMAL );
 		
-		$ii = $this->wiki->apiQuery( $imageInfoArray );
-		
-		return $ii['query']['pages'];
+		return $this->wiki->listHandler( $imageInfoArray );
 	}
 	
 	/**
@@ -450,18 +450,6 @@ class Image {
     }
 	
 	/**
-	 * Rotate the image clockwise a certain degree.
-	 *
-	 * @param int|string $degree Degrees to rotate image clockwise
-	 * @return bool|void
-	 */
-	public function rotate( $degree = 90 ) {
-	
-		return $this->wiki->rotateImage( $this->rawtitle, $degree );
-		
-	}
-	
-	/**
 	 * Upload an image to the wiki
 	 * 
 	 * @access public
@@ -475,13 +463,6 @@ class Image {
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false, $tboverride = false ) {
 		global $pgIP;
-		
-		$tb = $this->wiki->tboverride( "File:".$this->rawtitle, "upload", $tboverride );
-		if( !$tb ) {
-			if( $tboverride ) pecho( "Error: Insufficient rights to override blacklist! (Right required: tboverride) Aborting...\n\n", PECHO_FATAL );
-			else pecho("Error: ".$this->title." is blacklisted.  Aborting...\n\n", PECHO_FATAL );
-			return false;
-		}
 		
 		if( !is_array( $file ) ) {
 			if( !preg_match( '@((http(s)?:\/\/)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@', $file ) ) { 
@@ -508,21 +489,17 @@ class Image {
 					if( is_file( $pgIP . 'Images/' . $chunk ) ) {
 						$file[$i] = $pgIP . 'Images/' . $chunk;
 					}
-
+                    
 					if( !is_file( $file[$i] ) ) {
 						throw new BadEntryError( "FileNotFound", "The given chunk file was not found." );
 					}
 				}
+                $i++;
 			}
 			pecho( "Uploading chunk files to {$this->title}..\n\n", PECHO_NOTICE );
 		}
 
-		if( version_compare( $this->wiki->get_mw_version(), '1.16' ) >= 0 ) {
-			return $this->api_upload( $file, $text, $comment, $watch, $ignorewarnings, $async );
-		}
-		else {
-			return $this->index_upload( $file, $text, $comment, $watch, $ignorewarnings );
-		}
+		return $this->api_upload( $file, $text, $comment, $watch, $ignorewarnings, $async );
 		
 	}
 	
@@ -622,40 +599,6 @@ class Image {
 			return false;
 		}
 		
-	}
-	
-	/**
-	 * Upload an image to the wiki using the old index.php
-	 * 
-	 * @access public
-	 * @param mixed $localname Absolute path to the image
-	 * @param string $text Text on the image file page (default: '')
-	 * @param string $comment Comment for inthe upload in logs (default: '')
-	 * @param bool $watch Should the upload be added to the watchlist (default: false)
-	 * @param bool $ignorewarnings Ignore warnings about the upload (default: true)
-	 * @return void
-	 * @deprecated
-	 */
-	public function index_upload( $localname, $text = '', $comment = '', $watch = false, $ignorewarnings = true ) {
-		$tokens = $this->wiki->get_tokens();
-		
-		$indexArr = array(
-			'wpUploadFile' => '@'.$localname,
-            'wpSourceType' => 'file',
-            'wpDestFile' => $this->rawtitle,
-            'wpUploadDescription' => $text,
-            'wpLicense' => '',
-            'wpWatchthis' => '0',
-            'wpIgnoreWarning' => '1',
-            'wpUpload' => 'Upload file',
-		);
-		
-		Hooks::runHook( 'IndexUpload', array( &$indexArr ) );
-			
-		$this->wiki->get_http()->post(
-			str_replace( 'api.php', 'index.php', $this->wiki->get_base_url() ) . "?title=Special:Upload&action=submit",
-			$indexArr
-		);
 	}
 	
 	/**
