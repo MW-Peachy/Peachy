@@ -2042,36 +2042,6 @@ class Wiki {
 			return false;
 		}
 	}
-
-	/*
-	 * Validates a titleblacklist and overrides it if set.
-	 *
-	 * @access public
-	 * @param bool $override Override the blacklist.
-	 * @return bool
-	 */
-	public function tboverride( $title, $action = "edit", $override = false ) {
-		$overridecheck = array(
-			'action' => 'titleblacklist',
-			'tbtitle' => $title,
-			'tbaction' => $action
-		);
-		if( !$override ) $overridecheck['tbnooverride'] = 'yes';
-		
-		$result = $this->apiQuery( $overridecheck );
-		if( isset( $result['titleblacklist'] ) ) {
-			if( isset( $result['titleblacklist']['result'] ) && $result['titleblacklist']['result'] == "ok" ) return true;
-			elseif( isset( $result['titleblacklist']['result'] ) && $result['titleblacklist']['result'] == "blacklisted" ) return false;
-			else {
-				pecho( "Blacklist check error...\n\n" . print_r($result['titleblacklist'], true) . "\n\n", PECHO_FATAL );
-				return false;
-			}
-		}
-		else {
-			pecho( "Blacklist check error...\n\n" . print_r($result, true), PECHO_FATAL );
-			return false;
-		}
-	}
     
     /*
      * Search the wiki using the OpenSearch protocol.

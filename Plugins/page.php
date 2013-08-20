@@ -208,7 +208,96 @@ class Page {
 	 * @access protected
 	 */
 	protected $starttimestamp;
-	
+    
+    /**
+     * Page ID of the talk page.
+     * 
+     * (default null)
+     * 
+     * @var int
+     * @access protected
+     */
+	protected $talkid;
+    
+    /**
+     * Whether the page is watched by the user
+     * 
+     * (default false)
+     * 
+     * @var bool
+     * @access protected
+     */
+    protected $watched = false;
+    
+    /**
+     * Number of watchers
+     * 
+     * (default 0)
+     * 
+     * @var int
+     * @access protected
+     */
+    protected $watchers = 0;
+    
+    /**
+     * Watchlist notification timestamp
+     * 
+     * (default null)
+     * 
+     * @var string
+     * @access protected
+     */
+    protected $watchlisttimestamp;
+    
+    /**
+     * Page ID of parent page
+     * 
+     * (default null)
+     * 
+     * @var int
+     * @access protected
+     */
+    protected $subjectid;
+    
+    /**
+     * Full urls of the page
+     * 
+     * (default array())
+     * 
+     * @var array
+     * @access protected
+     */
+    protected $urls = array();
+    
+    /**
+     * Whether the page can be read by a user
+     * 
+     * (default false)
+     * 
+     * @var bool
+     * @access protected
+     */
+    protected $readable = false;
+    
+    /**
+     * EditFormPreloadText
+     * 
+     * (default null)
+     * 
+     * @var string
+     * @access protected
+     */
+    protected $preload;
+    
+    /**
+     * Page's title formatting 
+     * 
+     * (default null)
+     * 
+     * @var string
+     * @access protected
+     */
+    protected $displaytitle;
 	
 	/**
 	 * Construction method for the Page class
@@ -702,7 +791,7 @@ class Page {
 	 */
 	public function get_protection( $force = false ) {
 
-		if( !$force && count( $this->protection ) > 0 ) {
+		if( !$force ) {
 			return $this->protection;
 		}
 
@@ -724,6 +813,287 @@ class Page {
 		return $this->protection;
 
 	}
+    
+    /**
+     * Returns the page ID of the talk page for each non-talk page
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return int Null or empty if no id exists.
+     */
+    public function get_talkID( $force = false ) {
+        
+        if( !$force ) {
+            return $this->talkid;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'talkid',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting talk page ID for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['talkid']) )$this->talkid = $tRes['query']['pages'][$this->pageid]['talkid'];
+        else $this->talkid = null;
+        
+        return $this->talkid;    
+    }
+    
+    /**
+     * Returns the watch status of the page
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return bool
+     */
+    public function is_watched( $force = false ) {
+        
+        if( !$force ) {
+            return $this->watched;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'watched',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting watch status for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['watched']) )$this->watched = true;
+        else $this->watched = false;
+        
+        return $this->watched;    
+    }
+    
+    /**
+     * Returns the count for the number of watchers of a page.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return int
+     */
+    public function get_watchcount( $force = false ) {
+        
+        if( !$force ) {
+            return $this->watchers;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'watchers',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting watch count for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['watchers']) )$this->watchers = $tRes['query']['pages'][$this->pageid]['watchers'];
+        else $this->watchers = 0;
+        
+        return $this->watchers;    
+    }
+    
+    /**
+     * Returns the watchlist notification timestamp of each page.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return string
+     */
+    public function get_notificationtimestamp( $force = false ) {
+        
+        if( !$force ) {
+            return $this->watchlisttimestamp;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'notificationtimestamp',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the notification timestamp for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['notificationtimestamp']) )$this->watchlisttimestamp = $tRes['query']['pages'][$this->pageid]['notificationtimestamp'];
+        else $this->watchlisttimestamp = 0;
+        
+        return $this->watchlisttimestamp;    
+    }
+    
+    /**
+     * Returns the page ID of the parent page for each talk page.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return int Null if it doesn't exist.
+     */
+    public function get_notificationtimestamp( $force = false ) {
+        
+        if( !$force ) {
+            return $this->subjectid;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'subjectid',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the parent page ID for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['subjectid']) )$this->subjectid = $tRes['query']['pages'][$this->pageid]['subjectid'];
+        else $this->subjectid = null;
+        
+        return $this->subjectid;    
+    }
+    
+    /**
+     * Gives a full URL to the page, and also an edit URL.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return array
+     */
+    public function get_urls( $force = false ) {
+        
+        if( !$force ) {
+            return $this->urls;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'url',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the URLs for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        $this->urls = array();
+        
+        if( isset( $tRes['query']['pages'][$this->pageid]['fullurl'] ) ) $this->urls['full'] = $info['fullurl'];
+        if( isset( $tRes['query']['pages'][$this->pageid]['editurl'] ) ) $this->urls['edit'] = $info['editurl'];
+        
+        return $this->urls;    
+    }
+    
+    /**
+     * Returns whether the user can read this page.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return int Null if it doesn't exist.
+     */
+    public function get_readability( $force = false ) {
+        
+        if( !$force ) {
+            return $this->readable;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'readable',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the readability status for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['readable']) )$this->readable = true;
+        else $this->readable = false;
+        
+        return $this->readable;    
+    }
+    
+    /**
+     * Gives the text returned by EditFormPreloadText.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return string
+     */
+    public function get_notificationtimestamp( $force = false ) {
+        
+        if( !$force ) {
+            return $this->preload;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'preload',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the preload text for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['preload']) )$this->preload = $tRes['query']['pages'][$this->pageid]['preload'];
+        else $this->preload = null;
+        
+        return $this->preload;    
+    }
+    
+    /**
+     * Gives the way the page title is actually displayed.
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return string
+     */
+    public function get_notificationtimestamp( $force = false ) {
+        
+        if( !$force ) {
+            return $this->displaytitle;
+        }
+        
+        $tArray = array(
+            'action' => 'query',
+            'prop' => 'info',
+            'inprop' => 'displaytitle',
+            'titles' => $this->title,
+        );
+        
+        pecho( "Getting the title formatting for {$this->title}..\n\n", PECHO_NORMAL );
+            
+        $tRes = $this->wiki->apiQuery( $tArray );
+        
+        if( isset($tRes['query']['pages'][$this->pageid]['displaytitle']) )$this->displaytitle = $tRes['query']['pages'][$this->pageid]['displaytitle'];
+        else $this->displaytitle = null;
+        
+        return $this->displaytitle;    
+    }
 	
 	/**
 	 * Edits the page
@@ -1546,6 +1916,7 @@ class Page {
 			'action' => 'query',
 			'prop' => "info"
 		);
+        $pageInfoArray['inprop'] = 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle';
 		
 		if( $pageInfoArray2 != null ) {
 			$pageInfoArray = array_merge($pageInfoArray, $pageInfoArray2);
@@ -1594,7 +1965,19 @@ class Page {
 			
 			if( isset( $info['special'] ) ) $this->special = true;
 			
-			return $pageInfoRes;
+			if( isset( $info['protection'] ) ) $this->protection = $info['protection'];
+            if( isset( $info['talkid'] ) ) $this->talkid = $info['talkid'];
+            if( isset( $info['watched'] ) ) $this->watched = true;
+            if( isset( $info['watchers'] ) ) $this->watchers = $info['watchers'];
+            if( isset( $info['notificationtimestamp'] ) ) $this->watchlisttimestamp = $info['notificationtimestamp'];
+            if( isset( $info['subjectid'] ) ) $this->subjectid = $info['subjectid'];
+            if( isset( $info['fullurl'] ) ) $this->urls['full'] = $info['fullurl'];
+            if( isset( $info['editurl'] ) ) $this->urls['edit'] = $info['editurl'];
+            if( isset( $info['readable'] ) ) $this->readable = true;
+            if( isset( $info['preload'] ) ) $this->preload = $info['preload'];
+            if( isset( $info['displaytitle'] ) ) $this->displaytitle = $info['displaytitle'];
+            
+            return $pageInfoRes;
 		}
 	}
 	

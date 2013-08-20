@@ -248,8 +248,6 @@ class User {
 			}
 		}
 		
-		Hooks::runHook( 'StartCreate', array( $apiArray ) );
-		
 		$result = $this->wiki->apiQuery( $apiArray, true );
 		
 		$this->__construct( $this->wiki, $this->username );
