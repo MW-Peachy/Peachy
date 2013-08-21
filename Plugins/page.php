@@ -1059,7 +1059,7 @@ class Page {
      * @param bool $force Force use of API, won't use cached copy (default: false)
      * @return int Null if it doesn't exist.
      */
-    public function get_notificationtimestamp( $force = false ) {
+    public function get_subjectid( $force = false ) {
         
         if( !$force ) {
             return $this->subjectid;
