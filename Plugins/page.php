@@ -1154,7 +1154,7 @@ class Page {
      * @param bool $force Force use of API, won't use cached copy (default: false)
      * @return string
      */
-    public function get_notificationtimestamp( $force = false ) {
+    public function get_preload( $force = false ) {
         
         if( !$force ) {
             return $this->preload;
@@ -1185,7 +1185,7 @@ class Page {
      * @param bool $force Force use of API, won't use cached copy (default: false)
      * @return string
      */
-    public function get_notificationtimestamp( $force = false ) {
+    public function get_displaytitle( $force = false ) {
         
         if( !$force ) {
             return $this->displaytitle;
