@@ -198,6 +198,16 @@ class Page {
 	 * @access protected
 	 */
 	protected $extlinks = array();
+    
+    /**
+     * Interwiki links on the page
+     * 
+     * (default value: array())
+     * 
+     * @var array
+     * @access protected
+     */
+    protected $iwlinks = array();
 	
 	/**
 	 * Time of script start.  Must be set manually.
@@ -298,6 +308,16 @@ class Page {
      * @access protected
      */
     protected $displaytitle;
+    
+    /**
+     * Page properties 
+     * 
+     * (default array())
+     * 
+     * @var array
+     * @access protected
+     */
+    protected $properties = array();
 	
 	/**
 	 * Construction method for the Page class
@@ -546,9 +566,11 @@ class Page {
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#links_.2F_pl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
-	 * @return bool|array False on error, array of link titles
+	 * @param array $namespace Show links in this namespace(s) only.  Default array()
+     * @param array $titles Only list links to these titles.  Default array()
+     * @return bool|array False on error, array of link titles
 	 */
-	public function get_links( $force = false ) {
+	public function get_links( $force = false, $namespace = array(), $titles = array() ) {
 
 		if( !$force && count( $this->links ) > 0 ) {
 			return $this->links;
@@ -562,6 +584,9 @@ class Page {
 			'_code' => 'pl',
 			'_lhtitle' => 'links'
 		);
+        
+        if( !empty( $namespace ) ) $tArray['plnamespace'] = implode( '|', $namespace );
+        if( !empty( $titles ) ) $tArray['pltitles'] = implode( '|', $titles );
 		
 		$this->links = array();
 		
@@ -584,11 +609,13 @@ class Page {
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#templates_.2F_tl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
-	 * @return bool|array False on error, array of template titles
+	 * @param array $namespace Show templates in this namespace(s) only. Default array().
+     * @param array $templates Only list these templates. Default array()
+     * @return bool|array False on error, array of template titles
 	 */
-	public function get_templates( $force = false ) {
+	public function get_templates( $force = false, $namespace = array(), $template = array() ) {
 
-		if( !$force && count( $this->templates ) > 0 ) {
+		if( !$force && count( $this->templates ) > 0 && empty( $namespace ) && empty( $template ) ) {
 			return $this->templates;
 		}
 
@@ -600,7 +627,9 @@ class Page {
 			'_code' => 'tl',
 			'_lhtitle' => 'templates'
 		);
-		
+        if( !empty( $namespace ) ) $tArray['tlnamespace'] = implode( '|', $namespace );
+		if( !empty( $template ) ) $tArray['tltemplates'] = implode( '|', $template );
+
 		$this->templates = array();
 		
 		pecho( "Getting templates transcluded on {$this->title}..\n\n", PECHO_NORMAL );
@@ -615,6 +644,37 @@ class Page {
 		
 		return $this->templates;
 	}
+    
+    /**
+     * Get various properties defined in the page content
+     * 
+     * @access public
+     * @link https://www.mediawiki.org/wiki/API:Properties#pageprops_.2F_pp
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @return bool|array False on error, array of template titles
+     */
+    public function get_properties( $force = false ) {
+
+        if( !$force && count( $this->properties ) > 0 ) {
+            return $this->properties;
+        }
+
+        if( !$this->exists ) return array();
+        
+        $tArray = array(
+            'prop' => 'pageprops',
+            'titles' => $this->title,
+            '_code' => 'pp'
+        );
+        
+        $this->properties = array();
+        
+        pecho( "Getting page properties on {$this->title}..\n\n", PECHO_NORMAL );
+        
+        $this->properties = $this->wiki->listHandler($tArray);
+        
+        return $this->properties;
+    }
 	
 	/**
 	 * Returns categories of page
@@ -745,14 +805,17 @@ class Page {
 	}
 	
 	/**
-	 * Returns language links on the page
+	 * Returns interlanguage links on the page
 	 * 
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#langlinks_.2F_ll
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
-	 * @return bool|array False on error, returns array of links in the form of lang:title
+	 * @param bool $fullurl Include a list of full of URLs.  Output formatting changes.  Requires force parameter to be true to return a different result.
+     * @param string $title Link to search for. Must be used with $lang.  Default null
+     * @param string $lang Language code.  Default null
+     * @return bool|array False on error, returns array of links in the form of lang:title
 	 */
-	public function get_langlinks( $force = false ) {
+	public function get_langlinks( $force = false, $fullurl = false, $title = null, $lang = null ) {
 		if( !$force && count( $this->langlinks ) > 0 ) {
 			return $this->langlinks;
 		}
@@ -765,21 +828,71 @@ class Page {
 			'_code' => 'll',
 			'_lhtitle' => 'langlinks'
 		);
+        
+        if( !is_null( $lang ) ) $tArray['lllang'] = $lang;
+        if( !is_null( $title ) ) $tArray['lltitle'] = $title;
+        if( $fullurl ) $tArray['llurl'] = 'yes';
 		
 		$this->langlinks = array();
 		
-		pecho( "Getting all interwiki links for {$this->title}..\n\n", PECHO_NORMAL );
+		pecho( "Getting all interlanguage links for {$this->title}..\n\n", PECHO_NORMAL );
 		
 		$result = $this->wiki->listHandler($tArray);
 		
 		if( count( $result ) > 0 ) {
 			foreach($result[0] as $langlink){
-				$this->langlinks[] = $langlink['lang'] . ":" . $langlink['*'];
-			}
+			    if( $fullurl ) $this->langlinks[] = array( 'link'=>$langlink['lang'] . ":" . $langlink['*'], 'url'=>$langlink['url'] ); 
+                else $this->langlinks[] = $langlink['lang'] . ":" . $langlink['*'];
+            }
 		}
 		
 		return $this->langlinks;
 	}
+    
+    /**
+     * Returns interwiki links on the page
+     * 
+     * @access public
+     * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#langlinks_.2F_ll
+     * @param bool $force Force use of API, won't use cached copy (default: false)
+     * @param bool $fullurl Include a list of full of URLs.  Output formatting changes.  Requires force parameter to be true to return a different result.
+     * @param string $title Interwiki link to search for. Must be used with $prefix.  Default null
+     * @param string $prefix Prefix for the interwiki.  Default null
+     * @return bool|array False on error, returns array of links in the form of lang:title
+     */
+    public function get_interwikilinks( $force = false, $fullurl = false, $title = null, $prefix = null ) {
+        if( !$force && count( $this->iwlinks ) > 0 ) {
+            return $this->iwlinks;
+        }
+
+        if( !$this->exists ) return array();
+        
+        $tArray = array(
+            'prop' => 'iwlinks',
+            'titles' => $this->title,
+            '_code' => 'iw',
+            '_lhtitle' => 'iwlinks'
+        );
+        
+        if( !is_null( $prefix ) ) $tArray['iwprefix'] = $prefix;
+        if( !is_null( $title ) ) $tArray['iwtitle'] = $title;
+        if( $fullurl ) $tArray['iwurl'] = 'yes';
+        
+        $this->iwlinks = array();
+        
+        pecho( "Getting all interwiki links for {$this->title}..\n\n", PECHO_NORMAL );
+        
+        $result = $this->wiki->listHandler($tArray);
+        
+        if( count( $result ) > 0 ) {
+            foreach($result[0] as $iwlinks){
+                if( $fullurl ) $this->iwlinks[] = array( 'link'=>$iwlinks['prefix'] . ":" . $iwlinks['*'], 'url'=>$iwlinks['url'] ); 
+                else $this->iwlinks[] = $iwlinks['prefix'] . ":" . $iwlinks['*'];
+            }
+        }
+        
+        return $this->iwlinks;
+    }
 	
 	/**
 	 * Returns the protection level of the page

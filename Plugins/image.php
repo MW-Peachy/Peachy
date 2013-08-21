@@ -18,7 +18,6 @@ class Image {
 	 */
 	protected $page;
 	
-	
 	/**
 	 * MIME type of image
 	 * 
@@ -99,7 +98,6 @@ class Image {
 	 */
 	protected $height;
 	
-	
 	/**
 	 * Whether or not the image is hosted locally
 	 * This is not whether or not the page exists, use Image::get_exists() for that
@@ -108,7 +106,6 @@ class Image {
 	 * @access protected
 	 */
 	protected $local = true;
-	
 	
 	/**
 	 * Sanitized name for local storage (namespace, colons, etc all removed)
@@ -133,7 +130,6 @@ class Image {
 	 * @access protected
 	 */
 	protected $rawtitle;
-	
 	
 	/**
 	 * List of pages where the image is used
@@ -165,8 +161,7 @@ class Image {
 	 * @var bool
 	 * @access protected
 	 */
-	 protected $exists = true;
-	
+    protected $exists = true;
 	
 	/**
 	 * Construction method for the Image class
@@ -220,6 +215,29 @@ class Image {
 		}
 		
 	}
+    
+    /**
+     * 
+     * @access public
+     * @link https://www.mediawiki.org/wiki/API:Properties#imageinfo_.2F_ii
+     * @param $limit Number of results to limit to. Default 50.
+     * @param $prop What image information to get.  Default all values.
+     * @return unknown 
+     */
+    public function get_stashinfo( $limit = 50, $prop = array( 'timestamp', 'url', 'size', 'dimensions', 'sha1', 'mime', 'thumbmime', 'metadata', 'bitdepth' ) ) {
+        
+        $stasharray = array(
+            'prop' => 'stashimageinfo',
+            'siiprop' => implode( '|', $prop ),
+            'titles' => $this->title,
+            '_code' => 'sii',
+            '_limit' => $limit,
+            '_lhtitle' => 'stashimageinfo'
+        );
+        
+        return $this->wiki->listHandler( $stasharray );
+    
+    }
 	
 	/**
 	 * Returns various information about the image
@@ -246,7 +264,8 @@ class Image {
 			'iiurlwidth' => $width,
 			'iiurlheight' => $height,
 			'titles' => $this->title,
-            'iimetadataversion' => $version
+            'iimetadataversion' => $version,
+            '_lhtitle' => 'imageinfo'
 		);
 		
 		if( !is_null( $start ) ) $imageInfoArray['iistart'] = $start;
