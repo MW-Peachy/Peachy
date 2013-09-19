@@ -168,13 +168,19 @@ class HTTP {
 		}
 		
 		Hooks::runHook( 'HTTPGet', array( &$this, &$url, &$data ) );
-
-		$data = curl_exec( $this->curl_instance );
-		
-		if( curl_errno( $this->curl_instance ) != 0 ) {
-			throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-			return false;
-		}
+        
+        for( $i = 0; $i <= 20; $i++ ) {
+            try {$data = curl_exec( $this->curl_instance );}
+            catch( Exception $e ) {
+                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+                if( $i == 20 ) {
+                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+                    return false;
+                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+                continue; 
+            }
+            break;
+        }
 		
 		return $data;
 		
@@ -231,12 +237,18 @@ class HTTP {
 		
 		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );
 		
-		$data = curl_exec( $this->curl_instance );
-		
-		if( curl_errno( $this->curl_instance ) != 0 ) {
-			throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-			return false;
-		}
+		for( $i = 0; $i <= 20; $i++ ) {
+            try {$data = curl_exec( $this->curl_instance );}
+            catch( Exception $e ) {
+                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+                if( $i == 20 ) {
+                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+                    return false;
+                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+                continue; 
+            }
+            break;
+        }
 
 		return $data;
 	}
@@ -278,12 +290,18 @@ class HTTP {
 		
 		Hooks::runHook( 'HTTPDownload', array( &$this, &$url, &$local ) );
 		
-		$ret = curl_exec( $this->curl_instance );
-		
-		if( curl_errno( $this->curl_instance ) != 0 ) {
-			throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-			return false;
-		}
+		for( $i = 0; $i <= 20; $i++ ) {
+            try {$ret = curl_exec( $this->curl_instance );}
+            catch( Exception $e ) {
+                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+                if( $i == 20 ) {
+                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+                    return false;
+                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+                continue; 
+            }
+            break;
+        }
 		
 		fwrite( $out, $ret );
 		

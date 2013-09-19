@@ -1148,6 +1148,42 @@ class Wiki {
 		
 		return $this->listHandler( $leArray );
 	}
+    
+    /**
+     * Enumerate all categories
+     * 
+     * @access public
+     * @link https://www.mediawiki.org/wiki/API:Allcategories
+     * @param string $prefix Search for all category titles that begin with this value. (default: null)
+     * @param string $from The category to start enumerating from. (default: null)
+     * @param string $min Minimum number of category members. (default: null)
+     * @param string $max Maximum number of category members. (default: null)
+     * @param string $dir Direction to sort in. (default: 'ascending')
+     * @param array $prop Information to retieve (default: array( 'size', 'hidden' ))
+     * @param int limit How many categories to return. (default: null i.e. all).
+     * @return array List of categories
+     */
+    public function allcategories( $prefix = null, $from = null, $min = null, $max = null, $dir = 'ascending', $prop = array( 'size', 'hidden' ), $limit = 50 ) {
+        $leArray = array(
+            'list' => 'allcategories',
+            '_code' => 'ac',
+            'acdir' => $dir,
+            'acprop' => implode( '|', $prop ),
+            '_limit' => $limit
+        );
+        
+        if( !is_null( $from ) ) $leArray['acfrom'] = $from;
+        if( !is_null( $prefix ) ) $leArray['acprefix'] = $prefix;
+        if( !is_null( $min ) ) $leArray['acmin'] = $min;
+        if( !is_null( $max ) ) $leArray['acmax'] = $max;
+                
+        Hooks::runHook( 'PreQueryAllimages', array( &$leArray ) );
+        
+        pecho( "Getting list of all categories...\n\n", PECHO_NORMAL );
+        
+        return $this->listHandler( $leArray );
+    
+    }
 	
 	/**
 	 * Enumerate all images sequentially
@@ -1686,7 +1722,7 @@ class Wiki {
 		
 		$apiArray = array(
 			'action' => 'import',
-			'summary' => $summary.' (Peachy 2 beta)',
+			'summary' => $summary,
 			'token' => $tokens['import']
 		);
 		
