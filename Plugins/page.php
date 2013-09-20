@@ -1240,7 +1240,7 @@ class Page {
 		
 		$tokens = $this->wiki->get_tokens();
 		
-		$summary = $summary." ([[WP:PEACHY|Peachy 2.0 (alpha 5)]])";
+		$summary = $summary." ([[:en:WP:PEACHY|Peachy 2.0 (alpha 5)]])";
 		
 		if( $tokens['edit'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
