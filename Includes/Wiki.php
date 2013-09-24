@@ -520,7 +520,7 @@ class Wiki {
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $forcenoassert = false ) {
 		
 		$requestid = mt_rand();
-		
+		$attempts = 20;
 		$arrayParams['format'] = 'php';
 		$arrayParams['servedby'] = '';
 		$arrayParams['requestid'] = $requestid;
@@ -541,12 +541,16 @@ class Wiki {
 			if( $is_loggedin && $errorcheck ) throw new LoggedOut();
 			
 			Hooks::runHook( 'PreAPIPostQuery', array( &$arrayParams ) );
-			$data = unserialize( $this->get_http()->post(
-				$this->base_url,
-				$arrayParams
-			));
+			for( $i = 0; $i < $attempts; $i++ ) {
+                $data = unserialize( $this->get_http()->post(
+				    $this->base_url,
+				    $arrayParams
+			    ));
+                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                else break;
+            }
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-                pecho( "API Error...\n\nFatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
                 exit(1);
             }
 
@@ -585,13 +589,23 @@ class Wiki {
 		
 			Hooks::runHook( 'PreAPIGetQuery', array( &$arrayParams ) );
 			
-			$data = unserialize( $this->get_http()->get(
-				$this->base_url,
-				$arrayParams
-			));
-
+			for( $i = 0; $i < $attempts; $i++ ) {
+                $data = unserialize( $this->get_http()->get(
+                    $this->base_url,
+                    $arrayParams
+                ));
+                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                else break;
+            }
+            
+            if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
+                
+                pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\n\n", PECHO_FATAL );
+                return false;
+            }
+            
             if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-                pecho( "API Error...\n\nFatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
                 exit(1);
             }
             
@@ -599,12 +613,6 @@ class Wiki {
 			if( isset( $data['error'] ) && $errorcheck ) {
 				
 				pecho( "API Error...\n\nCode: {$data['error']['code']}\nText: {$data['error']['info']}\n\n", PECHO_FATAL );
-				return false;
-			}
-			
-			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
-				
-				pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\n\n", PECHO_FATAL );
 				return false;
 			}
 			
