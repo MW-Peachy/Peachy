@@ -100,9 +100,11 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 }
 
 //Check for updates before loading Peachy.
-$updater = new AutoUpdate();
-$Uptodate = $updater->Checkforupdate();
-if( !$Uptodate ) $updater->updatePeachy();
+if ( !( isset( $disableUpdates ) && $disableUpdates ) ) {
+	$updater = new AutoUpdate();
+	$Uptodate = $updater->Checkforupdate();
+	if( !$Uptodate ) $updater->updatePeachy();
+}
 
 
 /**
