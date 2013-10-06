@@ -121,6 +121,7 @@ class Peachy {
 	 * @param string $username Username to log in if no config file specified. Default null
 	 * @param string $password Password to log in with if no config file specified. Default null
 	 * @param string $base_url URL to api.php if no config file specified. Defaults to English Wikipedia's API.
+	 * @throws LoginError
 	 * @return Wiki Instance of the Wiki class, where most functions are stored
 	 */
 	public static function newWiki( $config_name = null, $username = null, $password = null, $base_url = 'http://en.wikipedia.org/w/api.php', $classname = 'Wiki' ) {
