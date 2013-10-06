@@ -171,6 +171,7 @@ class Peachy {
 	 * @static
 	 * @access public
 	 * @param string $base_url URL to api.php
+	 * @throws DependencyError
 	 * @return array Installed extensions
 	 */
 	public static function wikiChecks( $base_url ) {
@@ -242,6 +243,7 @@ class Peachy {
 	 * @access private
 	 * @static
 	 * @param string $config_name Name of config file
+	 * @throws BadEntryError
 	 * @return array Config params
 	 */
 	private static function parse_config( $config_name ) {
