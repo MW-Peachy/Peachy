@@ -316,7 +316,9 @@ class Peachy {
 
 /**
  * Simple phpversion() wrapper
- * @return void
+ * @param $check_version bool
+ * @throws DependancyError
+ * @return array
  */
 function peachyCheckPHPVersion( $check_version = null ) {
 	if( is_null( $check_version ) ) $check_version = phpversion();
