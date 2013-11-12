@@ -35,6 +35,8 @@ class Hooks {
 	 * 
 	 * @param string $hook_name Name of hook to search for
 	 * @param array $args Arguments to pass to the hook function
+	 * @throws HookError
+	 * @throws BadEntryError
 	 * @return mixed Output of hook function
 	 */
 	public static function runHook( $hook_name, $args = array() ) {

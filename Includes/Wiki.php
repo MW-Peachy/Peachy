@@ -546,7 +546,9 @@ class Wiki {
 				    $this->base_url,
 				    $arrayParams
 			    ));
-                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) { 
+                    pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                }
                 else break;
             }
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
@@ -594,7 +596,9 @@ class Wiki {
                     $this->base_url,
                     $arrayParams
                 ));
-                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) { 
+                    pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+                }
                 else break;
             }
             
@@ -658,6 +662,7 @@ class Wiki {
 	 * @access public
 	 * @link http://wiki.peachy.compwhizii.net/wiki/Manual/Wiki::listHandler
 	 * @param array $tArray Parameters given to query with (default: array()). In addition to those recognised by the API, ['_code'] should be set to the first two characters of all the parameters in a list=XXX API call - for example, with allpages, the parameters start with 'ap', with recentchanges, the parameters start with 'rc' -  and is required; ['_limit'] imposes a hard limit on the number of results returned (optional) and ['_lhtitle'] simplifies a multidimensional result into a unidimensional result - lhtitle is the key of the sub-array to return. (optional)
+	 * @throws BadEntryError
 	 * @return array Returns an array with the API result
 	 */
 	public function listHandler( $tArray = array() ) {
@@ -1124,7 +1129,7 @@ class Wiki {
 	 * @param string $dir Direction for retieving log entries (default: 'older')
 	 * @param bool $tag Restrict the log to entries with a certain tag (default: false)
 	 * @param array $prop Information to retieve from the log (default: array( 'ids', 'title', 'type', 'user', 'timestamp', 'comment', 'details' ))
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array Log entries
 	 */
 	public function logs( $type = false, $user = false, $title = false, $start = false, $end = false, $dir = 'older', $tag = false, $prop = array( 'ids', 'title', 'type', 'user', 'timestamp', 'comment', 'details' ), $limit = 50 ) {
@@ -1168,7 +1173,7 @@ class Wiki {
      * @param string $max Maximum number of category members. (default: null)
      * @param string $dir Direction to sort in. (default: 'ascending')
      * @param array $prop Information to retieve (default: array( 'size', 'hidden' ))
-     * @param int limit How many categories to return. (default: null i.e. all).
+     * @param int $limit How many categories to return. (default: null i.e. all).
      * @return array List of categories
      */
     public function allcategories( $prefix = null, $from = null, $min = null, $max = null, $dir = 'ascending', $prop = array( 'size', 'hidden' ), $limit = 50 ) {
@@ -1206,7 +1211,7 @@ class Wiki {
 	 * @param string $maxsize Limit to images with at most this many bytes (default: null)
 	 * @param string $dir Direction in which to list (default: 'ascending')
 	 * @param array $prop Information to retieve (default: array( 'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' ))
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array List of images
 	 */
 	public function allimages( $prefix = null, $sha1 = null, $base36 = null, $from = null, $minsize = null, $maxsize = null, $dir = 'ascending', $prop = array( 'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' ), $limit = 50 ) {
@@ -1248,7 +1253,7 @@ class Wiki {
 	 * @param array $protectionlevels Limit to protected pages. Examples: array( 'autoconfirmed' ), array( 'sysop' ), array( 'autoconfirmed', 'sysop' ). (default: array())
 	 * @param string $dir Direction in which to list (default: 'ascending')
 	 * @param string $interwiki Filter based on whether a page has langlinks (either withlanglinks, withoutlanglinks, or all (default))
-	 * @param int limit How many results to retrieve (default: null i.e. all)
+	 * @param int $limit How many results to retrieve (default: null i.e. all)
 	 * @return array List of pages
 	 */
 	public function allpages( $namespace = array( 0 ), $prefix = null, $from = null, $redirects = 'all', $minsize = null, $maxsize = null, $protectiontypes = array(), $protectionlevels = array(), $dir = 'ascending', $interwiki = 'all', $limit = 50 ) {
@@ -1263,15 +1268,13 @@ class Wiki {
 		);
 		
 		if( count( $protectiontypes ) && count( $protectionlevels ) ) {
-			pecho( '$protectionlevels and $protectiontypes cannot be used in conjunction', PECHO_FATAL );
-			return false;
+            $leArray['apprtype'] = implode( '|', $protectiontypes );
+            $leArray['apprlevel'] = implode( '|', $protectionlevels );
 		}
-		elseif( count( $protectiontypes ) ) {
-			$leArray['apprtype'] = implode( '|', $protectiontypes );
-		}
-		elseif( count( $protectionlevels ) ) {
-			$leArray['apprlevel'] = implode( '|', $protectionlevels );
-		}
+		else {
+            pecho( '$protectionlevels and $protectiontypes must be used in conjunction', PECHO_FATAL );
+            return false;
+        }
 		
 		if( !is_null( $from ) ) $leArray['apfrom'] = $from;//
 		if( !is_null( $prefix ) ) $leArray['apprefix'] = $prefix; //
@@ -1296,7 +1299,7 @@ class Wiki {
 	 * @param string $continue When more results are available, use this to continue. (default: null)
 	 * @param bool $unique Set to true in order to only show unique links (default: true)
 	 * @param array $prop What pieces of information to include: ids and/or title. (default: array( 'ids', 'title' ))
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array List of links
 	 */
 	public function alllinks( $namespace = array( 0 ), $prefix = null, $from = null, $continue = null, $unique = false, $prop = array( 'ids', 'title' ), $limit = 50 ) {
@@ -1331,7 +1334,7 @@ class Wiki {
 	 * @param string $from The username to start enumerating from. (default: null)
 	 * @param bool $editsonly Set to true in order to only show users with edits (default: false)
 	 * @param array $prop What pieces of information to include (default: array( 'blockinfo', 'groups', 'editcount', 'registration' ))
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array List of users
 	 */
 	public function allusers( $prefix = null, $groups = array(), $from = null, $editsonly = false, $prop = array( 'blockinfo', 'groups', 'editcount', 'registration' ), $limit = 50 ) {
@@ -1365,7 +1368,7 @@ class Wiki {
 	 * @param string $category Category to retieve
 	 * @param bool $subcat Should subcategories be checked (default: false)
 	 * @param string|array $namespace Restrict results to the given namespace (default: null i.e. all)
-	 * @param int limit How many results to retrieve (default: null i.e. all)
+	 * @param int $limit How many results to retrieve (default: null i.e. all)
 	 * @return array Array of titles
 	 */
 	public function categorymembers( $category, $subcat = false, $namespace = null, $limit = 50) {
@@ -1373,28 +1376,13 @@ class Wiki {
 			'list' => 'categorymembers',
 			'_code' => 'cm',
 			'cmtitle' => $category,
-			'cmprop' => 'title',
+			'cmtype' => 'page',
 			'_limit' => $limit
 		);
 		
 		$strip_categories = false;
 		
-		if( $namespace !== null ) {
-			if( is_array( $namespace ) ) {
-				if( $subcat && !in_array( 14, $namespace ) ) {
-					$namespace[] = 14;
-					$strip_categories = true;
-				}
-				
-				$namespace = implode( '|', $namespace );
-			}
-			else if( $subcat && $namespace !== '14' ) {
-				$namespace .= '|14';
-				$strip_categories = true;
-			}
-			
-			$cmArray['cmnamespace'] = $namespace;
-		}
+		if( $subcat ) $cmArray['cmtype'] = 'page|subcat';
 		
 		Hooks::runHook( 'PreQueryCategorymembers', array( &$cmArray ) );
 		
@@ -1402,21 +1390,8 @@ class Wiki {
 		
 		$top_category = $this->listHandler( $cmArray );
 		
-		if( !$subcat ) return $top_category;
+		return $top_category;
 		
-		$final_titles = array();
-		
-		foreach( array_values($top_category) as $category ) {
-			if( $category['ns'] == 14 && $subcat ) {
-				$final_titles = array_merge( $final_titles, $this->categorymembers( $category['title'], $subcat, $namespace ));
-				
-				if( $strip_categories ) continue;
-			}
-			
-			$final_titles[] = $category['title'];
-		}
-		
-		return $final_titles;
 	}
 	
 	/**
@@ -1426,7 +1401,7 @@ class Wiki {
 	 * @access public
 	 * @param string $title The title of the page being embedded.
 	 * @param array $namespace Which namespaces to search (default: null).
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array A list of pages the title is transcluded in.
 	 */
 	public function embeddedin( $title, $namespace = null, $limit = 50 ) {
@@ -1440,7 +1415,7 @@ class Wiki {
 	 *
 	 * @access public
 	 * @param array $prop Which properties to retrieve (default: array( 'name', 'displayname', 'description', 'hitcount' ) i.e. all).
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array The tags retrieved.
 	 */
 	public function tags( $prop = array( 'name', 'displayname', 'description', 'hitcount' ), $limit = 50 ) {

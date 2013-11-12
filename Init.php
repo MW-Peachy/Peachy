@@ -100,9 +100,11 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 }
 
 //Check for updates before loading Peachy.
-$updater = new AutoUpdate();
-$Uptodate = $updater->Checkforupdate();
-if( !$Uptodate ) $updater->updatePeachy();
+if ( !( isset( $disableUpdates ) && $disableUpdates ) ) {
+	$updater = new AutoUpdate();
+	$Uptodate = $updater->Checkforupdate();
+	if( !$Uptodate ) $updater->updatePeachy();
+}
 
 
 /**
@@ -119,6 +121,7 @@ class Peachy {
 	 * @param string $username Username to log in if no config file specified. Default null
 	 * @param string $password Password to log in with if no config file specified. Default null
 	 * @param string $base_url URL to api.php if no config file specified. Defaults to English Wikipedia's API.
+	 * @throws LoginError
 	 * @return Wiki Instance of the Wiki class, where most functions are stored
 	 */
 	public static function newWiki( $config_name = null, $username = null, $password = null, $base_url = 'http://en.wikipedia.org/w/api.php', $classname = 'Wiki' ) {
@@ -168,6 +171,7 @@ class Peachy {
 	 * @static
 	 * @access public
 	 * @param string $base_url URL to api.php
+	 * @throws DependencyError
 	 * @return array Installed extensions
 	 */
 	public static function wikiChecks( $base_url ) {
@@ -239,6 +243,7 @@ class Peachy {
 	 * @access private
 	 * @static
 	 * @param string $config_name Name of config file
+	 * @throws BadEntryError
 	 * @return array Config params
 	 */
 	private static function parse_config( $config_name ) {
@@ -311,7 +316,9 @@ class Peachy {
 
 /**
  * Simple phpversion() wrapper
- * @return void
+ * @param $check_version bool
+ * @throws DependancyError
+ * @return array
  */
 function peachyCheckPHPVersion( $check_version = null ) {
 	if( is_null( $check_version ) ) $check_version = phpversion();
