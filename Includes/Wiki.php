@@ -527,6 +527,7 @@ class Wiki {
 		$arrayParams['requestid'] = $requestid;
 		$assert = false;
 		
+        if( !file_exists($pgIP.'Includes/Communication_Logs') ) mkdir($pgIP.'Includes/Communication_Logs', 2775);
 		if( $post && $this->isFlagged && in_array( 'assert', array_values( $arrayParams ) ) && $arrayParams['assert'] == 'user' ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
@@ -568,6 +569,7 @@ class Wiki {
                     $histemp = $this->initPage( $arrayParams['title'] )->history( 1 );
                     if( $arrayParams['action'] == 'edit' && $histemp[0]['user'] == $this->get_username() && $histemp[0]['comment'] == $arrayParams['summary'] && strtotime($histemp[0]['timestamp']) - time() < 120 ) {
                         pecho( ", however, the edit appears to have gone through.\n\n", PECHO_WARN );
+                        unset( $histemp );
                         return array( 'edit'=>array( 'result'=>'Success', 'newrevid'=>$histemp['revid'] ) );
                     } else {
                         pecho( ", retrying...\n\n", PECHO_WARN );
