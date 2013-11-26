@@ -128,7 +128,7 @@ class User {
 				'list' => 'users|logevents',
 				'ususers' => $username,
 				'letype' => 'block',
-				'letitle' => $username,
+				'letitle' => "User:".$username,
 				'lelimit' => 1,
 				'usprop' => 'editcount|groups|blockinfo|emailable|registration'
 		));
