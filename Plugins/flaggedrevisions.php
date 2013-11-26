@@ -52,7 +52,7 @@ class FlaggedRevs {
 		pecho( "Reviewing $revid...\n\n", PECHO_NOTICE );
 		
 		$editarray = array(
-			'flag_accuracy' => $status
+			'flag_accuracy' => $status,
 			'action' => 'review',
 			'token' => $tokens['edit'],
 			'revid' => $revid
