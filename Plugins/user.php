@@ -545,6 +545,28 @@ class User {
 	public function has_email() {
 		return $this->hasemail;
 	}
+    
+    /**
+     * Returns the usergroups, NULL if user is IP.
+     * 
+     * @access public
+     * @param bool force Force use of the API.  Default false;
+     * @return array
+     */
+    public function get_usergroups( $force = false ) {
+        if( $force ) {
+        
+            $uiRes = $this->wiki->apiQuery( array(
+                    'action' => 'query',
+                    'list' => 'users',
+                    'ususers' => $username,
+                    'usprop' => 'groups'
+            ));
+            
+            $this->groups = $uiRes['query']['users'][0]['groups'];
+        }
+        return $this->groups;
+    }
 	
 	/**
 	 * Returns date the user registered
