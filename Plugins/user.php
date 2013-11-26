@@ -151,7 +151,8 @@ class User {
 				$this->blocked = true;
 				$this->blockinfo = array(
 					'by' => $uiRes['query']['logevents'][0]['user'],
-					'reason' => $uiRes['query']['logevents'][0]['comment'],
+					'when' => $uiRes['query']['logevents'][0]['timestamp'],
+                    'reason' => $uiRes['query']['logevents'][0]['comment'],
 				    'expiry' => $uiRes['query']['logevents'][0]['block']['expiry']
                 );
 			}
@@ -174,7 +175,8 @@ class User {
 				$this->blocked = true;
 				$this->blockinfo = array(
 					'by' => $uiRes['query']['users'][0]['blockedby'],
-					'reason' => $uiRes['query']['users'][0]['blockreason'],
+					'when' => $uiRes['query']['logevents'][0]['timestamp'],
+                    'reason' => $uiRes['query']['users'][0]['blockreason'],
                     'expiry' => $uiRes['query']['users'][0]['blockexpiry']
 				);
 			}
