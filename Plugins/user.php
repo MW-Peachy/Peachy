@@ -208,7 +208,7 @@ class User {
 	 * @param string $domain Domain for external authentication (optional). Default null.
 	 */
 	 public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
-		
+		global $notag, $tag;
 		pecho( "Creating user account ".$this->username."...\n\n", PECHO_NOTICE );
 		
 		$token = $this->apiQuery( array(
@@ -228,7 +228,10 @@ class User {
 		if( !$email == null ) $apiArray['email'] = $email;
 		if( !$realname == null ) $apiArray['realname'] = $realname;
 		if( !$domain == null ) $apiArray['domain'] = $domain;
-		if( !$reason == null ) $apiArray['reason'] = $reason;
+		if( !$reason == null ) {
+            if( !$notag ) $reason .= $tag;
+            $apiArray['reason'] = $reason;
+        }
 		if( !$language == null ) $apiArray['language'] = $language;
 		
 		if( $this->exists() ) {
@@ -319,7 +322,7 @@ class User {
 	 * @return bool
 	 */
 	public function block( $reason = null, $expiry = 'indefinite', $params = array(), $watch = false ) {
-		
+		global $notag, $tag;
 		$token = $this->wiki->get_tokens();
 		
 		if( !in_array( 'block', $this->wiki->get_userrights() ) ) {
@@ -343,8 +346,11 @@ class User {
 			'allowusertalk' => 'yes'
 		);
 		
-		if( !is_null( $reason ) ) $apiArr['reason'] = $reason;
-		
+		if( !is_null( $reason ) ) {
+            if( !$notag ) $reason .= $tag;
+            $apiArr['reason'] = $reason;
+		}
+        
 		foreach( $params as $param ) {
 			switch( $param ) {
 				case 'anononly':
@@ -403,7 +409,8 @@ class User {
 	 * @return bool
 	 */
 	public function unblock( $reason = null, $id = null ) {
-		if( !in_array( 'block', $this->wiki->get_userrights() ) ) {
+		global $notag, $tag;
+        if( !in_array( 'block', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to unblock users", PECHO_FATAL );
 			return false;
 		}
@@ -422,8 +429,11 @@ class User {
 			$apiArr['id'] = $id;
 			unset( $apiArr['user'] );
 		}
-		if( !is_null( $reason ) ) $apiArr['reason'] = $reason;
-				
+		if( !is_null( $reason ) ) {
+            if( !$notag ) $reason .= $tag;
+            $apiArr['reason'] = $reason;
+        }
+        	
 		Hooks::runHook( 'StartUnblock', array( &$apiArr ) );
 		
 		pecho( "Unblocking {$this->username}...\n\n", PECHO_NOTICE );
@@ -456,20 +466,30 @@ class User {
 	 * @return int Edit count
 	 */
 	public function get_editcount( $force = false, &$database = null, $liveonly = false ) {
-	
+	    global $useLabs;
 		//First check if $database exists, because that returns a more accurate count
 		if( !is_null( $database ) && ( $database instanceOf Database || $database instanceOf DatabaseBase ) ) {
 			
 			pecho( "Getting edit count for {$this->username} using the Database class...\n\n", PECHO_NORMAL );
 			
-			$count = $database->select(
-				'archive',
-				'COUNT(*) as count',
-				array( 
-					'ar_user_text' => $this->username
-				)
-			);
-		
+			if( $useLabs ) {
+                $count = $database->select(
+                    'archive_userindex',
+                    'COUNT(*) as count',
+                    array( 
+                        'ar_user_text' => $this->username
+                    )
+                );    
+            } else {
+                $count = $database->select(
+				    'archive',
+				    'COUNT(*) as count',
+				    array( 
+					    'ar_user_text' => $this->username
+				    )
+			    );
+            }
+            
 			if( isset( $count[0]['count'] ) && !$liveonly ) {
 				$del_count = $count[0]['count'];
 			}
@@ -478,14 +498,23 @@ class User {
 			}
 			
 			unset($count);
-			
-			$count = $database->select(
-				'revision',
-				'COUNT(*) as count',
-				array( 
-					'rev_user_text' => $this->username
-				)
-			);
+			if( $useLabs ) {
+                $count = $database->select(
+                    'revision_userindex',
+                    'COUNT(*) as count',
+                    array( 
+                        'rev_user_text' => $this->username
+                    )
+                );    
+            } else {
+                $count = $database->select(
+                    'revision',
+                    'COUNT(*) as count',
+                    array( 
+                        'rev_user_text' => $this->username
+                    )
+                );    
+            }
 		
 			if( isset( $count[0]['count'] ) ) {
 				$live_count = $count[0]['count'];
@@ -608,13 +637,14 @@ class User {
 	 * $return void
 	 */
 	public function email( $text = null, $subject = "Wikipedia Email", $ccme = false ) {
-		if( !$this->has_email() ) {
+		global $notag, $tag;
+        if( !$this->has_email() ) {
 			pecho( "Cannot email {$this->username}, user has email disabled", PECHO_FATAL );
 			return false;
 		}
 		
 		$tokens = $this->wiki->get_tokens();
-
+        if( !$notag ) $text .= "\n\nPowered by Peachy ".PEACHYVERSION;
 		$editarray = array(
 			'action' => 'emailuser',
 			'target' => $this->username,
@@ -651,7 +681,7 @@ class User {
 	}
 	
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
-				
+		global $notag, $tag;		
 		$token = $this->wiki->get_tokens();
 		
 		$token = $this->wiki->apiQuery( array(
@@ -668,7 +698,7 @@ class User {
 			pecho( "Error retrieving token...\n\n", PECHO_FATAL );
         	return false;
         }
-		
+		if( !$notag ) $reason .= $tag;
 		$apiArr = array(
 			'action' => 'userrights',
             'user' => $this->username,

@@ -172,6 +172,8 @@ function outputText( $text, $cat = 0, $func = 'echo' ) {
  * @return void
  */
 function pecho( $text, $cat = 0, $func = 'echo' ) {
+    global $webOutput;
+    if( $webOutput ) $text = str_replace( "\n", "<br>", $text );
 	outputText( $text, $cat, $func );
 }
 

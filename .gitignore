@@ -216,5 +216,6 @@ pip-log.txt
 
 #peachy stuff
 *.cfg
-acc.php
 test.php
+acc.php
+config.local.inc.php

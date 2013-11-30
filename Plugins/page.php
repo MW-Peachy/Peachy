@@ -1237,10 +1237,11 @@ class Page {
 		$sectiontitle = null,
 		$watch = null
 	)  {
+        global $notag, $tag;
 		
 		$tokens = $this->wiki->get_tokens();
 		
-		$summary = $summary." ([[:en:WP:PEACHY|Peachy 2.0 (alpha 5)]])";
+		if( !$notag ) $summary .= $tag;
 		
 		if( $tokens['edit'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
@@ -1414,7 +1415,8 @@ class Page {
 	 * @return int The new revision id of the page edited.
 	 */
 	public function undo($summary = null, $revisions = 1, $force = false, $watch = null) {
-		$info = $this->history($revisions);
+		global $notag, $tag;
+        $info = $this->history($revisions);
 		$oldrev = $info[(count($info) - 1)]['revid'];
 		$newrev = $info[0]['revid'];
 		
@@ -1444,6 +1446,7 @@ class Page {
 				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
 				return false;
 			}
+            if( !$notag ) $summary .= $tag;
 			
 			$params['summary'] = $summary;
 		}
@@ -1541,7 +1544,8 @@ class Page {
 	 * @return bool True on success
 	 */	
 	public function move( $newTitle, $reason = '', $movetalk = true, $movesubpages = true, $noredirect = false, $watch = null, $nowarnings = false ) {
-		$tokens = $this->wiki->get_tokens();
+		global $notag, $tag;
+        $tokens = $this->wiki->get_tokens();
 		
 		if( $tokens['move'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
@@ -1574,7 +1578,7 @@ class Page {
 		}
 		
 		if( $nowarnings ) $editarray['ignorewarnings'] = 'yes';
-		
+		if( !$notag ) $reason .= $tag;
 		if( !empty( $reason ) ) $editarray['reason'] = $reason;
 	
 		if( $movetalk ) $editarray['movetalk'] = 'yes';
@@ -1615,14 +1619,14 @@ class Page {
 	 * @return bool True on success
 	 */	
 	public function protect( $levels = array( 'edit' => 'sysop', 'move' => 'sysop' ), $reason = null, $expiry = 'indefinite', $cascade = false, $watch = null ) {
-	
+	    global $notag, $tag;
 		if( !in_array( 'protect', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to protect pages", PECHO_FATAL );
 			return false;
 		}
 		
 		$tokens = $this->wiki->get_tokens();
-		
+		if( !$notag ) $reason .= $tag;
 		$editarray = array(
 			'action' => 'protect',
 			'title' => $this->title,
@@ -1689,14 +1693,15 @@ class Page {
 	 * @return bool True on success
 	 */	
 	public function delete( $reason = null, $watch = null ) {
-	
+	    global $notag, $tag;
+        
 		if( !in_array( 'delete', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to delete pages", PECHO_FATAL );
 			return false;
 		}
 		
 		$tokens = $this->wiki->get_tokens();
-		
+		if( !$notag ) $reason .= $tag;
 		$editarray = array(
 			'action' => 'delete',
 			'title' => $this->title,
@@ -1744,14 +1749,14 @@ class Page {
 	 * @return bool
 	 */
 	public function undelete( $reason = null, $timestamps = null, $watch = null ) {
-		
+		global $notag, $tag;
 		if( !in_array( 'undelete', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to undelete pages", PECHO_FATAL );
 			return false;
 		}
 		
 		$tokens = $this->wiki->get_tokens();
-		
+		if( !$notag ) $reason .= $tag;
 		$undelArray = array(
 			'action' => 'undelete',
 			'title' => $this->title,
@@ -2133,7 +2138,8 @@ class Page {
 	 * @return array Details of the rollback perform. ['revid']: The revision ID of the rollback. ['old_revid']: The revision ID of the first (most recent) revision that was rolled back. ['last_revid']: The revision ID of the last (oldest) revision that was rolled back.
 	 */
 	public function rollback($force = false, $summary = null, $markbot = false, $watch = null){
-		if( !in_array( 'rollback', $this->wiki->get_userrights() ) ) {
+		global $notag, $tag;
+        if( !in_array( 'rollback', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to rollback edits", PECHO_FATAL );
 			return false;
 		}
@@ -2162,6 +2168,7 @@ class Page {
 				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
 				return false;
 			}
+            if( !$notag ) $summary .= $tag;
 			
 			$params['summary'] = $summary;
 		}
@@ -2203,7 +2210,9 @@ class Page {
 	 * @return void
 	 */
 	protected function preEditChecks( $action = "Edit" ){
-		$preeditinfo = array(
+		global $disablechecks, $masterrunpage;
+        if( $disablechecks ) return;
+        $preeditinfo = array(
 			'action' => 'query',
 			'meta' => 'userinfo',
 			'uiprop' => 'hasmsg|blockinfo',
@@ -2252,6 +2261,10 @@ class Page {
 			throw new EditError("Nobots", "The page has a nobots template");
 		}
 		
+        if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->wiki->initPage( $masterrunpage )->get_text() ) ) {
+            throw new EditError("Enablepage", "Script was disabled by Master Run page");
+        }
+        
 		if( !is_null( $this->wiki->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
 			throw new EditError("Enablepage", "Script was disabled by Run page");
 		}

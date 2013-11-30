@@ -75,8 +75,10 @@ class HTTP {
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
 	 * @return void
 	 */	
-	function __construct( $echo = false, $verifyssl = true ) {
+	function __construct( $echo = false, $verifyssl = null ) {
 		global $pgUA;
+        
+        if( is_null( $verifyssl ) ) global $verifyssl;
 		
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
@@ -135,7 +137,7 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	function get( $url, $data = null ) {
-		global $argv, $pgProxy;
+		global $argv, $pgProxy, $displayGetOutData;
 		
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -164,7 +166,7 @@ class HTTP {
 		curl_setopt($this->curl_instance,CURLOPT_URL,$url);
 		
 		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
-			pecho( "GET: $url\n", PECHO_NORMAL );
+			if( $displayGetOutData ) pecho( "GET: $url\n", PECHO_NORMAL );
 		}
 		
 		Hooks::runHook( 'HTTPGet', array( &$this, &$url, &$data ) );
@@ -206,7 +208,7 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	function post( $url, $data ) {
-		global $argv, $pgProxy;
+		global $argv, $pgProxy,$displayPostOutData;
 		
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -232,7 +234,7 @@ class HTTP {
 		curl_setopt($this->curl_instance,CURLOPT_URL,$url);
 		
 		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
-			pecho( "POST: $url\n", PECHO_NORMAL );
+			if( $displayPostOutData ) pecho( "POST: $url\n", PECHO_NORMAL );
 		}
 		
 		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );

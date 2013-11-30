@@ -29,7 +29,7 @@ Peachy is not responsible for any damage caused to the system running it.
 /**
  * The version that Peachy is running 
  */
-define( 'PEACHYVERSION', '2.0 (alpha 5)' );
+define( 'PEACHYVERSION', '2.0 (alpha 6)' );
 
 /**
  * Minimum MediaWiki version that is required for Peachy 
@@ -88,8 +88,16 @@ $pgHTTP = new HTTP;
 
 require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
+require_once( $pgIP . 'config.inc.php' );
 
-$pgVerbose = array(0,1,2,3,4);
+$pgVerbose = array();
+if( $displayPechoVerbose ) $pgVerbose[] = -1;
+if( $displayPechoNormal ) $pgVerbose[] = 0;
+if( $displayPechoNotice ) $pgVerbose[] = 1;
+if( $displayPechoWarn ) $pgVerbose[] = 2;
+if( $displayPechoError ) $pgVerbose[] = 3;
+if( $displayPechoFatal ) $pgVerbose[] = 4;
+
 $pgIRCTrigger = array( '!', '.' );
 
 //Last version check
@@ -100,7 +108,7 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 }
 
 //Check for updates before loading Peachy.
-if ( !( isset( $disableUpdates ) && $disableUpdates ) ) {
+if ( !$disableUpdates ) {
 	$updater = new AutoUpdate();
 	$Uptodate = $updater->Checkforupdate();
 	if( !$Uptodate ) $updater->updatePeachy();

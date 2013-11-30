@@ -519,9 +519,9 @@ class Wiki {
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $forcenoassert = false ) {
 		
-		global $pgIP;
+		global $pgIP, $maxattempts, $killonfailure, $displayGetOutData, $logCommunicationData, $logFailedCommunicationData, $logGetCommunicationData, $logPostCommunicationData, $logSuccessfulCommunicationData;
         $requestid = mt_rand();
-		$attempts = 20;
+		$attempts = $maxattempts;
 		$arrayParams['format'] = 'php';
 		$arrayParams['servedby'] = '';
 		$arrayParams['requestid'] = $requestid;
@@ -544,34 +544,41 @@ class Wiki {
 			
 			Hooks::runHook( 'PreAPIPostQuery', array( &$arrayParams ) );
 			for( $i = 0; $i < $attempts; $i++ ) {
-                unset( $php_errormsg );
                 $logdata = "Date/Time: ".date( 'r' )."\nMethod: POST\nURL: {$this->base_url} (Parameters masked for security)\nRaw Data: ";
                 $data = $this->get_http()->post(
 				    $this->base_url,
 				    $arrayParams
 			    );
                 $logdata .= $data;
-                $data = unserialize( $data );
-                if( isset( $php_errormsg ) && substr( $php_errormsg, 0, strlen( "unserialize():" ) ) == "unserialize():" ) {
+                $data2 = unserialize( $data );
+                if( $data2 === FALSE && serialize( $data2 ) != $data ) {
                     $logdata .= "\nUNSERIALIZATION FAILED\n\n";
-                    file_put_contents( $pgIP.'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
+                    if( $logFailedCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
                 }
                 else {
                     $logdata .= "\nUNSERIALIZATION SUCCEEDED\n\n";
-                    file_put_contents( $pgIP.'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
+                    if( $logSuccessfulCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
                 }
                 
-                file_put_contents( $pgIP.'Includes/Communication_Logs/Postdata.log', $logdata, FILE_APPEND );
-                file_put_contents( $pgIP.'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
+                if( $logPostCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Postdata.log', $logdata, FILE_APPEND );
+                if( $logCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
                 
+                $data = $data2;
+                unset( $data2 );
                 if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
                     pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
+                    $tempSetting = $displayGetOutData;
+                    $displayGetOutData = false;
                     $histemp = $this->initPage( $arrayParams['title'] )->history( 1 );
                     if( $arrayParams['action'] == 'edit' && $histemp[0]['user'] == $this->get_username() && $histemp[0]['comment'] == $arrayParams['summary'] && strtotime($histemp[0]['timestamp']) - time() < 120 ) {
                         pecho( ", however, the edit appears to have gone through.\n\n", PECHO_WARN );
+                        $displayGetOutData = $tempSetting;
+                        unset( $tempSetting );
                         return array( 'edit'=>array( 'result'=>'Success', 'newrevid'=>$histemp[0]['revid'] ) );
                     } else {
                         pecho( ", retrying...\n\n", PECHO_WARN );
+                        $displayGetOutData = $tempSetting;
+                        unset( $tempSetting );
                         continue;
                     }
                 }
@@ -583,19 +590,33 @@ class Wiki {
             }
             if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
                 pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
+                $tempSetting = $displayGetOutData;
+                $displayGetOutData = false;
                 $histemp = $this->initPage( $arrayParams['title'] )->history( 1 );
                 if( $arrayParams['action'] == 'edit' && $histemp['user'] == $this->get_username() && $histemp['comment'] == $arrayParams['summary'] && strtotime($histemp['timestamp']) - time() < 120 ) {
                     pecho( ", however, the edit, finally, appears to have gone through.\n\n", PECHO_WARN );
+                    $displayGetOutData = $tempSetting;
                     return array( 'edit'=>array( 'result'=>'Success', 'newrevid'=>$histemp['revid'] ) );
                 } else {
-                    pecho( ".  Terminating program.\n\n", PECHO_FATAL );
-                    exit(1);
+                    $displayGetOutData = $tempSetting;
+                    if( $killonfailure ) {
+                        pecho( ".  Terminating program.\n\n", PECHO_FATAL );
+                        exit(1);
+                    } else {
+                        pecho( ".  Aborting attempts.", PECHO_FATAL );
+                        return false;
+                    }
                 }
             }
             
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-                pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
-                exit(1);
+                if( $killonfailure ) {
+                    pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                    exit(1);
+                } else {
+                    pecho( "API Error: API is not responding.  Aborting attempts.\n\n", PECHO_FATAL );
+                    return false;
+                }
             }
 
 			Hooks::runHook( 'PostAPIPostQuery', array( &$data ) );
@@ -634,26 +655,27 @@ class Wiki {
 			Hooks::runHook( 'PreAPIGetQuery', array( &$arrayParams ) );
 			
 			for( $i = 0; $i < $attempts; $i++ ) {
-                unset( $php_errormsg );
                 $logdata = "Date/Time: ".date( 'r' )."\nMethod: GET\nURL: {$this->base_url}\nParameters: ".print_r( $arrayParams, true )."\nRaw Data: ";
                 $data = $this->get_http()->get(
                     $this->base_url,
                     $arrayParams
                 );
                 $logdata .= $data;
-                $data = unserialize( $data );
-                if( isset( $php_errormsg ) && substr( $php_errormsg, 0, strlen( "unserialize():" ) ) == "unserialize():" ) {
+                $data2 = unserialize( $data );
+                if( $data2 === FALSE && serialize( $data2 ) != $data ) {
                     $logdata .= "\nUNSERIALIZATION FAILED\n\n";
-                    file_put_contents( $pgIP.'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
+                    if( $logFailedCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
                 }
                 else {
                     $logdata .= "\nUNSERIALIZATION SUCCEEDED\n\n";
-                    file_put_contents( $pgIP.'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
+                    if( $logSuccessfulCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
                 }
                 
-                file_put_contents( $pgIP.'Includes/Communication_Logs/Getdata.log', $logdata, FILE_APPEND );
-                file_put_contents( $pgIP.'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
+                if( $logGetCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Getdata.log', $logdata, FILE_APPEND );
+                if( $logCommunicationData ) file_put_contents( $pgIP.'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
                 
+                $data = $data2;
+                unset( $data2 );
                 if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
                     pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable, retrying...", PECHO_WARN );
                 }
@@ -665,14 +687,24 @@ class Wiki {
             }
             
             if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
+                if( $killonfailure ) {
+                    pecho( "Fatal Error: API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Terminating program.\n\n", PECHO_FATAL );
+                    exit(1);   
+                } else {
+                    pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Aborting attempts.\n\n", PECHO_FATAL );
+                    return false;    
+                }
                 
-                pecho( "Fatal Error: API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Terminating program.\n\n", PECHO_FATAL );
-                exit(1);
             }
             
             if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-                pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
-                exit(1);
+                if( $killonfailure ) {
+                    pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
+                    exit(1);    
+                } else {
+                    pecho( "API Error: API is not responding.  Aborting attempts.\n\n", PECHO_FATAL );
+                    return false; 
+                }
             }
             
 			Hooks::runHook( 'APIQueryCheckError', array( &$data['error'] ) );

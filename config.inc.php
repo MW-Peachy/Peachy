@@ -3,10 +3,25 @@
     
     //Controls weather or not the peachy tag is displayed at the end of edit summaries.
     $notag = false;
-    $tag = " ([[WP:PEACHY|Peachy ".PEACHYVERSION."]])";
+    $tag = " ([[en:WP:PEACHY|Peachy ".PEACHYVERSION."]])";
     
     //For debugging purposes.  This generates enourmous amounts of data.  Switch off if your space is limited.
-    $logdata = true;
+    $logGetCommunicationData = true;
+    $logPostCommunicationData = true;
+    $logCommunicationData = true;
+    $logSuccessfulCommunicationData = true;
+    $logFailedCommunicationData = true;
+    
+    //Bot output
+    $displayPostOutData = true;
+    $displayGetOutData = true;
+    $displayPechoVerbose = false; //Major security risk if set to true.  Switch to true at your own risk.
+    $displayPechoNormal = true;
+    $displayPechoNotice = true;
+    $displayPechoWarn = true;
+    $displayPechoError = true;
+    $displayPechoFatal = true;
+    $webOutput = false; //Switch to true if you are using a webserver to output your data instead of commandline.
     
     //This controls bot checks, before doing an action.  This change will affect every bot using it.  Enabling it drops the edit rate.
     $disablechecks = false;
@@ -26,5 +41,8 @@
     
     //Global bot settings
     $masterrunpage = null;
+    
+    //Import local settings if available
+    if( file_exists($pgIP.'config.local.inc.php') ) require_once( $pgIP.'config.local.inc.php' );
     
 ?>

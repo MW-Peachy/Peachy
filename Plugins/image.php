@@ -400,13 +400,14 @@ class Image {
 	 * @return bool|void
 	 */
 	 public function revert( $comment = '', $revertto = null ) {
-	 
+	    global $notag, $tag;
 		$tokens = $this->wiki->get_tokens();
 		
+        if( !$notag ) $comment .= $tag;
 		$apiArray = array(
 			'action' => 'filerevert',
 			'token' => $tokens['edit'],
-			'comment' => $comment.' (Peachy 2 beta)',
+			'comment' => $comment,
 			'filename' => $this->rawtitle
 		);
 		
@@ -484,8 +485,9 @@ class Image {
 	 * @return bool|void
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false, $tboverride = false ) {
-		global $pgIP;
+		global $pgIP, $notag, $tag;
 		
+        if( !$notag ) $comment .= $tag;
 		if( !is_array( $file ) ) {
 			if( !preg_match( '@((http(s)?:\/\/)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@', $file ) ) { 
 				if( !is_file( $file ) ) {
@@ -684,8 +686,9 @@ class Image {
 	 * @return void
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $newname = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
-		global $pgIP;
+		global $pgIP, $notag, $tag;
 		
+        if( !$notag ) $comment .= $tag;
 		if( !function_exists( 'ImageCreateTrueColor' ) ) {
 			throw new DependancyError( "GD", "http://us2.php.net/manual/en/book.image.php" );
 		}
@@ -791,13 +794,14 @@ class Image {
      * @return bool True on success
      */
     public function delete( $reason = null, $watch = null, $oldimage = null ) {
+        global $notag, $tag;
         if( !in_array( 'delete', $this->wiki->get_userrights() ) ) {
             pecho( "User is not allowed to delete pages", PECHO_FATAL );
             return false;
         }
         
         $tokens = $this->wiki->get_tokens();
-        
+        if( !$notag ) $reason .= $tag;
         $editarray = array(
             'action' => 'delete',
             'title' => $this->title,
