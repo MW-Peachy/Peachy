@@ -1310,7 +1310,7 @@ class Page {
 		
 		if( !$force ) {
 			try {
-				$this->preEditChecks();
+				$this->preEditChecks( "Edit" );
 			}
 			catch( EditError $e ) {
 				pecho( "Error: $e\n\n", PECHO_FATAL );
@@ -1460,7 +1460,7 @@ class Page {
 		
 		if( !$force ) {
 			try {
-				$this->preEditChecks();
+				$this->preEditChecks( "Undo" );
 			}
 			catch( EditError $e ) {
 				pecho( "Error: $e\n\n", PECHO_FATAL );
@@ -1560,6 +1560,14 @@ class Page {
 			pecho( "Reason is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
 			return false;
 		}
+        
+        try {
+            $this->preEditChecks( "Move" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		
 		pecho( "Moving {$this->title} to $newTitle...\n\n", PECHO_NOTICE );
 		
@@ -1587,6 +1595,7 @@ class Page {
 		
 		if( $this->wiki->get_maxlag() ) {
 			$editarray['maxlag'] = $this->wiki->get_maxlag();
+            
 		}
 		
 		Hooks::runHook( 'StartMove', array( &$editarray ) );
@@ -1650,7 +1659,13 @@ class Page {
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
 			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
 		}
-		
+		try {
+            $this->preEditChecks( "Protect" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		if( !$editarray['protections'] == array() ) pecho( "Protecting {$this->title}...\n\n", PECHO_NOTICE );
 		else pecho( "Unprotecting {$this->title}...\n\n", PECHO_NOTICE );
 		
@@ -1718,6 +1733,13 @@ class Page {
 		
 		Hooks::runHook( 'StartDelete', array( &$editarray ) );
 		
+        try {
+            $this->preEditChecks( "Delete" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		pecho( "Deleting {$this->title}...\n\n", PECHO_NOTICE );
 		
 		$result = $this->wiki->apiQuery( $editarray, true);
@@ -1778,6 +1800,13 @@ class Page {
 			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
 		}
 		
+        try {
+            $this->preEditChecks( "Undelete" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		pecho( "Undeleting {$this->title}...\n\n", PECHO_NOTICE );
 		
 		Hooks::runHook( 'StartUndelete', array( &$undelArray ) );
@@ -2181,6 +2210,13 @@ class Page {
 			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
 		}
 		
+        try {
+            $this->preEditChecks( "Rollback" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		Hooks::runHook( 'PreRollback', array( &$params ) );
 		
 		pecho( "Rolling back {$this->title}...\n\n", PECHO_NOTICE );
@@ -2238,7 +2274,7 @@ class Page {
 				elseif( $pageid == "-1" ) {
 					if( $page['title'] == $this->wiki->get_runpage() ) {
 						pecho("$action failed, enable page does not exist.\n\n", PECHO_WARN);
-						return false;
+						throw new EditError("Enablepage", "Enable  page does not exist.");
 					}
 					else {
 						$oldtext = '';

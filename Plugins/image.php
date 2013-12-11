@@ -419,6 +419,14 @@ class Image {
 			foreach( $ii as $x ) if( isset( $x['imageinfo'] ) ) $apiArray['archivename'] = $x['imageinfo'][1]['archivename'];
 			pecho( "Reverting to prior upload...\n\n", PECHO_NOTICE );
 		}
+        
+        try {
+            $this->preEditChecks( "Revert" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		
 		$result = $this->wiki->apiQuery( $apiArray, true );
 		
@@ -453,6 +461,14 @@ class Image {
             'titles' => $this->title
         );
         pecho( "Rotating image(s) $degree degrees...\n\n", PECHO_NOTICE );
+        
+        try {
+            $this->preEditChecks( "Rotate" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
         
         $result = $this->apiQuery( $apiArray, true );
         
@@ -522,6 +538,14 @@ class Image {
 			}
 			pecho( "Uploading chunk files to {$this->title}..\n\n", PECHO_NOTICE );
 		}
+        
+        try {
+            $this->preEditChecks( "Uploads" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 
 		return $this->api_upload( $file, $text, $comment, $watch, $ignorewarnings, $async );
 		
@@ -687,6 +711,14 @@ class Image {
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $newname = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
 		global $pgIP, $notag, $tag;
+        
+        try {
+            $this->preEditChecks( "Resize" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		
         if( !$notag ) $comment .= $tag;
 		if( !function_exists( 'ImageCreateTrueColor' ) ) {
@@ -821,6 +853,14 @@ class Image {
         
         pecho( "Deleting {$this->title}...\n\n", PECHO_NOTICE );
         
+        try {
+            $this->preEditChecks( "Delete" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
+        
         $result = $this->wiki->apiQuery( $editarray, true);
         
         if( isset( $result['delete'] ) ) {
@@ -836,6 +876,65 @@ class Image {
         else {
             pecho( "Delete error...\n\n" . print_r($result, true), PECHO_FATAL );
             return false;
+        }
+    }
+    
+    /*
+     * Performs new message checking, etc
+     * 
+     * @access public
+     * @return void
+     */
+    protected function preEditChecks( $action = "Edit" ){
+        global $disablechecks, $masterrunpage;
+        if( $disablechecks ) return;
+        $preeditinfo = array(
+            'action' => 'query',
+            'meta' => 'userinfo',
+            'uiprop' => 'hasmsg|blockinfo',
+            'prop' => 'revisions',
+            'rvprop' => 'content'
+        );
+        
+        if( !is_null( $this->wiki->get_runpage() ) ) {
+            $preeditinfo['titles'] =  $this->wiki->get_runpage();
+        }
+        
+        $preeditinfo = $this->wiki->apiQuery( $preeditinfo );
+    
+        $messages = false;
+        $blocked = false;
+        if( isset( $preeditinfo['query']['pages'] ) && !is_null( $this->wiki->get_runpage() ) ) {
+            //$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
+            foreach( $preeditinfo['query']['pages'] as $pageid => $page ) {
+                if( $pageid == "-1" ) {
+                    pecho("$action failed, enable page does not exist.\n\n", PECHO_WARN);
+                    throw new EditError("Enablepage", "Enable page does not exist.");
+                }
+                else {
+                    $runtext = $page['revisions'][0]['*'];
+                }
+            }
+            if( isset( $preeditinfo['query']['userinfo']['messages']) ) $messages = true;
+            if( isset( $preeditinfo['query']['userinfo']['blockedby']) ) $blocked = true;
+        } 
+        
+        //Perform login checks, /Run checks
+        
+        if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->wiki->initPage( $masterrunpage )->get_text() ) ) {
+            throw new EditError("Enablepage", "Script was disabled by Master Run page");
+        }
+        
+        if( !is_null( $this->wiki->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
+            throw new EditError("Enablepage", "Script was disabled by Run page");
+        }
+        
+        if( $messages && $this->wiki->get_stoponnewmessages() ) {
+            throw new EditError("NewMessages", "User has new messages");
+        }
+        
+        if( $blocked ) {
+            throw new EditError("Blocked", "User has been blocked");
         }
     }
 	

@@ -211,6 +211,14 @@ class User {
 		global $notag, $tag;
 		pecho( "Creating user account ".$this->username."...\n\n", PECHO_NOTICE );
 		
+        try {
+            $this->preEditChecks( "Create" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
+        
 		$token = $this->apiQuery( array(
 			'action' => 'createaccount',
 			'name' => $this->username
@@ -381,6 +389,14 @@ class User {
 		
 		pecho( "Blocking {$this->username}...\n\n", PECHO_NOTICE );
 		
+        try {
+            $this->preEditChecks( "Block" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
+        
 		$result = $this->wiki->apiQuery( $apiArr, true);
 		
 		if( isset( $result['block'] ) ) {
@@ -438,6 +454,14 @@ class User {
 		
 		pecho( "Unblocking {$this->username}...\n\n", PECHO_NOTICE );
 		
+        try {
+            $this->preEditChecks( "Unblock" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
+        
 		$result = $this->wiki->apiQuery( $apiArr, true);
 		
 		if( isset( $result['unblock'] ) ) {
@@ -659,6 +683,14 @@ class User {
 		
 		pecho( "Emailing {$this->username}...\n\n", PECHO_NOTICE );
 		
+        try {
+            $this->preEditChecks( "Email" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
+        
 		$result = $this->wiki->apiQuery( $editarray, true);
 		
 		if( isset( $result['error'] ) ) {
@@ -711,6 +743,14 @@ class User {
 		Hooks::runHook( 'StartUserrights', array( &$apiArr ) );
 		
 		pecho( "Assigning user rights to {$this->username}...\n\n", PECHO_NOTICE );
+        
+        try {
+            $this->preEditChecks( "Rights" );
+        }
+        catch( EditError $e ) {
+            pecho( "Error: $e\n\n", PECHO_FATAL );
+            return false;
+        }
 		
 		$result = $this->wiki->apiQuery( $apiArr, true);
 		
@@ -768,6 +808,65 @@ class User {
 		
 		return $this->wiki->listHandler( $drArray );
 	}
+    
+    /*
+     * Performs new message checking, etc
+     * 
+     * @access public
+     * @return void
+     */
+    protected function preEditChecks( $action = "Edit" ){
+        global $disablechecks, $masterrunpage;
+        if( $disablechecks ) return;
+        $preeditinfo = array(
+            'action' => 'query',
+            'meta' => 'userinfo',
+            'uiprop' => 'hasmsg|blockinfo',
+            'prop' => 'revisions',
+            'rvprop' => 'content'
+        );
+        
+        if( !is_null( $this->wiki->get_runpage() ) ) {
+            $preeditinfo['titles'] =  $this->wiki->get_runpage();
+        }
+        
+        $preeditinfo = $this->wiki->apiQuery( $preeditinfo );
+    
+        $messages = false;
+        $blocked = false;
+        if( isset( $preeditinfo['query']['pages'] ) && !is_null( $this->wiki->get_runpage() ) ) {
+            //$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
+            foreach( $preeditinfo['query']['pages'] as $pageid => $page ) {
+                if( $pageid == "-1" ) {
+                    pecho("$action failed, enable page does not exist.\n\n", PECHO_WARN);
+                    throw new EditError("Enablepage", "Enable page does not exist.");
+                }
+                else {
+                    $runtext = $page['revisions'][0]['*'];
+                }
+            }
+            if( isset( $preeditinfo['query']['userinfo']['messages']) ) $messages = true;
+            if( isset( $preeditinfo['query']['userinfo']['blockedby']) ) $blocked = true;
+        } 
+        
+        //Perform login checks, /Run checks
+        
+        if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->wiki->initPage( $masterrunpage )->get_text() ) ) {
+            throw new EditError("Enablepage", "Script was disabled by Master Run page");
+        }
+        
+        if( !is_null( $this->wiki->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
+            throw new EditError("Enablepage", "Script was disabled by Run page");
+        }
+        
+        if( $messages && $this->wiki->get_stoponnewmessages() ) {
+            throw new EditError("NewMessages", "User has new messages");
+        }
+        
+        if( $blocked ) {
+            throw new EditError("Blocked", "User has been blocked");
+        }
+    }
 	
 	/**
 	 * Returns a page class for the userpage

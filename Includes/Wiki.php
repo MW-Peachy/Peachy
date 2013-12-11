@@ -338,7 +338,7 @@ class Wiki {
 			unset( $tmp );
 		}
 		
-		if( ( isset($configuration['nobots']) && $configuration['nobots'] == 'false' ) || $configuration['baseurl'] != 'http://en.wikipedia.org/w/api.php' ) {
+		if( ( isset($configuration['nobots']) && $configuration['nobots'] == 'false' ) || strpos( $configuration['baseurl'], '//en.wikipedia.org/w/api.php' ) === false ) {
 			$this->nobots = false;
 		}
 		

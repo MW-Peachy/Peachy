@@ -121,19 +121,19 @@ function checkExclusion( &$wiki, $text = '', $username = null, $optout = null ) 
 		return true;
 	}
 	
-	if( preg_match( '/\{\{bots\s*\|\s*deny\s*=\s*(.*?)\s*\}\}/i', $text, $deny ) ) {
-		if( $deny[1] == "all" ) return true;
-		if( $deny[1] == "none" ) return false;
-		$allow = array_map( 'trim', explode(',', $deny[1]) );
+	if( preg_match( '/\{\{(no)?bots\s*\|\s*deny\s*=\s*(.*?)\s*\}\}/i', $text, $deny ) ) {
+		if( $deny[2] == "all" ) return true;
+		if( $deny[2] == "none" ) return false;
+		$allow = array_map( 'trim', explode(',', $deny[2]) );
 		if( !is_null($username) && in_array( trim($username), $allow ) ) {
 			return true;
 		}
 		return false;
 	}
 	
-	if( !is_null( $optout ) && preg_match( '/\{\{bots\s*\|\s*optout\s*=\s*(.*?)\s*\}\}/i', $text, $allow ) ) {
+	if( !is_null( $optout ) && preg_match( '/\{\{(no)?bots\s*\|\s*optout\s*=\s*(.*?)\s*\}\}/i', $text, $allow ) ) {
 		if( $allow[1] == "all" ) return true;
-		$allow = array_map( 'trim', explode(',', $allow[1]) );
+		$allow = array_map( 'trim', explode(',', $allow[2]) );
 		if( in_array( trim($optout), $allow ) ) {
 			return true;
 		}
