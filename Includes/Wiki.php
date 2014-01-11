@@ -1361,11 +1361,11 @@ class Wiki {
 			'_limit' => $limit
 		);
 		
-		if( count( $protectiontypes ) && count( $protectionlevels ) ) {
+		if( count( $protectiontypes ) > 0 && count( $protectionlevels ) > 0 ) {
             $leArray['apprtype'] = implode( '|', $protectiontypes );
             $leArray['apprlevel'] = implode( '|', $protectionlevels );
 		}
-		else {
+		elseif ( ( count( $protectiontypes ) > 0 ) !== ( count( $protectionlevels ) > 0 ) ) {
             pecho( '$protectionlevels and $protectiontypes must be used in conjunction', PECHO_FATAL );
             return false;
         }
