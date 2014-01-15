@@ -1361,15 +1361,13 @@ class Wiki {
 			'_limit' => $limit
 		);
 		
-		if( count( $protectionlevels ) > 0 || count( $protectiontypes ) > 0 ) {
+		if( count( $protectiontypes ) ) {
 			// Trying to filter by protection status
-			if( count( $protectiontypes ) > 0 ) {
-				$leArray['apprtype'] = implode( '|', $protectiontypes );
-				$leArray['apprlevel'] = implode( '|', $protectionlevels );
-			} else {
-				pecho( 'If $protectionlevels is specified, $protectiontypes must also be specified.', PECHO_FATAL );
-				return false;
-			}
+			$leArray['apprtype'] = implode( '|', $protectiontypes );
+			if( count( $protectionlevels ) ) $leArray['apprlevel'] = implode( '|', $protectionlevels );
+		} elseif( count( $protectionlevels ) ) {
+			pecho( 'If $protectionlevels is specified, $protectiontypes must also be specified.', PECHO_FATAL );
+			return false;
 		}
 		
 		if( !is_null( $from ) ) $leArray['apfrom'] = $from;//
