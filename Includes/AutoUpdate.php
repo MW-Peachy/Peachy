@@ -160,8 +160,9 @@ Class AutoUpdate {
     * @access private
     * @return bool 
     */
-    private function pullcontents( $path='https://api.github.com/repos/'.$this->repository.'/Peachy/contents', $recurse = false, $files = array(), $dir = true ) {
+    private function pullcontents( $path=null, $recurse = false, $files = array(), $dir = true ) {
         global $pgIP;
+        if( is_null( $path ) ) $path = 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents';
         $data = json_decode( $this->get_http()->get($path), true );
         //$data = $this->processreturn( $data );
         //Gather and decode the contents of the repository
