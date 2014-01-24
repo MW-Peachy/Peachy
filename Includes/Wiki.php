@@ -531,9 +531,8 @@ class Wiki {
 		if( $post && $this->isFlagged && in_array( 'assert', array_values( $arrayParams ) ) && $arrayParams['assert'] == 'user' ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
+            Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		}
-		
-		Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		
 		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE );
 		
@@ -1361,14 +1360,14 @@ class Wiki {
 			'_limit' => $limit
 		);
 		
-		if( count( $protectiontypes ) && count( $protectionlevels ) ) {
-            $leArray['apprtype'] = implode( '|', $protectiontypes );
-            $leArray['apprlevel'] = implode( '|', $protectionlevels );
+		if( count( $protectiontypes ) ) {
+			// Trying to filter by protection status
+			$leArray['apprtype'] = implode( '|', $protectiontypes );
+			if( count( $protectionlevels ) ) $leArray['apprlevel'] = implode( '|', $protectionlevels );
+		} elseif( count( $protectionlevels ) ) {
+			pecho( 'If $protectionlevels is specified, $protectiontypes must also be specified.', PECHO_FATAL );
+			return false;
 		}
-		else {
-            pecho( '$protectionlevels and $protectiontypes must be used in conjunction', PECHO_FATAL );
-            return false;
-        }
 		
 		if( !is_null( $from ) ) $leArray['apfrom'] = $from;//
 		if( !is_null( $prefix ) ) $leArray['apprefix'] = $prefix; //
