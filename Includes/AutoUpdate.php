@@ -29,7 +29,7 @@ Class AutoUpdate {
     function __construct() {
        global $pgIP, $experimentalupdates;
        $this->http = new HTTP( false, false );
-       $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy')
+       $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
     }
     
     /**
