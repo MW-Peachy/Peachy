@@ -108,12 +108,13 @@ Class AutoUpdate {
         }
         if( $success ) {
             file_put_contents( $pgIP.'Includes/'.$this->logfile, serialize($data) );
+            file_put_contents( $pgIP.'Includes/updateversion', serialize( ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) );
             if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
             if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
             pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
             return true;
         } else {
-            pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.  Please open an issue on MW-Peachy/Peachy.\n\n", PECHO_WARN );
+            pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\nPlease open an issue on MW-Peachy/Peachy.\n\n", PECHO_WARN );
             return false;
         }    
     }
