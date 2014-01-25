@@ -531,9 +531,8 @@ class Wiki {
 		if( $post && $this->isFlagged && in_array( 'assert', array_values( $arrayParams ) ) && $arrayParams['assert'] == 'user' ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
+            Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		}
-		
-		Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		
 		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE );
 		

@@ -24,10 +24,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Class AutoUpdate {
     
     protected $http;
+    protected $repository;
+    protected $logfile;
+    protected $lastused;
     
     function __construct() {
-       global $pgIP;
+       global $pgIP, $experimentalupdates;
        $this->http = new HTTP( false, false );
+       $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
+       $this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
+       $this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
     }
     
     /**
@@ -37,12 +43,13 @@ Class AutoUpdate {
     * @return bool
     */
     public function Checkforupdate() {
-        global $pgIP;
-        pecho( "Checking for updates...\n\n", PECHO_NORMAL );    
-        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/cyberpower678/Peachy/commits'), true );
+        global $pgIP, $experimentalupdates;
+        pecho( "Checking for updates...\n\n", PECHO_NORMAL );
+        if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );    
+        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits'), true );
         //$data = $this->processreturn($data);
-        if( file_exists( $pgIP . 'Includes/Update.log' ) ) {
-            $log = unserialize( file_get_contents( $pgIP . 'Includes/Update.log' ) );
+        if( file_exists( $pgIP . 'Includes/'.$this->logfile ) ) {
+            $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
             if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
                 pecho( "Update available!\n\n", PECHO_NOTICE );
                 return false;
@@ -63,12 +70,12 @@ Class AutoUpdate {
     * @return bool
     */
     public function updatePeachy() {
-        global $pgIP;
+        global $pgIP, $experimentalupdates;
         pecho( "Updating Peachy...\n\n", PECHO_NORMAL ); 
         if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);   
-        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/cyberpower678/Peachy/commits'), true );
-        if( file_exists( $pgIP . 'Includes/Update.log' ) ) {
-            $log = unserialize( file_get_contents( $pgIP . 'Includes/Update.log' ) );
+        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits'), true );
+        if( file_exists( $pgIP . 'Includes/'.$this->logfile ) && ( $this->lastused != 'Unknown' || $this->lastused != ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) ) {
+            $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
             if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
                 foreach( $data as $item ) {
                     if( $item['sha'] == $log[0]['sha'] ) break;
@@ -83,7 +90,7 @@ Class AutoUpdate {
                 $commitdata = unserialize( file_get_contents($pgIP.'tmp/commit.tmp') );
                 $downloaddata = unserialize( file_get_contents($pgIP.'tmp/download.tmp') );
                 if( isset($data[0]['sha']) && $commitdata[0]['sha'] == $data[0]['sha']) {
-                    $success = $this->pullcontents( 'https://api.github.com/repos/cyberpower678/Peachy/contents', false, $downloaddata, true );                
+                    $success = $this->pullcontents( 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents', false, $downloaddata, true );                
                 } elseif( isset($data[0]['sha']) && $commitdata[0]['sha'] != $data[0]['sha']) {
                     if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
                     if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
@@ -93,20 +100,21 @@ Class AutoUpdate {
                    $success = false; 
                 }
             } else {
-                if( file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);
+                if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);
                 file_put_contents( $pgIP.'tmp/commit.tmp', serialize($data) );
                 //$data = $this->processreturn( $data );
                 $success = $this->pullcontents();
             }
         }
         if( $success ) {
-            file_put_contents( $pgIP.'Includes/Update.log', serialize($data) );
+            file_put_contents( $pgIP.'Includes/'.$this->logfile, serialize($data) );
+            file_put_contents( $pgIP.'Includes/updateversion', serialize( ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) );
             if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
             if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
             pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
             return true;
         } else {
-            pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.  Please open an issue on cyberpower678/Peachy.\n\n", PECHO_WARN );
+            pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\nPlease open an issue on MW-Peachy/Peachy.\n\n", PECHO_WARN );
             return false;
         }    
     }
@@ -128,7 +136,7 @@ Class AutoUpdate {
             foreach( $data['files'] as $file ) {
                 $files[$pgIP.$file['filename']]['status'] = $file['status'];
                 if( $file['status'] != 'removed' ) {
-                    $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/cyberpower678/Peachy/contents/'.$file['filename']), true );
+                    $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/contents/'.$file['filename']), true );
                     if( isset($data2['encoding']) && $data2['encoding'] == 'base64' ) $files[$pgIP.$file['filename']]['content'] = base64_decode($data2['content']);
                     elseif( isset($data2['encoding']) && $data2['encoding'] != 'base64' ) {
                         pecho( "Error: Unknown encoding, ".$item['encoding'].".", PECHO_WARN );
@@ -158,8 +166,9 @@ Class AutoUpdate {
     * @access private
     * @return bool 
     */
-    private function pullcontents( $path='https://api.github.com/repos/cyberpower678/Peachy/contents', $recurse = false, $files = array(), $dir = true ) {
+    private function pullcontents( $path=null, $recurse = false, $files = array(), $dir = true ) {
         global $pgIP;
+        if( is_null( $path ) ) $path = 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents';
         $data = json_decode( $this->get_http()->get($path), true );
         //$data = $this->processreturn( $data );
         //Gather and decode the contents of the repository
