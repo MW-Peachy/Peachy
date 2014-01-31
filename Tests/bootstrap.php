@@ -1,0 +1,23 @@
+<?php
+/**
+ * This file is references in Unit.xml and is used to load everything needed while testing peachy
+ */
+
+/**
+ * All globals used in the Init file must be defined here
+ * @see https://github.com/sebastianbergmann/phpunit/issues/325#issuecomment-2021106
+ */
+global
+	$pgVerbose,
+	$pgIp,
+	$pgHooks,
+	$pgProxy,
+	$pgUA,
+	$pgHTTP,
+	$pgVerbose,
+	$pgIRCTrigger,
+	$tmp
+;
+
+//Include the Init file
+require_once( __DIR__ . '/../Init.php' );

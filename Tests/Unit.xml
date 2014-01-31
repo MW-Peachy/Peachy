@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- colors don't work on Windows! -->
-<phpunit colors="true"
+<phpunit bootstrap="bootstrap.php"
+         colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
@@ -13,7 +14,7 @@
          strict="true"
          verbose="true">
     <testsuites>
-        <testsuite name="Peachy">
+        <testsuite name="PeachyUnitTests">
             <directory suffix="Test.php">Unit</directory>
         </testsuite>
     </testsuites>
