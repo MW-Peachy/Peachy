@@ -47,6 +47,10 @@ Class AutoUpdate {
         pecho( "Checking for updates...\n\n", PECHO_NORMAL );
         if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );    
         $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits'), true );
+        if( array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
+            pecho( "Cant check for updates right now...\n\n", PECHO_NOTICE );
+            return true;
+        }
         //$data = $this->processreturn($data);
         if( file_exists( $pgIP . 'Includes/'.$this->logfile ) ) {
             $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
