@@ -139,7 +139,7 @@ Class AutoUpdate {
                     $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/contents/'.$file['filename']), true );
                     if( isset($data2['encoding']) && $data2['encoding'] == 'base64' ) $files[$pgIP.$file['filename']]['content'] = base64_decode($data2['content']);
                     elseif( isset($data2['encoding']) && $data2['encoding'] != 'base64' ) {
-                        pecho( "Error: Unknown encoding, ".$item['encoding'].".", PECHO_WARN );
+                        pecho( "Error: Unknown encoding, ".$data2['encoding'].".", PECHO_WARN );
                         return false;
                     } else {                                     
                         pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
