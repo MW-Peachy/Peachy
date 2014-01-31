@@ -75,11 +75,15 @@ class HTTP {
 
 	/**
 	 * Construction method for the HTTP class
-	 * 
+	 *
 	 * @access public
+	 *
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
-	 * @return void
-	 */	
+	 * @param null|bool $verifyssl
+	 *
+	 * @throws DependencyError
+	 * @return HTTP
+	 */
 	function __construct( $echo = false, $verifyssl = null ) {
 		global $pgUA;
         
@@ -153,9 +157,9 @@ class HTTP {
 			catch( Exception $e ) {
 				if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
 				if( $i == 20 ) {
-					pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+					pecho( "Warning: A CURL error occurred.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
 					return false;
-				} else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+				} else pecho( "Warning: A CURL error occurred.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
 				continue;
 			}
 			break;

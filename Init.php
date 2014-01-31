@@ -125,19 +125,20 @@ class Peachy {
 
 	/**
 	 * Initializes Peachy, logs in with a either configuration file or a given username and password
-	 * 
+	 *
 	 * @static
 	 * @access public
+	 *
 	 * @param string $config_name Name of the config file stored in the Configs directory, minus the .cfg extension. Default null
 	 * @param string $username Username to log in if no config file specified. Default null
 	 * @param string $password Password to log in with if no config file specified. Default null
 	 * @param string $base_url URL to api.php if no config file specified. Defaults to English Wikipedia's API.
+	 * @param string $classname
+	 *
 	 * @throws LoginError
 	 * @return Wiki Instance of the Wiki class, where most functions are stored
 	 */
 	public static function newWiki( $config_name = null, $username = null, $password = null, $base_url = 'http://en.wikipedia.org/w/api.php', $classname = 'Wiki' ) {
-		global $pgIP;
-		
 		pecho( "Loading Peachy (version " . PEACHYVERSION . ")...\n\n", PECHO_NORMAL );
         /*$updater = new AutoUpdate();
         $Uptodate = $updater->Checkforupdate();
@@ -305,7 +306,7 @@ class Peachy {
 		}
 
 		// check if file is xml (subversion release <= 1.3) or not (subversion release = 1.4)
-		if( preg_match( '/^<\?xml/', $lines[0] ) ) {			
+		if( preg_match( '/^<\?xml/', $lines[0] ) ) {
 			return false;
 		}
 
