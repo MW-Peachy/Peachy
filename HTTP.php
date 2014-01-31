@@ -139,6 +139,31 @@ class HTTP {
 	}
 
 	/**
+	 * @return bool|string
+	 * @throws CURLError
+	 */
+	private function doCurlExecWithRetrys() {
+		for( $i = 0; $i <= 20; $i++ ) {
+			try {
+				$response = curl_exec( $this->curl_instance );
+				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
+				$this->lastHeader = substr($response, 0, $header_size);
+				$data = substr($response, $header_size);
+			}
+			catch( Exception $e ) {
+				if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+				if( $i == 20 ) {
+					pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+					return false;
+				} else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+				continue;
+			}
+			break;
+		}
+		return $data;
+	}
+
+	/**
 	 * Get an url with HTTP GET
 	 *
 	 * @access public
@@ -184,28 +209,10 @@ class HTTP {
 		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
 			if( $displayGetOutData ) pecho( "GET: $url\n", PECHO_NORMAL );
 		}
-		
+
 		Hooks::runHook( 'HTTPGet', array( &$this, &$url, &$data ) );
 
-        for( $i = 0; $i <= 20; $i++ ) {
-            try {
-				$response = curl_exec( $this->curl_instance );
-				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
-				$this->lastHeader =  substr($response, 0, $header_size);
-				$data = substr($response, $header_size);
-			}
-            catch( Exception $e ) {
-                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-                if( $i == 20 ) {
-                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
-                    return false;
-                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
-                continue; 
-            }
-            break;
-        }
-		
-		return $data;
+		return $this->doCurlExecWithRetrys();
 		
 	}
 	
@@ -263,28 +270,10 @@ class HTTP {
 		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
 			if( $displayPostOutData ) pecho( "POST: $url\n", PECHO_NORMAL );
 		}
-		
-		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );
-		
-		for( $i = 0; $i <= 20; $i++ ) {
-            try {
-				$response = curl_exec( $this->curl_instance );
-				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
-				$this->lastHeader = substr($response, 0, $header_size);
-				$data = substr($response, $header_size);
-			}
-            catch( Exception $e ) {
-                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-                if( $i == 20 ) {
-                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
-                    return false;
-                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
-                continue; 
-            }
-            break;
-        }
 
-		return $data;
+		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );
+
+		return $this->doCurlExecWithRetrys();
 	}
 
 	/**
@@ -327,30 +316,12 @@ class HTTP {
 		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
 			pecho( "DLOAD: $url\n", PECHO_NORMAL );
 		}
-		
+
 		Hooks::runHook( 'HTTPDownload', array( &$this, &$url, &$local ) );
-		
-		for( $i = 0; $i <= 20; $i++ ) {
-            try {
-				$response = curl_exec( $this->curl_instance );
-				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
-				$this->lastHeader = substr($response, 0, $header_size);
-				$ret = substr($response, $header_size);
-			}
-            catch( Exception $e ) {
-                if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
-                if( $i == 20 ) {
-                    pecho( "Warning: A CURL error occured.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
-                    return false;
-                } else pecho( "Warning: A CURL error occured.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
-                continue; 
-            }
-            break;
-        }
-		
-		fwrite( $out, $ret );
-		
+
+		fwrite( $out, $this->doCurlExecWithRetrys() );
 		fclose($out);
+
 		return true;
 		
 	}
