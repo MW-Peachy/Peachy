@@ -67,7 +67,12 @@ class HTTP {
 	 * @access private
 	 */
 	private $cookie_jar;
-	
+
+	/**
+	 * @var string|null
+	 */
+	private $lastHeader = null;
+
 	/**
 	 * Construction method for the HTTP class
 	 * 
@@ -97,9 +102,10 @@ class HTTP {
 		curl_setopt($this->curl_instance,CURLOPT_MAXCONNECTS,100);
 		curl_setopt($this->curl_instance,CURLOPT_CLOSEPOLICY,CURLCLOSEPOLICY_LEAST_RECENTLY_USED);
 		curl_setopt($this->curl_instance,CURLOPT_MAXREDIRS,10);
-		curl_setopt($this->curl_instance,CURLOPT_HTTPHEADER, array('Expect:'));
+		$this->setCurlHeaders();
 		curl_setopt($this->curl_instance,CURLOPT_ENCODING, 'gzip');
 		curl_setopt($this->curl_instance,CURLOPT_RETURNTRANSFER,1);
+		curl_setopt($this->curl_instance, CURLOPT_HEADER, 1);
 		curl_setopt($this->curl_instance,CURLOPT_TIMEOUT,100);
 		curl_setopt($this->curl_instance,CURLOPT_CONNECTTIMEOUT,10);
         if( !$verifyssl ) {
@@ -109,6 +115,10 @@ class HTTP {
 		
 		$this->setUserAgent( $pgUA );
 
+	}
+
+	private function setCurlHeaders( $extraHeaders = array() ) {
+		curl_setopt($this->curl_instance,CURLOPT_HTTPHEADER, array_merge( array('Expect:'), $extraHeaders ) );
 	}
 	
 	function setCookieJar( $cookie_file ) {
@@ -127,18 +137,24 @@ class HTTP {
 		
 		curl_setopt($this->curl_instance,CURLOPT_USERAGENT, $user_agent);
 	}
-	
+
 	/**
 	 * Get an url with HTTP GET
-	 * 
+	 *
 	 * @access public
+	 *
 	 * @param string $url URL to get
-	 * @param array $data Array of data to pass. Gets transformed into the URL inside the function. Default null.
+	 * @param array|null $data Array of data to pass. Gets transformed into the URL inside the function. Default null.
+	 * @param array $headers Array of headers to pass to curl
+	 *
+	 * @throws CURLError
 	 * @return bool|string Result
 	 */
-	function get( $url, $data = null ) {
+	public function get( $url, $data = null, $headers = array() ) {
 		global $argv, $pgProxy, $displayGetOutData;
-		
+
+		$this->setCurlHeaders( $headers );
+
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
 			if( isset( $pgProxy['type'] ) ) {
@@ -170,9 +186,14 @@ class HTTP {
 		}
 		
 		Hooks::runHook( 'HTTPGet', array( &$this, &$url, &$data ) );
-        
+
         for( $i = 0; $i <= 20; $i++ ) {
-            try {$data = curl_exec( $this->curl_instance );}
+            try {
+				$response = curl_exec( $this->curl_instance );
+				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
+				$this->lastHeader =  substr($response, 0, $header_size);
+				$data = substr($response, $header_size);
+			}
             catch( Exception $e ) {
                 if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
                 if( $i == 20 ) {
@@ -198,18 +219,24 @@ class HTTP {
 		$ci = curl_getinfo( $this->curl_instance );
 		return $ci['http_code'];
 	}
-	
+
 	/**
 	 * Sends data via HTTP POST
-	 * 
+	 *
 	 * @access public
+	 *
 	 * @param string $url URL to send
 	 * @param array $data Array of data to pass.
+	 * @param array $headers Array of headers to pass to curl
+	 *
+	 * @throws CURLError
 	 * @return bool|string Result
 	 */
-	function post( $url, $data ) {
+	function post( $url, $data, $headers = array() ) {
 		global $argv, $pgProxy,$displayPostOutData;
-		
+
+		$this->setCurlHeaders( $headers );
+
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
 			if( isset( $pgProxy['type'] ) ) {
@@ -240,7 +267,12 @@ class HTTP {
 		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );
 		
 		for( $i = 0; $i <= 20; $i++ ) {
-            try {$data = curl_exec( $this->curl_instance );}
+            try {
+				$response = curl_exec( $this->curl_instance );
+				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
+				$this->lastHeader = substr($response, 0, $header_size);
+				$data = substr($response, $header_size);
+			}
             catch( Exception $e ) {
                 if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
                 if( $i == 20 ) {
@@ -254,19 +286,25 @@ class HTTP {
 
 		return $data;
 	}
-	
+
 	/**
 	 * Downloads an URL to the local disk
-	 * 
+	 *
 	 * @access public
+	 *
 	 * @param string $url URL to get
 	 * @param array $local Local filename to download to
+	 * @param array $headers Array of headers to pass to curl
+	 *
+	 * @throws CURLError
 	 * @return bool
 	 */
-	function download( $url, $local ) {
+	function download( $url, $local, $headers = array() ) {
 		global $argv, $pgProxy;
 		
-		$out = fopen($local, 'wb'); 
+		$out = fopen($local, 'wb');
+
+		$this->setCurlHeaders( $headers );
 		
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -293,7 +331,12 @@ class HTTP {
 		Hooks::runHook( 'HTTPDownload', array( &$this, &$url, &$local ) );
 		
 		for( $i = 0; $i <= 20; $i++ ) {
-            try {$ret = curl_exec( $this->curl_instance );}
+            try {
+				$response = curl_exec( $this->curl_instance );
+				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
+				$this->lastHeader = substr($response, 0, $header_size);
+				$ret = substr($response, $header_size);
+			}
             catch( Exception $e ) {
                 if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
                 if( $i == 20 ) {
@@ -310,6 +353,14 @@ class HTTP {
 		fclose($out);
 		return true;
 		
+	}
+
+	/**
+	 * Gets the Header for the last request made
+	 * @return null|string
+	 */
+	public function getLastHeader() {
+		return $this->lastHeader;
 	}
 	
 	/**
