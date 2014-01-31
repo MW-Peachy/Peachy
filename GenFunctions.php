@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
  * @param mixed $needle What to search for
  * @param array $haystack Array to search in
+ * @param bool $strict
  * @return bool True if $needle is found in $haystack, case insensitive
  * @link http://us3.php.net/in_array
  */
@@ -46,7 +47,7 @@ function strtoupper_safe( $str ) {
  * 
  * @param string $needle What to search for
  * @param string $haystack What to search in
- * @param bool Whether or not to do a case-insensitive search
+ * @param bool $insensitive Whether or not to do a case-insensitive search
  * @return bool True if $needle is found in $haystack
  * @link http://us3.php.net/strpos
  */
@@ -62,7 +63,7 @@ function in_string( $needle, $haystack, $insensitive = false ) {
  * 
  * @param string $needle What to search for
  * @param string $haystack What to search in
- * @param bool Whether or not to do a case-insensitive search
+ * @param bool $insensitive Whether or not to do a case-insensitive search
  * @return bool True if $needle is found in $haystack
  * @link http://us3.php.net/in_array
  */
@@ -146,6 +147,7 @@ function checkExclusion( &$wiki, $text = '', $username = null, $optout = null ) 
  * 
  * @param string $text Text to display
  * @param int $cat Category of text, such as PECHO_WARN, PECHO_NORMAL
+ * @param string $func
  * @return void
  */
 function outputText( $text, $cat = 0, $func = 'echo' ) {
@@ -168,6 +170,7 @@ function outputText( $text, $cat = 0, $func = 'echo' ) {
  * 
  * @param string $text Text to display
  * @param int $cat Category of text, such as PECHO_WARN, PECHO_NORMAL
+ * @param string $func
  * @link outputText
  * @return void
  */
