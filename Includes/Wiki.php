@@ -1030,7 +1030,7 @@ class Wiki {
 		);
 	
 		if( is_null( $titles ) && is_null( $pageids ) && is_null( $revids ) ) {
-			pecho( "Error: Nothing to purge.\n\n", PECHO_WARNING);
+			pecho( "Error: Nothing to purge.\n\n", PECHO_WARN);
 			return false;
 		}
 		Hooks::runHook( 'StartPurge', array( &$titles ) );
@@ -1053,7 +1053,7 @@ class Wiki {
 		$genparams = $this->generatorvalues;
 		if( !is_null( $generator ) ) {
 			if( in_array( $generator, $genparams ) ) $apiArr['generator'] = 'g'.$generator;
-			else pecho( "Invalid generator value detected.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Invalid generator value detected.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		pecho( "Purging...\n\n", PECHO_NOTICE );
@@ -1706,10 +1706,10 @@ class Wiki {
 	 * @param bool $disablepp Disable the PP Report from the parser output. Defaut false.
 	 * @param bool $generatexml Generate XML parse tree (requires prop=wikitext). Default false.
 	 * @param string $contentformat Content serialization format used for the input text. Default null.
-     * @param string contentmodel Content model of the new content. Default null.
-	 * @param string mobileformat Return parse output in a format suitable for mobile devices. Default null.
-	 * @param bool noimages Disable images in mobile output
-	 * @param bool mainpage Apply mobile main page transformations
+     * @param string $contentmodel Content model of the new content. Default null.
+	 * @param string $mobileformat Return parse output in a format suitable for mobile devices. Default null.
+	 * @param bool $noimages Disable images in mobile output
+	 * @param bool $mainpage Apply mobile main page transformations
 	 * @return array
 	 */
 	public function parse( $text = null, $title = null, $summary = null, $pst = false, $onlypst = false, $prop = array( 'text', 'langlinks', 'categories', 'categorieshtml', 'languageshtml', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties' ), $uselang = 'en', $page = null, $oldid = null, $pageid = null, $redirects = false, $section = null, $disablepp = false, $generatexml = false, $contentformat = null, $contentmodel = null, $mobileformat = null, $noimages = false, $mainpage = false ) {
