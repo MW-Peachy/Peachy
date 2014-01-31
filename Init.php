@@ -107,6 +107,9 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 	mb_internal_encoding( "UTF-8" );
 }
 
+// Suppress warnings if timezone not set on server
+date_default_timezone_set(@date_default_timezone_get());
+
 //Check for updates before loading Peachy.
 if ( !$disableUpdates ) {
 	$updater = new AutoUpdate();
