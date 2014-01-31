@@ -52,7 +52,7 @@ Class AutoUpdate {
 			return true;
 		}
         if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
-            pecho( "Cant check for updates right now...\n\n", PECHO_NOTICE );
+            pecho( "Cant check for updates right now, next window in " . $this->getTimeToNextLimitWindow() . "\n\n", PECHO_NOTICE );
             return true;
         }
 		$this->cacheLastGithubETag();
@@ -92,6 +92,16 @@ Class AutoUpdate {
 		if( preg_match( '/\\r\\nETag\: \"([^\"]*)\"\\r\\n/', $this->get_http()->getLastHeader(), $matches ) ) {
 			file_put_contents( $pgIP.'tmp/github-ETag.tmp', $matches[1] );
 		}
+	}
+
+	/**
+	 * @return string representing time to next github api request window
+	 */
+	private function getTimeToNextLimitWindow() {
+		if( preg_match( '/X-RateLimit-Reset: (\d*)/', $this->get_http()->getLastHeader(), $matches ) ) {
+			return gmdate( "i \m\i\\n\u\\t\\e\s s \s\\e\c\o\\n\d\s", $matches[1] - time() );
+		}
+		return 'Unknown';
 	}
     
     /**
