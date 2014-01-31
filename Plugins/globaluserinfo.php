@@ -94,7 +94,7 @@ class GlobalUserInfo {
 	function __construct( &$wikiClass, $username ) {
 	
 		if( !array_key_exists( 'Central Auth', $wikiClass->get_extensions() ) ) {
-			throw new DependancyError( "CentralAuth", "http://www.mediawiki.org/wiki/Extension:CentralAuth" );
+			throw new DependencyError( "CentralAuth", "http://www.mediawiki.org/wiki/Extension:CentralAuth" );
 		}
 		
 		$this->username = ucfirst( $username );

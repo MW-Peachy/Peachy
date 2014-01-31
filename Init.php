@@ -328,7 +328,7 @@ class Peachy {
 /**
  * Simple phpversion() wrapper
  * @param $check_version bool
- * @throws DependancyError
+ * @throws DependencyError
  * @return array
  */
 function peachyCheckPHPVersion( $check_version = null ) {
@@ -342,7 +342,7 @@ function peachyCheckPHPVersion( $check_version = null ) {
 		( $version[0] < $min_version[0] ) ||
 		( $version[0] == $min_version[0] && $version[1] < $min_version[1] ) ||
 		( $version[0] == $min_version[0] && $version[1] == $min_version[1] && $version[2] < $min_version[2] )
-	) throw new DependancyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
+	) throw new DependencyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
 	
 	return $version;
 }

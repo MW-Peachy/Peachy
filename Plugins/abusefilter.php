@@ -38,7 +38,7 @@ class AbuseFilter {
 		$this->wiki = $wikiClass;
 		
 		if( !array_key_exists( 'Abuse Filter', $wikiClass->get_extensions() ) ) {
-			throw new DependancyError( "AbuseFilter", "http://www.mediawiki.org/wiki/Extension:AbuseFilter" );
+			throw new DependencyError( "AbuseFilter", "http://www.mediawiki.org/wiki/Extension:AbuseFilter" );
 		}
 	}
 	

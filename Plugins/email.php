@@ -71,7 +71,7 @@ class Email {
 	function __construct( $fromEmail, $fromName, $subject, $message ) {
 		
 		if( !function_exists( 'mail' ) ) {
-			throw new DependancyError( "Mail", "http://us4.php.net/manual/en/book.mail.php" );
+			throw new DependencyError( "Mail", "http://us4.php.net/manual/en/book.mail.php" );
 		}
 		
 		if( !is_null( $fromName ) ) {

@@ -39,11 +39,11 @@ class DatabaseMySQL extends DatabaseBase {
 	 */
 	public function open() {
 		if( !function_exists( 'mysql_connect' ) ) {
-			throw new DependancyError( "MySQL", "http://us2.php.net/manual/en/book.mysql.php" );
+			throw new DependencyError( "MySQL", "http://us2.php.net/manual/en/book.mysql.php" );
 		}
 		
 		if( version_compare( mysql_get_client_info(), '5.0' ) < 0 ) {
-			throw new DependancyError( "MySQL 5.0", "http://us2.php.net/manual/en/book.mysql.php" );
+			throw new DependencyError( "MySQL 5.0", "http://us2.php.net/manual/en/book.mysql.php" );
 		} 
 		
 		$this->close(); 

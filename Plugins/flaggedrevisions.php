@@ -24,7 +24,7 @@ class FlaggedRevs {
 	function __construct( &$wikiClass ) {
 	
 		if( !array_key_exists( 'FlaggedRevs', $wikiClass->get_extensions() ) ) {
-			throw new DependancyError( "FlaggedRevs", "http://www.mediawiki.org/wiki/Extension:FlaggedRevs" );
+			throw new DependencyError( "FlaggedRevs", "http://www.mediawiki.org/wiki/Extension:FlaggedRevs" );
 		}
 		
 		$this->wiki = $wikiClass;

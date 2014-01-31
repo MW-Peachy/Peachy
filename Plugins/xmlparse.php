@@ -31,7 +31,7 @@ class XMLParse {
 		global $pgHTTP;
 		
 		if( !function_exists( 'simplexml_load_string' ) ) {
-			throw new DependancyError( "SimpleXML", "http://us.php.net/manual/en/book.simplexml.php" );
+			throw new DependencyError( "SimpleXML", "http://us.php.net/manual/en/book.simplexml.php" );
 		}
 		
 		libxml_use_internal_errors( true );

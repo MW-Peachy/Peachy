@@ -196,6 +196,7 @@ class DependencyError extends Exception {
  * Misspelling of "dependency", used for backwards compatibility
  * 
  * @package Exceptions
+ * @deprecated since 31 Jan 2014
  */
 class DependancyError extends DependencyError {
 	public function __construct( $software, $url = false ) {

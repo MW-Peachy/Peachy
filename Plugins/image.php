@@ -722,7 +722,7 @@ class Image {
 		
         if( !$notag ) $comment .= $tag;
 		if( !function_exists( 'ImageCreateTrueColor' ) ) {
-			throw new DependancyError( "GD", "http://us2.php.net/manual/en/book.image.php" );
+			throw new DependencyError( "GD", "http://us2.php.net/manual/en/book.image.php" );
 		}
 		echo "1\n";
 		if( !is_null( $width ) && !is_null( $height ) ) {	

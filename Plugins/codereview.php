@@ -28,7 +28,7 @@ class CodeReview {
 		$this->repo = $repo;
 		
 		if( !array_key_exists( 'CodeReview', $wikiClass->get_extensions() ) ) {
-			throw new DependancyError( "CodeReview", "http://www.mediawiki.org/wiki/Extension:CodeReview" );
+			throw new DependencyError( "CodeReview", "http://www.mediawiki.org/wiki/Extension:CodeReview" );
 		}
 	}
 	

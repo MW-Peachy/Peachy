@@ -40,12 +40,12 @@ class DatabasePgSQL extends DatabaseBase {
 	
 	public function open() {
 		if( !function_exists( 'pg_connect' ) ) {
-			throw new DependancyError( "PostgreSQL", "http://us2.php.net/manual/en/book.pgsql.php" );
+			throw new DependencyError( "PostgreSQL", "http://us2.php.net/manual/en/book.pgsql.php" );
 		}
 		
 		$version = pg_version();
 		if( version_compare( $version['client'], '8.1' ) < 0 ) {
-			throw new DependancyError( "PostgreSQL 8.1", "http://us2.php.net/manual/en/book.pgsql.php" );
+			throw new DependencyError( "PostgreSQL 8.1", "http://us2.php.net/manual/en/book.pgsql.php" );
 		}
 		
 		$this->close(); 

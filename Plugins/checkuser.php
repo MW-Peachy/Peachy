@@ -25,10 +25,10 @@ class CheckUser {
     
         $extensions = $wikiClass->get_extensions();
         if( !array_key_exists( 'CheckUser', $extensions ) ) {
-            throw new DependancyError( "CheckUser", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
+            throw new DependencyError( "CheckUser", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
         }
         elseif( $extensions['CheckUser'] < 3 ) {
-            throw new DependancyError( "CheckUser version 3.0 or up", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
+            throw new DependencyError( "CheckUser version 3.0 or up", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
         }
     }
 }
