@@ -225,3 +225,8 @@ test.php
 acc.php
 config.local.inc.php
 Includes/updateversion
+
+Configs/*
+!Configs/redirector.cfg
+!Configs/sample.cfg
+!Configs/scriptdefault.cfg
