@@ -111,7 +111,7 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 date_default_timezone_set(@date_default_timezone_get());
 
 //Check for updates before loading Peachy.
-if ( !$disableUpdates ) {
+if ( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
 	$updater = new AutoUpdate();
 	$Uptodate = $updater->Checkforupdate();
 	if( !$Uptodate ) $updater->updatePeachy();

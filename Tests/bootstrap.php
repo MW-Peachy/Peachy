@@ -19,5 +19,7 @@ global
 	$tmp
 ;
 
+define( 'PEACHY_PHPUNIT_TESTS', 'true!' );
+
 //Include the Init file
 require_once( __DIR__ . '/../Init.php' );
