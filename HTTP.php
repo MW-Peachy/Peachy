@@ -31,7 +31,7 @@ class HTTP {
 	/**
 	 * Curl object
 	 * 
-	 * @var cURL
+	 * @var resource a cURL handle
 	 * @access private
 	 */
 	private $curl_instance;
@@ -81,6 +81,7 @@ class HTTP {
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
 	 * @param null|bool $verifyssl
 	 *
+	 * @throws RuntimeException
 	 * @throws DependencyError
 	 * @return HTTP
 	 */
@@ -95,6 +96,9 @@ class HTTP {
 		
 		$this->echo = $echo;
 		$this->curl_instance = curl_init();
+		if( $this->curl_instance === false ) {
+			throw new RuntimeException( 'Failed to initialize curl' );
+		}
 		$this->cookie_hash = md5( time() . '-' . rand( 0, 999 ) );
 		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.'.$this->cookie_hash.'.dat';
 		$this->user_agent = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
@@ -346,9 +350,9 @@ class HTTP {
 	 */
 	function __destruct () {
 		Hooks::runHook( 'HTTPClose', array( &$this ) );
-		
+
 		curl_close($this->curl_instance);
-		
+
 		//@unlink($this->cookie_jar);
 	}
 
