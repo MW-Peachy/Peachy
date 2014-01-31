@@ -45,12 +45,17 @@ Class AutoUpdate {
     public function Checkforupdate() {
         global $pgIP, $experimentalupdates;
         pecho( "Checking for updates...\n\n", PECHO_NORMAL );
-        if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );    
-        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits'), true );
-        if( array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
+        if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
+		$data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders() ), true );
+		if( strstr( $this->get_http()->getLastHeader(), 'Status: 304 Not Modified') ) {
+			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
+			return true;
+		}
+        if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
             pecho( "Cant check for updates right now...\n\n", PECHO_NOTICE );
             return true;
         }
+		$this->cacheLastGithubETag();
         //$data = $this->processreturn($data);
         if( file_exists( $pgIP . 'Includes/'.$this->logfile ) ) {
             $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
@@ -66,6 +71,28 @@ Class AutoUpdate {
             return false;
         }
     }
+
+	/**
+	 * @return array headers to be used for github api request
+	 */
+	private function getUpdateHeaders() {
+		global $pgIP;
+		if( file_exists( $pgIP.'tmp/github-ETag.tmp' ) ) {
+			$ETag = file_get_contents( $pgIP.'tmp/github-ETag.tmp' );
+			return array( 'If-None-Match: "' . $ETag . '"' );
+		}
+		return array();
+	}
+
+	/**
+	 * Caches the last Etag from github in a tmp file
+	 */
+	private function cacheLastGithubETag() {
+		global $pgIP;
+		if( preg_match( '/\\r\\nETag\: \"([^\"]*)\"\\r\\n/', $this->get_http()->getLastHeader(), $matches ) ) {
+			file_put_contents( $pgIP.'tmp/github-ETag.tmp', $matches[1] );
+		}
+	}
     
     /**
     * Updates the Peachy framework
@@ -261,5 +288,5 @@ Class AutoUpdate {
         return $this->http;
     }
     
-}   
+}
 ?>
