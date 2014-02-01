@@ -124,6 +124,18 @@ class HTTP {
 	private function setCurlHeaders( $extraHeaders = array() ) {
 		curl_setopt($this->curl_instance,CURLOPT_HTTPHEADER, array_merge( array('Expect:'), $extraHeaders ) );
 	}
+
+	private function setVerifySSL( $verifyssl = null ) {
+		if( is_null( $verifyssl ) ) global $verifyssl;
+		if( !$verifyssl ) {
+			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
+		} else {
+			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, true);
+			//support for value of 1 will be removed in cURL 7.28.1
+			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
+		}
+	}
 	
 	function setCookieJar( $cookie_file ) {
 		$this->cookie_jar = $cookie_file;
@@ -183,10 +195,7 @@ class HTTP {
 		global $argv, $pgProxy, $displayGetOutData;
 
 		$this->setCurlHeaders( $headers );
-
-		if( is_null( $verifyssl ) ) global $verifyssl;
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
+		$this->setVerifySSL( $verifyssl );
 
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -252,10 +261,7 @@ class HTTP {
 		global $argv, $pgProxy,$displayPostOutData;
 
 		$this->setCurlHeaders( $headers );
-
-		if( is_null( $verifyssl ) ) global $verifyssl;
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
+		$this->setVerifySSL( $verifyssl );
 
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -307,10 +313,7 @@ class HTTP {
 		$out = fopen($local, 'wb');
 
 		$this->setCurlHeaders( $headers );
-
-		if( is_null( $verifyssl ) ) global $verifyssl;
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
-		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
+		$this->setVerifySSL( $verifyssl );
 		
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
