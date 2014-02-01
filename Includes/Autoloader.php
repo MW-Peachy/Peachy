@@ -123,8 +123,6 @@ EOF
 			return false;
 			
 		}
-
-		return true;
 	}
 
 }

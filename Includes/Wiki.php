@@ -226,7 +226,7 @@ class Wiki {
 	 * @param array $extensions Array of names of extensions installed on the wiki and their versions (default: array())
 	 * @param int $recursed Is the function recursing itself? Used internally, don't use (default: 0)
 	 * @param mixed $token Token if the wiki needs a token. Used internally, don't use (default: null)
-	 * @return void
+	 * @return void|Wiki|bool
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
 		global $pgProxy, $pgVerbose;
@@ -383,31 +383,24 @@ class Wiki {
 			switch( $loginRes['login']['result'] ) {
 				case 'NoName':
 					throw new LoginError( array( 'NoName', 'Username not specified' ) );
-					return false;
 					break;
 				case 'Illegal':
 					throw new LoginError( array( 'Illegal', 'Username with illegal characters specified' ) );
-					return false;
 					break;
 				case 'NotExists':
 					throw new LoginError( array( 'NotExists', 'Username specified does not exist' ) );
-					return false;
 					break;
 				case 'EmptyPass':
 					throw new LoginError( array( 'EmptyPass', 'Password not specified' ) );
-					return false;
 					break;
 				case 'WrongPass':
 					throw new LoginError( array( 'WrongPass', 'Incorrect password specified' ) );
-					return false;
 					break;
 				case 'WrongPluginPass':
 					throw new LoginError( array( 'WrongPluginPass', 'Incorrect password specified' ) );
-					return false;
 					break;
 				case 'CreateBlocked':
 					throw new LoginError( array( 'CreateBlocked', 'IP address has been blocked' ) );
-					return false;
 					break;
 				case 'Throttled':
 					if( $recursed > 2 ) throw new LoginError( array( 'Throttled', 'Login attempts have been throttled' ) );
@@ -421,7 +414,6 @@ class Wiki {
 					break;
 				case 'Blocked':
 					throw new LoginError( array( 'Blocked', 'User specified has been blocked' ) );
-					return false;
 					break;
 				case 'NeedToken':
 					if( $recursed > 2 ) throw new LoginError( array( 'NeedToken', 'Token was not specified' ) );
