@@ -584,7 +584,7 @@ class Image {
 			if( $watch ) $aprArr['watchlist'] = 'watch';
 			elseif( !$watch ) $apiArr['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $apiArr['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		if( !is_array( $file ) ) {
@@ -845,7 +845,7 @@ class Image {
             if( $watch ) $editarray['watchlist'] = 'watch';
             elseif( !$watch ) $editarray['watchlist'] = 'nochange';
             elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-            else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+            else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
         }
         if( !is_null( $oldimage ) ) $editarray['oldimage'] = $oldimage;
         

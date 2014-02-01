@@ -1292,7 +1292,7 @@ class Page {
 			if( $watch ) $editarray['watchlist'] = 'watch';
 			elseif( !$watch ) $editarray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		if( $create == "never" ) $editarray['nocreate'] = 'yes';
@@ -1455,7 +1455,7 @@ class Page {
 			if( $watch ) $editarray['watchlist'] = 'watch';
 			elseif( !$watch ) $editarray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		if( !$force ) {
@@ -1582,7 +1582,7 @@ class Page {
 			if( $watch ) $editarray['watchlist'] = 'watch';
 			elseif( !$watch ) $editarray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		if( $nowarnings ) $editarray['ignorewarnings'] = 'yes';
@@ -1657,7 +1657,7 @@ class Page {
 			if( $watch ) $editarray['watchlist'] = 'watch';
 			elseif( !$watch ) $editarray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		try {
             $this->preEditChecks( "Protect" );
@@ -1728,7 +1728,7 @@ class Page {
 			if( $watch ) $editarray['watchlist'] = 'watch';
 			elseif( !$watch ) $editarray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $editarray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
 		Hooks::runHook( 'StartDelete', array( &$editarray ) );
@@ -1797,7 +1797,7 @@ class Page {
 			if( $watch ) $undelArray['watchlist'] = 'watch';
 			elseif( !$watch ) $undelArray['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $undelArray['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
         try {
@@ -2207,7 +2207,7 @@ class Page {
 			if( $watch ) $params['watchlist'] = 'watch';
 			elseif( !$watch ) $params['watchlist'] = 'nochange';
 			elseif( in_array( $watch, array( 'watch', 'unwatch', 'preferences', 'nochange' ) ) ) $params['watchlist'] = $watch;
-			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARNING );
+			else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 		
         try {
