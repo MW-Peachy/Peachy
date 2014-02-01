@@ -30,7 +30,7 @@ Class AutoUpdate {
     
     function __construct() {
        global $pgIP, $experimentalupdates;
-       $this->http = new HTTP( false, false );
+       $this->http = new HTTP( false );
        $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
        $this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
        $this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
@@ -46,7 +46,7 @@ Class AutoUpdate {
         global $pgIP, $experimentalupdates;
         pecho( "Checking for updates...\n\n", PECHO_NORMAL );
         if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
-		$data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders() ), true );
+		$data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders(), false ), true );
 		if( strstr( $this->get_http()->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
 			return true;
@@ -114,7 +114,7 @@ Class AutoUpdate {
         global $pgIP, $experimentalupdates;
         pecho( "Updating Peachy...\n\n", PECHO_NORMAL ); 
         if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);   
-        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits'), true );
+        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits',null,array(),false), true );
         if( file_exists( $pgIP . 'Includes/'.$this->logfile ) && ( $this->lastused != 'Unknown' || $this->lastused != ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) ) {
             $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
             if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
@@ -169,7 +169,7 @@ Class AutoUpdate {
     private function pullNewcontents( $links=array(), $files = array() ) {
         global $pgIP;
         foreach( array_reverse($links) as $path ) {
-            $data = json_decode( $this->get_http()->get($path), true );
+            $data = json_decode( $this->get_http()->get($path,null,array(),false), true );
             if( !isset($data['files']) ) {
                 pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
                 return false;    
@@ -177,7 +177,7 @@ Class AutoUpdate {
             foreach( $data['files'] as $file ) {
                 $files[$pgIP.$file['filename']]['status'] = $file['status'];
                 if( $file['status'] != 'removed' ) {
-                    $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/contents/'.$file['filename']), true );
+                    $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/contents/'.$file['filename'],null,array(),false), true );
                     if( isset($data2['encoding']) && $data2['encoding'] == 'base64' ) $files[$pgIP.$file['filename']]['content'] = base64_decode($data2['content']);
                     elseif( isset($data2['encoding']) && $data2['encoding'] != 'base64' ) {
                         pecho( "Error: Unknown encoding, ".$data2['encoding'].".", PECHO_WARN );
@@ -210,7 +210,7 @@ Class AutoUpdate {
     private function pullcontents( $path=null, $recurse = false, $files = array(), $dir = true ) {
         global $pgIP;
         if( is_null( $path ) ) $path = 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents';
-        $data = json_decode( $this->get_http()->get($path), true );
+        $data = json_decode( $this->get_http()->get($path,null,array(),false), true );
         //$data = $this->processreturn( $data );
         //Gather and decode the contents of the repository
         if( $dir ) {

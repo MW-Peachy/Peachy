@@ -79,16 +79,14 @@ class HTTP {
 	 * @access public
 	 *
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
-	 * @param null|bool $verifyssl
 	 *
 	 * @throws RuntimeException
 	 * @throws DependencyError
+	 *
 	 * @return HTTP
 	 */
-	function __construct( $echo = false, $verifyssl = null ) {
+	function __construct( $echo = false ) {
 		global $pgUA;
-        
-        if( is_null( $verifyssl ) ) global $verifyssl;
 		
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
@@ -116,11 +114,7 @@ class HTTP {
 		curl_setopt($this->curl_instance, CURLOPT_HEADER, 1);
 		curl_setopt($this->curl_instance,CURLOPT_TIMEOUT,100);
 		curl_setopt($this->curl_instance,CURLOPT_CONNECTTIMEOUT,10);
-        if( !$verifyssl ) {
-            curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, FALSE);
-            curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, FALSE);     
-        }
-		
+
 		$this->setUserAgent( $pgUA );
 
 	}
@@ -179,14 +173,18 @@ class HTTP {
 	 * @param string $url URL to get
 	 * @param array|null $data Array of data to pass. Gets transformed into the URL inside the function. Default null.
 	 * @param array $headers Array of headers to pass to curl
+	 * @param bool $verifyssl override for the global verifyssl value
 	 *
-	 * @throws CURLError
 	 * @return bool|string Result
 	 */
-	public function get( $url, $data = null, $headers = array() ) {
+	public function get( $url, $data = null, $headers = array(), $verifyssl = null ) {
 		global $argv, $pgProxy, $displayGetOutData;
 
 		$this->setCurlHeaders( $headers );
+
+		if( is_null( $verifyssl ) ) global $verifyssl;
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
 
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -244,13 +242,18 @@ class HTTP {
 	 * @param array $data Array of data to pass.
 	 * @param array $headers Array of headers to pass to curl
 	 *
-	 * @throws CURLError
+	 * @param bool|null $verifyssl override for global verifyssl value
+	 *
 	 * @return bool|string Result
 	 */
-	function post( $url, $data, $headers = array() ) {
+	function post( $url, $data, $headers = array(), $verifyssl = null ) {
 		global $argv, $pgProxy,$displayPostOutData;
 
 		$this->setCurlHeaders( $headers );
+
+		if( is_null( $verifyssl ) ) global $verifyssl;
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
 
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
@@ -292,16 +295,20 @@ class HTTP {
 	 * @param string $url URL to get
 	 * @param array $local Local filename to download to
 	 * @param array $headers Array of headers to pass to curl
+	 * @param bool|null $verifyssl
 	 *
-	 * @throws CURLError
 	 * @return bool
 	 */
-	function download( $url, $local, $headers = array() ) {
+	function download( $url, $local, $headers = array(), $verifyssl = null ) {
 		global $argv, $pgProxy;
 		
 		$out = fopen($local, 'wb');
 
 		$this->setCurlHeaders( $headers );
+
+		if( is_null( $verifyssl ) ) global $verifyssl;
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, $verifyssl);
+		curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, $verifyssl);
 		
 		if( count( $pgProxy ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
