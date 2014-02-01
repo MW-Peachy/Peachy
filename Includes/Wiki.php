@@ -230,6 +230,10 @@ class Wiki {
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
 		global $pgProxy, $pgVerbose;
+
+		if( !array_key_exists( 'encodedparams', $configuration ) ) {
+			$configuration['encodedparams'] = rawurlencode( serialize( $configuration ) );
+		}
 		
 		$this->base_url = $configuration['baseurl'];
 		$this->username = $configuration['username'];

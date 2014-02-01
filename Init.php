@@ -166,10 +166,9 @@ class Peachy {
 		}
 		
 		list( $version, $extensions ) = Peachy::wikiChecks( $config_params['baseurl'] );
-		
+
 		Hooks::runHook( 'StartLogin', array( &$config_params, &$extensions ) );
-		
-		$config_params['encodedparams'] = rawurlencode( serialize( $config_params ) );
+
 		$w = new $classname( $config_params, $extensions, false, null );
 		$w->mwversion = $version;
 		
