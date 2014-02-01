@@ -26,10 +26,10 @@ class MWReleases {
 			pecho( "Error: MWReleases initialized using new MWReleases. This is reserved for internal usage. Use MWReleases::load() instead.\n\n", PECHO_ERROR );
 			return;
 		}
+
+		$http = HTTP::getDefaultInstance();
 		
-		global $pgHTTP;
-		
-		$ret = unserialize( $pgHTTP->get( 'http://wiki.peachy.compwhizii.net/w/api.php?action=mwreleases&format=php' ) );
+		$ret = unserialize( $http->get( 'http://wiki.peachy.compwhizii.net/w/api.php?action=mwreleases&format=php' ) );
 		if( !isset( $ret['mwreleases'] ) || !$ret ) return;
 		
 		foreach( $ret['mwreleases'] as $release ) {

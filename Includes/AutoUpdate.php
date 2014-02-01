@@ -30,7 +30,7 @@ Class AutoUpdate {
     
     function __construct() {
        global $pgIP, $experimentalupdates;
-       $this->http = new HTTP( false );
+       $this->http = HTTP::getDefaultInstance();
        $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
        $this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
        $this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );

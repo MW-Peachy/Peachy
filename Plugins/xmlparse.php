@@ -28,7 +28,7 @@ class XMLParse {
 	 * @return array Parsed XML
 	 */
 	public static function load( $data ) {
-		global $pgHTTP;
+		$http = HTTP::getDefaultInstance();
 		
 		if( !function_exists( 'simplexml_load_string' ) ) {
 			throw new DependencyError( "SimpleXML", "http://us.php.net/manual/en/book.simplexml.php" );
@@ -40,7 +40,7 @@ class XMLParse {
 			$xmlout = $data;
 		}
 		else {
-			$xmlout = $pgHTTP->get( $data );
+			$xmlout = $http->get( $data );
 		}
 		
 		Hooks::runHook( 'PreSimpleXMLLoad', array( &$xmlout ) );

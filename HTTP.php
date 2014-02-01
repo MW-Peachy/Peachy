@@ -80,6 +80,8 @@ class HTTP {
 	 *
 	 * @param bool $echo Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal. Default false;
 	 *
+	 * @note please consider using HTTP::getDefaultInstance() instead
+	 *
 	 * @throws RuntimeException
 	 * @throws DependencyError
 	 *
@@ -361,6 +363,25 @@ class HTTP {
 		curl_close($this->curl_instance);
 
 		//@unlink($this->cookie_jar);
+	}
+
+	/**
+	 * The below allows us to only have one instance of this class
+	 */
+	static $defaultInstance = null;
+	static $defaultInstanceWithEcho = null;
+	static function getDefaultInstance( $echo = false ){
+		if( $echo ) {
+			if( is_null( self::$defaultInstanceWithEcho ) ){
+				self::$defaultInstanceWithEcho = new Http( $echo );
+			}
+			return self::$defaultInstanceWithEcho;
+		} else {
+			if( is_null( self::$defaultInstance ) ){
+				self::$defaultInstance = new Http( $echo );
+			}
+			return self::$defaultInstance;
+		}
 	}
 
 

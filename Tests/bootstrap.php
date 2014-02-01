@@ -13,7 +13,6 @@ global
 	$pgHooks,
 	$pgProxy,
 	$pgUA,
-	$pgHTTP,
 	$pgVerbose,
 	$pgIRCTrigger,
 	$tmp

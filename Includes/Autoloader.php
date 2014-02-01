@@ -81,8 +81,8 @@ class AutoLoader {
 			return true;
 		}
 		else {
-			
-			global $pgHTTP;
+
+			$http = HTTP::getDefaultInstance();
 			
 			$trunk_url = 'http://mw-peachy.googlecode.com/svn/trunk';
 			
@@ -98,15 +98,15 @@ class AutoLoader {
 			$trunk_url = str_replace( 'https://', 'http://', $trunk_url );
 			
 			if( isset( $pgAutoloader[$class_name] ) ) {
-				$file = $pgHTTP->get( $trunk_url . '/' . $pgAutoloader[$class_name] );
+				$file = $http->get( $trunk_url . '/' . $pgAutoloader[$class_name] );
 			}
 			else {
 				
-				$file = $pgHTTP->get( $trunk_url . '/Plugins/' . strtolower( $class_name ) . '.php' );
+				$file = $http->get( $trunk_url . '/Plugins/' . strtolower( $class_name ) . '.php' );
 				Hooks::runHook( 'LoadPlugin', array( &$class_name ) );
 			}
 			
-			if( $pgHTTP->get_HTTP_code() == 200 ) {
+			if( $http->get_HTTP_code() == 200 ) {
 				$temp_file = tempnam(sys_get_temp_dir(), 'peachy');
 				
 				file_put_contents($temp_file, <<<EOF
