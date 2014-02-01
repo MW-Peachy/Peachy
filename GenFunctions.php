@@ -100,13 +100,13 @@ function rglob($pattern='*', $flags = 0, $path='') {
  * Detects the presence of a nobots template or one that denies editing by ours
  * 
  * @access public
- * @param Wiki &$wiki Wiki class
+ * @param Wiki $wiki Wiki class
  * @param string $text Text of the page to check (default: '')
  * @param string $username Username to search for in the template (default: null)
  * @param string $optout Text to search for in the optout= parameter. (default: null)
  * @return bool True on match of an appropriate nobots template
  */
-function checkExclusion( &$wiki, $text = '', $username = null, $optout = null ) {
+function checkExclusion( $wiki, $text = '', $username = null, $optout = null ) {
 	if( !$wiki->get_nobots() ) return false;
 	
 	if( in_string( "{{nobots}}", $text ) ) return true;
@@ -140,6 +140,7 @@ function checkExclusion( &$wiki, $text = '', $username = null, $optout = null ) 
 		}
 		return false;
 	}
+	return false;
 }
 
 /**
