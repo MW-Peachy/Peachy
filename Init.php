@@ -230,7 +230,7 @@ class Peachy {
 	 * @access public
 	 * @param string|array $plugins Name of plugin(s) to load from Plugins directory, minus .php ending
 	 * @return void
-	 * @deprecated
+	 * @deprecated since 18 June 2013
 	 */
 	public static function loadPlugin( $plugins ) {
 		self::deprectaedWarn( null, null, "Warning: Peachy::loadPlugin() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
@@ -242,7 +242,7 @@ class Peachy {
 	 * @static
 	 * @access public
 	 * @return void
-	 * @deprecated
+	 * @deprecated since 18 June 2013
 	 */
 	public static function loadAllPlugins() {
 		self::deprectaedWarn( null, null, "Warning: Peachy::loadAllPlugins() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );

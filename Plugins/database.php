@@ -757,7 +757,7 @@ class Database {
 	/**
 	 * Inclused and initiates the appropriate DatabaseBase child
 	 * @return object
-	 * @deprecated
+	 * @deprecated since 18 June 2013
 	 */
 	public function &init() {
 		self::deprectaedWarn( null, null, "Warning: Database::init() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );

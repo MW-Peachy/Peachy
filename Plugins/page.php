@@ -543,7 +543,7 @@ class Page {
 	 * 
 	 * @access public
 	 * @return bool Exists
-	 * @deprecated
+	 * @deprecated since 18 June 2013
 	 */
 	public function exists() {
 		Peachy::deprecatedWarn( 'Page::exists()', 'Page::get_exists()' );
@@ -1872,7 +1872,7 @@ class Page {
 	 * Alias of embeddedin
 	 * 
 	 * @see Page::embeddedin()
-	 * @deprecated
+	 * @deprecated since 18 June 2013
 	 */
 	public function get_transclusions( $namespace = null, $limit = null ) {	
 		Peachy::deprecatedWarn( 'Page::get_transclusions()', 'Page::embeddedin()' );

@@ -236,7 +236,7 @@ function cecho( $text, $return = false ) {
  * Generates a diff between two strings
  * 
  * @package Text_Diff
- * @deprecated
+ * @deprecated since 18 June 2013
  */
 function getTextDiff() {
 	Peachy::deprecatedWarn( 'getTextDiff()', 'Diff::load()' );
