@@ -84,7 +84,6 @@ $pgUA = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
 
 require_once( $pgIP . 'Includes/Hooks.php' );
 require_once( $pgIP . 'HTTP.php' );
-$pgHTTP = new HTTP;
 
 require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
@@ -186,9 +185,9 @@ class Peachy {
 	 * @return array Installed extensions
 	 */
 	public static function wikiChecks( $base_url ) {
-		global $pgHTTP;
-		
-		$siteinfo = unserialize( $pgHTTP->get( 
+		$http = HTTP::getDefaultInstance();
+
+		$siteinfo = unserialize( $http->get(
 			$base_url,
 			 array( 'action' => 'query',
 				'meta' => 'siteinfo',

@@ -9,14 +9,4 @@ tools:
     php_pdepend: true
     php_analyzer: true
     sensiolabs_security_checker: true
-    php_code_coverage:
-        enabled: true
-        test_command: phpunit --configuration Tests/Unit.xml
-        config_path: ~
-        only_changesets: false
-        filter:
-            excluded_paths:
-                - 'Configs/*'
-                - 'Tests/*'
-                - 'tmp/*'
-            paths: {  }
+    external_code_coverage: true

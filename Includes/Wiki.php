@@ -262,16 +262,10 @@ class Wiki {
 				$pgProxy['userpass'] = $configuration['proxyuser'] . ':' . $configuration['proxypass'];
 			}
 		}
-		
-		if( isset( $configuration['httpecho'] ) && $configuration['httpecho'] == "true" ) {
-			$http_echo = true;
-		}
-		else {
-			$http_echo = false;
-		}
-		
-		if( is_null( $this->http ) ) $this->http = new HTTP( $http_echo );
-		
+
+		$http_echo = ( isset( $configuration['httpecho'] ) && $configuration['httpecho'] === "true" );
+		if( is_null( $this->http ) ) $this->http = HTTP::getDefaultInstance( $http_echo );
+
 		if( isset( $configuration['runpage'] ) ) {
 			$this->runpage = $configuration['runpage'];
 		}
