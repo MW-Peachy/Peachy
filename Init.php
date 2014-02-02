@@ -71,7 +71,7 @@ define( 'PECHO_ERROR', 3 );
  */
 define( 'PECHO_FATAL', 4 );
 
-$pgIP = dirname(__FILE__) . '/';
+$pgIP = dirname(__FILE__) . DIRECTORY_SEPARATOR;
 
 //If out /tmp directory doesnt exist, make it!
 if( !file_exists( __DIR__ . '/tmp' ) ) {
@@ -80,7 +80,6 @@ if( !file_exists( __DIR__ . '/tmp' ) ) {
 
 require_once( $pgIP . 'Includes/Exceptions.php' );
 require_once( $pgIP . 'Includes/AutoUpdate.php' );
-require_once( $pgIP . 'Includes/Peachy.php' );
 
 peachyCheckPHPVersion();
 
@@ -90,7 +89,6 @@ $pgUA = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
 
 require_once( $pgIP . 'Includes/Hooks.php' );
 require_once( $pgIP . 'HTTP.php' );
-
 require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
 require_once( $pgIP . 'config.inc.php' );
@@ -117,10 +115,13 @@ date_default_timezone_set(@date_default_timezone_get());
 
 //Check for updates before loading Peachy.
 if ( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
-	$updater = new AutoUpdate( HTTP::getDefaultInstance() );
+	//the below MUST have its own Http object or else things will break
+	$updater = new AutoUpdate( new Http() );
 	$Uptodate = $updater->Checkforupdate();
 	if( !$Uptodate ) $updater->updatePeachy();
 }
+
+require_once( $pgIP . 'Includes/Peachy.php' );
 
 /**
  * Simple phpversion() wrapper

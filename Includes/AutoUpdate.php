@@ -17,68 +17,68 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * AutoUpdate class
- * Checks for a new version of Peachy and installes it if there is one.
+ * Checks for a new version of Peachy and installs it if there is one.
  */
- 
 Class AutoUpdate {
-    
-    protected $http;
-    protected $repository;
-    protected $logfile;
-    protected $lastused;
-    
-    function __construct( $http ) {
-       global $pgIP, $experimentalupdates;
-       $this->http = $http;
-       $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
-       $this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
-       $this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
-    }
-    
-    /**
-    * Scans the GitHub repository for any updates and returns false if there are.
-    * 
-    * @access public
-    * @return bool
-    */
-    public function Checkforupdate() {
-        global $pgIP, $experimentalupdates;
-        pecho( "Checking for updates...\n\n", PECHO_NORMAL );
-        if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
-		$data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders(), false ), true );
-		if( strstr( $this->get_http()->getLastHeader(), 'Status: 304 Not Modified') ) {
+
+	/**
+	 * @var Http
+	 */
+	protected $http;
+	protected $repository;
+	protected $logfile;
+	protected $lastused;
+
+	function __construct( $http ) {
+		global $pgIP, $experimentalupdates;
+		$this->http = $http;
+		$this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
+		$this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
+		$this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
+	}
+
+	/**
+	 * Scans the GitHub repository for any updates and returns false if there are.
+	 *
+	 * @access public
+	 * @return bool
+	 */
+	public function Checkforupdate() {
+		global $pgIP, $experimentalupdates;
+		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
+		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
+		$data = json_decode( $this->http->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders(), false ), true );
+		if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
 			return true;
 		}
-        if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
-            pecho( "Cant check for updates right now, next window in " . $this->getTimeToNextLimitWindow() . "\n\n", PECHO_NOTICE );
-            return true;
-        }
+		if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
+			pecho( "Cant check for updates right now, next window in " . $this->getTimeToNextLimitWindow() . "\n\n", PECHO_NOTICE );
+			return true;
+		}
 		$this->cacheLastGithubETag();
-        //$data = $this->processreturn($data);
-        if( file_exists( $pgIP . 'Includes/'.$this->logfile ) ) {
-            $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
-            if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
-                pecho( "Update available!\n\n", PECHO_NOTICE );
-                return false;
-            } else {
-                pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
-                return true;
-            }    
-        } else {
-            pecho( "No update log found.\n\n", PECHO_WARN );
-            return false;
-        }
-    }
+		if( file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) ) {
+			$log = unserialize( file_get_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) );
+			if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
+				pecho( "Update available!\n\n", PECHO_NOTICE );
+				return false;
+			} else {
+				pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
+				return true;
+			}
+		} else {
+			pecho( "No update log found.\n\n", PECHO_WARN );
+			return false;
+		}
+	}
 
 	/**
 	 * @return array headers to be used for github api request
 	 */
 	private function getUpdateHeaders() {
 		global $pgIP;
-		if( file_exists( $pgIP.'tmp/github-ETag.tmp' ) ) {
-			$ETag = file_get_contents( $pgIP.'tmp/github-ETag.tmp' );
+		if( file_exists( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp' ) ) {
+			$ETag = file_get_contents( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp' );
 			return array( 'If-None-Match: "' . $ETag . '"' );
 		}
 		return array();
@@ -89,8 +89,8 @@ Class AutoUpdate {
 	 */
 	private function cacheLastGithubETag() {
 		global $pgIP;
-		if( preg_match( '/ETag\: \"([^\"]*)\"/', $this->get_http()->getLastHeader(), $matches ) ) {
-			file_put_contents( $pgIP.'tmp/github-ETag.tmp', $matches[1] );
+		if( preg_match( '/ETag\: \"([^\"]*)\"/', $this->http->getLastHeader(), $matches ) ) {
+			file_put_contents( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp', $matches[1] );
 		}
 	}
 
@@ -98,205 +98,104 @@ Class AutoUpdate {
 	 * @return string representing time to next github api request window
 	 */
 	private function getTimeToNextLimitWindow() {
-		if( preg_match( '/X-RateLimit-Reset: (\d*)/', $this->get_http()->getLastHeader(), $matches ) ) {
+		if( preg_match( '/X-RateLimit-Reset: (\d*)/', $this->http->getLastHeader(), $matches ) ) {
 			return gmdate( "i \m\i\\n\u\\t\\e\s s \s\\e\c\o\\n\d\s", $matches[1] - time() );
 		}
 		return 'Unknown';
 	}
-    
-    /**
-    * Updates the Peachy framework
-    * 
-    * @access public
-    * @return bool
-    */
-    public function updatePeachy() {
-        global $pgIP, $experimentalupdates;
-        pecho( "Updating Peachy...\n\n", PECHO_NORMAL ); 
-        if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);   
-        $data = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits',null,array(),false), true );
-        if( file_exists( $pgIP . 'Includes/'.$this->logfile ) && ( $this->lastused != 'Unknown' || $this->lastused != ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) ) {
-            $log = unserialize( file_get_contents( $pgIP . 'Includes/'.$this->logfile ) );
-            if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
-                foreach( $data as $item ) {
-                    if( $item['sha'] == $log[0]['sha'] ) break;
-                    $deploy[] = $item['url'];    
-                }
-                $success = $this->pullNewcontents( $deploy );
-            } else {
-                $success = true;
-            }    
-        } else {
-            if( file_exists( $pgIP.'tmp/commit.tmp' ) && file_exists( $pgIP.'tmp/download.tmp' ) ){
-                $commitdata = unserialize( file_get_contents($pgIP.'tmp/commit.tmp') );
-                $downloaddata = unserialize( file_get_contents($pgIP.'tmp/download.tmp') );
-                if( isset($data[0]['sha']) && $commitdata[0]['sha'] == $data[0]['sha']) {
-                    $success = $this->pullcontents( 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents', false, $downloaddata, true );                
-                } elseif( isset($data[0]['sha']) && $commitdata[0]['sha'] != $data[0]['sha']) {
-                    if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
-                    if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
-                    file_put_contents( $pgIP.'tmp/commit.tmp', serialize($data) );
-                    $success = $this->pullcontents();                
-                } else {
-                   $success = false; 
-                }
-            } else {
-                if( !file_exists($pgIP.'tmp') ) mkdir($pgIP.'tmp', 2775);
-                file_put_contents( $pgIP.'tmp/commit.tmp', serialize($data) );
-                //$data = $this->processreturn( $data );
-                $success = $this->pullcontents();
-            }
-        }
-        if( $success ) {
-            file_put_contents( $pgIP.'Includes/'.$this->logfile, serialize($data) );
-            file_put_contents( $pgIP.'Includes/updateversion', serialize( ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy') ) );
-            if( file_exists($pgIP.'tmp/commit.tmp') ) unlink( $pgIP.'tmp/commit.tmp' );
-            if( file_exists($pgIP.'tmp/download.tmp') ) unlink( $pgIP.'tmp/download.tmp' );
-            pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
-            return true;
-        } else {
-            pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\nPlease open an issue on MW-Peachy/Peachy.\n\n", PECHO_WARN );
-            return false;
-        }    
-    }
-    
-    /**
-    * Pulls the specified commits from GitHub.
-    *
-    * @access private
-    * @return bool 
-    */
-    private function pullNewcontents( $links=array(), $files = array() ) {
-        global $pgIP;
-        foreach( array_reverse($links) as $path ) {
-            $data = json_decode( $this->get_http()->get($path,null,array(),false), true );
-            if( !isset($data['files']) ) {
-                pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
-                return false;    
-            }
-            foreach( $data['files'] as $file ) {
-                $files[$pgIP.$file['filename']]['status'] = $file['status'];
-                if( $file['status'] != 'removed' ) {
-                    $data2 = json_decode( $this->get_http()->get('https://api.github.com/repos/'.$this->repository.'/Peachy/contents/'.$file['filename'],null,array(),false), true );
-                    if( isset($data2['encoding']) && $data2['encoding'] == 'base64' ) $files[$pgIP.$file['filename']]['content'] = base64_decode($data2['content']);
-                    elseif( isset($data2['encoding']) && $data2['encoding'] != 'base64' ) {
-                        pecho( "Error: Unknown encoding, ".$data2['encoding'].".", PECHO_WARN );
-                        return false;
-                    } else {                                     
-                        pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
-                        return false;
-                    }
-                } else $files[$pgIP.$file['filename']]['content'] = null;
-            }
-        }
-        //process the new files.
-        foreach( $files as $path=>$data ) {
-            if( $data['status'] == 'removed' ) {
-                unlink($path);
-            } else {
-                $result = file_put_contents($path, $data['content']);
-                if( !$result ) return false;
-            }
-        }
-        return true;       
-    }
-    
-    /**
-    * Pulls the contents from GitHub.
-    *
-    * @access private
-    * @return bool 
-    */
-    private function pullcontents( $path=null, $recurse = false, $files = array(), $dir = true ) {
-        global $pgIP;
-        if( is_null( $path ) ) $path = 'https://api.github.com/repos/'.$this->repository.'/Peachy/contents';
-        $data = json_decode( $this->get_http()->get($path,null,array(),false), true );
-        //$data = $this->processreturn( $data );
-        //Gather and decode the contents of the repository
-        if( $dir ) {
-            foreach( $data as $item ) {
-                if( isset($item['type']) && $item['type'] == 'file' ) {
-                    if( isset($item['encoding']) && $item['encoding'] == 'base64' ) {
-                        $files[$pgIP.$item['path']] = base64_decode($item['content']);   
-                    } elseif( isset($item['encoding']) && $item['encoding'] != 'base64' ) {
-                        pecho( "Error: Unknown encoding, ".$item['encoding'].".", PECHO_WARN );
-                        return false;
-                    } else {
-                        if( !isset($files[$pgIP.$item['path']]) ) $files = $this->pullcontents( $item['url'], true, $files, false );
-                        if( !$files ) return false;
-                    } 
-                } elseif( isset($item['type']) && $item['type'] == 'dir' ) {
-                    if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 2775 );
-                    $files = $this->pullcontents( $item['url'], true, $files, true );
-                    if( !$files ) return false;
-                } else {
-                    file_put_contents( $pgIP.'tmp/download.tmp', serialize($files) );
-                    pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
-                    return false;
-                }       
-            }
-        } else {
-            $item = $data;
-            if( isset($item['type']) && $item['type'] == 'file' ) {
-                if( isset($item['encoding']) && $item['encoding'] == 'base64' ) {
-                    $files[$pgIP.$item['path']] = base64_decode($item['content']);   
-                } elseif( isset($item['encoding']) && $item['encoding'] != 'base64' ) {
-                    pecho( "Error: Unknown encoding, ".$item['encoding'].".", PECHO_WARN );
-                    return false;
-                } else {
-                    if( !isset($files[$pgIP.$item['path']]) ) $files = $this->pullcontents( $item['url'], true, $files, false );
-                    if( !$files ) return false;
-                } 
-            } elseif( isset($item['type']) && $item['type'] == 'dir' ) {
-                if( !file_exists( $pgIP.$item['path'] ) ) mkdir( $pgIP.$item['path'], 2775 );
-                $files = $this->pullcontents( $item['url'], true, $files, true );
-                if( !$files ) return false;
-            } else {
-                file_put_contents( $pgIP.'tmp/download.tmp', serialize($files) );
-                pecho( "Error retreiving file.  GitHub query limit may be exhausted.\n\n", PECHO_WARN );
-                return false;
-            }
-        }
-        if( $recurse ) return $files;
-        else {
-            //Load all the files.
-            pecho( "Retrieved files from Github...\n\n", PECHO_VERBOSE );
-            foreach( $files as $filepath=>$contents ) {
-                $result = file_put_contents( $filepath, $contents );
-                if( !$result ) return false;
-            }
-        }
-        return true;                      
-    }
-    
-    /**
-    * Cleans up the returned Git information.
-    * 
-    * @param mixed $data The object returned from the json_decode to be converted to an array.
-    * @access public
-    * @return array
-    */
-    public function processreturn($data){
-        //Arrayify the data to be readable
-        foreach( $data as $value=>$object ) {
-            if( is_object($data[$value]) ) {
-                $data[$value] = (array)$object;
-                $data[$value] = $this->processreturn((array)$object);
-            }
-        }
-        return $data;
-    }
-    
-    /**
-     * Returns a reference to the HTTP Class
-     * 
-     * @access public
-     * @see Wiki::$http
-     * @return HTTP
-     */
-    public function &get_http() {
-        return $this->http;
-    }
-    
+
+	private function getLocalPath( $fullUpdatePath ) {
+		global $pgIP;
+		$xplodesAt = DIRECTORY_SEPARATOR . 'gitUpdate' . DIRECTORY_SEPARATOR . 'Peachy-master' . DIRECTORY_SEPARATOR;
+		$parts = explode ( $xplodesAt, $fullUpdatePath, 2 );
+		return $pgIP . $parts[1];
+	}
+
+	/**
+	 * Updates the Peachy framework
+	 *
+	 * @access public
+	 * @return bool
+	 */
+	public function updatePeachy() {
+		global $pgIP;
+		$gitZip = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'gitUpdate.zip';
+		if( file_exists( $gitZip ) ) {
+			unlink( $gitZip );
+		}
+		$this->http->download( 'http://github.com/MW-Peachy/Peachy/archive/master.zip', $gitZip, array(), false );
+		file_put_contents( $gitZip, file_get_contents( 'http://github.com/MW-Peachy/Peachy/archive/master.zip' ) );
+		$zip = new ZipArchive();
+		$res = $zip->open( $gitZip );
+		if( $res === true ) {
+			$gitFolder = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'gitUpdate';
+			if( file_exists( $gitFolder ) ) {
+				$this->rrmdir( $gitFolder );
+			}
+			mkdir( $gitFolder, 2775 );
+			$zip->extractTo( $gitFolder );
+			$zip->close();
+
+			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-master' );
+
+			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
+		} else {
+			pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\n\n", PECHO_WARN );
+		}
+	}
+
+	private function copyOverGitFiles( $gitFolder ) {
+		/** @var $fileInfo DirectoryIterator */
+		foreach( new DirectoryIterator( $gitFolder ) as $fileInfo ) {
+			if( $fileInfo->isDot() ) continue;
+			$gitPath = $fileInfo->getRealPath();
+			$lclPatch = $this->getLocalPath( $gitPath );
+
+			if( $fileInfo->isDir() ) {
+				if( !file_exists( $lclPatch ) ){
+					mkdir( $lclPatch );
+				}
+				$this->copyOverGitFiles( $gitPath );
+			}
+			elseif( $fileInfo->isFile() ) {
+				file_put_contents( $lclPatch, file_get_contents( $gitPath ) );
+			}
+		}
+	}
+
+	/**
+	 * recursively remove a directory
+	 * @param string $dir
+	 */
+	private function rrmdir($dir) {
+		if (is_dir($dir)) {
+			$objects = scandir($dir);
+			foreach ($objects as $object) {
+				if ($object != "." && $object != "..") {
+					if (filetype($dir."/".$object) == "dir") $this->rrmdir($dir."/".$object); else unlink($dir."/".$object);
+				}
+			}
+			reset($objects);
+			rmdir($dir);
+		}
+	}
+
+	/**
+	 * Cleans up the returned Git information.
+	 *
+	 * @param mixed $data The object returned from the json_decode to be converted to an array.
+	 * @access public
+	 * @return array
+	 */
+	public function processreturn($data){
+		//Arrayify the data to be readable
+		foreach( $data as $value=>$object ) {
+			if( is_object($data[$value]) ) {
+				$data[$value] = (array)$object;
+				$data[$value] = $this->processreturn((array)$object);
+			}
+		}
+		return $data;
+	}
+
 }
-?>
