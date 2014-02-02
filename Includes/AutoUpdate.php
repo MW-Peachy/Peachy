@@ -89,7 +89,7 @@ Class AutoUpdate {
 	 */
 	private function cacheLastGithubETag() {
 		global $pgIP;
-		if( preg_match( '/\\r\\nETag\: \"([^\"]*)\"\\r\\n/', $this->get_http()->getLastHeader(), $matches ) ) {
+		if( preg_match( '/ETag\: \"([^\"]*)\"/', $this->get_http()->getLastHeader(), $matches ) ) {
 			file_put_contents( $pgIP.'tmp/github-ETag.tmp', $matches[1] );
 		}
 	}
