@@ -114,7 +114,7 @@ class Peachy {
 	 * @deprecated since 18 June 2013
 	 */
 	public static function loadPlugin( $plugins ) {
-		self::deprectaedWarn( null, null, "Warning: Peachy::loadPlugin() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
+		self::deprecatedWarn( null, null, "Warning: Peachy::loadPlugin() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
 	}
 
 	/**
@@ -126,7 +126,7 @@ class Peachy {
 	 * @deprecated since 18 June 2013
 	 */
 	public static function loadAllPlugins() {
-		self::deprectaedWarn( null, null, "Warning: Peachy::loadAllPlugins() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
+		self::deprecatedWarn( null, null, "Warning: Peachy::loadAllPlugins() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
 
 	}
 

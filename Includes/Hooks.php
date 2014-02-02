@@ -48,7 +48,7 @@ class Hooks {
 			throw new HookError( "Hook assignment for event `$hook_name` is not an array. Syntax is " . '$pgHooks[\'hookname\'][] = "hook_function";' );
 		 }
 		 
-		 foreach( $pgHooks[$hook_name] as $val => $function ) {
+		 foreach( $pgHooks[$hook_name] as $function ) {
 			if( is_array( $function ) ) {
 				if( count( $function ) < 2 ) {
 					throw new HookError( "Not enough parameters in array specified for `$hook_name` hook" );

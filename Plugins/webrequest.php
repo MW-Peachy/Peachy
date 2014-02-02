@@ -35,8 +35,8 @@
  * @ingroup HTTP
  */
 class WebRequest {
-	protected $data, $headers = array();
-	private $_response;
+	protected $data;
+	protected $headers = array();
 
 	public function __construct() {
 

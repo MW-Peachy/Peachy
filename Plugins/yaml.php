@@ -86,12 +86,16 @@ class YAML {
 		return $parsed;
 		
 	}
-	
+
 	/**
 	 * toYaml function.
-	 * 
+	 *
 	 * @access public
-	 * @return void
+	 *
+	 * @param int $indent
+	 *
+	 * @throws BadEntryError
+	 * @return string
 	 */
 	public function toYaml( $indent = 5 ) {
 		global $pgAutoloader;
@@ -117,7 +121,7 @@ class YAML {
 	 * __toString function.
 	 * 
 	 * @access public
-	 * @return void
+	 * @return string
 	 */
 	public function __toString() {
 		return $this->toYaml();

@@ -769,8 +769,6 @@ class Database {
 	 * @return object
 	 */
 	private function &doInit() {
-		global $pgIP;
-		
 		if( !class_exists( 'mysqli' ) ) {
 			$this->type = 'mysql';
 		}

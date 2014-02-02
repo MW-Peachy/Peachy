@@ -83,7 +83,6 @@ class lime_test
     $dom->formatOutput = true;
     $dom->appendChild($testsuites = $dom->createElement('testsuites'));
 
-    $errors = 0;
     $failures = 0;
     $errors = 0;
     $skipped = 0;
@@ -943,7 +942,7 @@ class lime_harness extends lime_registration
   public function to_array()
   {
     $results = array();
-    foreach ($this->stats['files'] as $file => $stat)
+    foreach ($this->stats['files'] as $stat)
     {
       $results = array_merge($results, $stat['output']);
     }

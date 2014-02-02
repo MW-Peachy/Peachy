@@ -795,9 +795,6 @@ class Image {
 		}
 		
 		if( $reupload ) {
-			if( !is_null( $newname ) ) {
-				$localname = $newname;
-			}
 			return $this->upload( null, $text, $comment, $watch, $ignorewarnings );
 		}
 	}

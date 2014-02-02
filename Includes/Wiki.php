@@ -771,7 +771,6 @@ class Wiki {
 		
 		$tArray['action'] = 'query';
 		$tArray[$code . 'limit'] = 'max';
-		$retrieved = 0;
 		
 		if( isset($limit) && !is_null($limit) ){
 			if(!is_numeric($limit)){
@@ -1462,8 +1461,6 @@ class Wiki {
 			'cmtype' => 'page',
 			'_limit' => $limit
 		);
-		
-		$strip_categories = false;
 		
 		if( $subcat ) $cmArray['cmtype'] = 'page|subcat';
 		

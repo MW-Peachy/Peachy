@@ -72,7 +72,7 @@ function in_array_recursive( $needle, $haystack, $insensitive = false ) {
 	if( $insensitive ) $fnc = 'iin_array';
 	
 	if( $fnc( $needle, $haystack ) ) return true;
-	foreach( $haystack as $key => $val ) {
+	foreach( $haystack as $val ) {
 		if( is_array( $val ) ) {
 			return in_array_recursive( $needle, $val );
 		}
