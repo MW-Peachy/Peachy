@@ -1,6 +1,6 @@
 {
 	"name": "peachy/peachy",
 	"require": {
-		"php": ">=5.2.1",
+		"php": ">=5.2.1"
 	}
 }
