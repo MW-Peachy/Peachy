@@ -1,8 +1,6 @@
 <?php
 
-require_once( '/home/cyberpower678/Peachy/Init.php' );
-
-$pgIP = '/home/cyberpower678/Peachy/';
+require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
 
 $x = Peachy::newWiki( "compwhizii" );
 
