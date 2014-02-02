@@ -73,6 +73,11 @@ define( 'PECHO_FATAL', 4 );
 
 $pgIP = dirname(__FILE__) . '/';
 
+//If out /tmp directory doesnt exist, make it!
+if( !file_exists( __DIR__ . '/tmp' ) ) {
+	mkdir( __DIR__ . '/tmp' );
+}
+
 require_once( $pgIP . 'Includes/Exceptions.php' );
 require_once( $pgIP . 'Includes/AutoUpdate.php' );
 
