@@ -83,7 +83,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 
 	/**
 	 * @dataProvider provideCheckforupdate
-	 * @covers ::iin_array
+	 * @covers AutoUpdate::Checkforupdate
 	 */
 	public function testCheckforupdate( $expected, $data, $header, $outputRegex = '/.*?/', $expectEtag = false, $updatelog = null ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data, $header ) );
