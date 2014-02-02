@@ -28,9 +28,9 @@ Class AutoUpdate {
     protected $logfile;
     protected $lastused;
     
-    function __construct() {
+    function __construct( $http ) {
        global $pgIP, $experimentalupdates;
-       $this->http = HTTP::getDefaultInstance();
+       $this->http = $http;
        $this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
        $this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
        $this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
@@ -89,7 +89,7 @@ Class AutoUpdate {
 	 */
 	private function cacheLastGithubETag() {
 		global $pgIP;
-		if( preg_match( '/\\r\\nETag\: \"([^\"]*)\"\\r\\n/', $this->get_http()->getLastHeader(), $matches ) ) {
+		if( preg_match( '/ETag\: \"([^\"]*)\"/', $this->get_http()->getLastHeader(), $matches ) ) {
 			file_put_contents( $pgIP.'tmp/github-ETag.tmp', $matches[1] );
 		}
 	}
