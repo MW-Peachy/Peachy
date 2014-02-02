@@ -4,13 +4,13 @@ $pgAutoloader = array(
 	'Wiki' => 'Includes/Wiki.php',
 	'Script' => 'Script.php',
 	'UtfNormal' => 'Plugins/normalize/UtfNormal.php',
-	
+
 	'DatabaseMySQL' => 'Plugins/database/MySQL.php',
 	'DatabaseMySQLi' => 'Plugins/database/MySQLi.php',
 	'DatabasePgSQL' => 'Plugins/database/PgSQL.php',
 	'DatabaseBase' => 'Plugins/database.php',
 	'ResultWrapper' => 'Plugins/database.php',
-	
+
 	'lime_test' => 'Includes/lime.php',
 	'lime_output' => 'Includes/lime.php',
 	'lime_output_color' => 'Includes/lime.php',
@@ -18,12 +18,12 @@ $pgAutoloader = array(
 	'lime_harness' => 'Includes/lime.php',
 	'lime_coverage' => 'Includes/lime.php',
 	'lime_registration' => 'Includes/lime.php',
-	
+
 	'sfYaml' => 'Plugins/yaml/sfYaml.php',
 	'sfYamlDumper' => 'Plugins/yaml/sfYamlDumper.php',
 	'sfYamlInline' => 'Plugins/yaml/sfYamlInline.php',
 	'sfYamlParser' => 'Plugins/yaml/sfYamlParser.php',
-	
+
 	'Text_Diff' => 'Plugins/diff/textdiff/Diff.php',
 	'Text_MappedDiff' => 'Plugins/diff/textdiff/Diff.php',
 	'Text_Diff_Op' => 'Plugins/diff/textdiff/Diff.php',
@@ -50,16 +50,14 @@ $pgAutoloader = array(
 	'Text_Diff_Engine_string' => 'Plugins/diff/textdiff/Diff/Engine/string.php',
 	'Text_Diff_Engine_shell' => 'Plugins/diff/textdiff/Diff/Engine/shell.php',
 	'Text_Diff_Engine_native' => 'Plugins/diff/textdiff/Diff/Engine/native.php',
-	
+
 	'PeachyAWBFunctions' => 'Includes/PeachyAWBFunctions.php',
-	
-	
 );
 
 class AutoLoader {
-	
+
 	/**
-	 * autoload - take a class name and attempt to load it
+	 * Takes a class name and attempt to load it
 	 *
 	 * @param $class_name String: name of class we're looking for.
 	 * @return bool Returning false is important on failure as
@@ -73,55 +71,11 @@ class AutoLoader {
 			require_once( $pgIP . $pgAutoloader[$class_name] );
 			return true;
 		}
-		
+
 		if( is_file( $pgIP . 'Plugins/' . strtolower( $class_name ) . '.php' ) ) {
 			Hooks::runHook( 'LoadPlugin', array( &$class_name ) );
-					
 			require_once( $pgIP . 'Plugins/' . strtolower( $class_name ) . '.php' );
 			return true;
-		}
-		else {
-
-			$http = HTTP::getDefaultInstance();
-			
-			$trunk_url = 'http://mw-peachy.googlecode.com/svn/trunk';
-			
-			$svninfo = Peachy::getSvnInfo();
-			
-			if( isset( $svninfo['url'] ) ) {
-				$trunk_url = $svninfo['url'];
-			}
-			else {
-				$trunk_url = 'http://mw-peachy.googlecode.com/svn/branches/REL' . strtoupper( str_replace( '.', '_', PEACHYVERSION ) );
-			}
-			
-			$trunk_url = str_replace( 'https://', 'http://', $trunk_url );
-			
-			if( isset( $pgAutoloader[$class_name] ) ) {
-				$file = $http->get( $trunk_url . '/' . $pgAutoloader[$class_name] );
-			}
-			else {
-				
-				$file = $http->get( $trunk_url . '/Plugins/' . strtolower( $class_name ) . '.php' );
-				Hooks::runHook( 'LoadPlugin', array( &$class_name ) );
-			}
-			
-			if( $http->get_HTTP_code() == 200 ) {
-				$temp_file = tempnam(sys_get_temp_dir(), 'peachy');
-				
-				file_put_contents($temp_file, <<<EOF
-$file
-EOF
-	      		);
-	      		
-	      		require_once( $temp_file );
-	      		
-	      		unlink( $temp_file );
-	      		
-	      		return true;
-			}
-			return false;
-			
 		}
 	}
 
@@ -133,6 +87,5 @@ if ( function_exists( 'spl_autoload_register' ) ) {
 	function __autoload( $class ) {
 		AutoLoader::autoload( $class );
 	}
-
 	ini_set( 'unserialize_callback_func', '__autoload' );
 }
