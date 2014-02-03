@@ -28,6 +28,7 @@ Class AutoUpdate {
 	protected $repository;
 	protected $logfile;
 	protected $lastused;
+	protected $commits;
 
 	function __construct( $http ) {
 		global $pgIP, $experimentalupdates;
@@ -48,10 +49,11 @@ Class AutoUpdate {
 		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
 		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
 		$data = json_decode( $this->http->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders(), false ), true );
-		if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
+		$this->commits = $data;
+		/*if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
 			return true;
-		}
+		}*/
 		if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
 			pecho( "Cant check for updates right now, next window in " . $this->getTimeToNextLimitWindow() . "\n\n", PECHO_NOTICE );
 			return true;
@@ -124,7 +126,6 @@ Class AutoUpdate {
 			unlink( $gitZip );
 		}
 		$this->http->download( 'http://github.com/MW-Peachy/Peachy/archive/master.zip', $gitZip, array(), false );
-		file_put_contents( $gitZip, file_get_contents( 'http://github.com/MW-Peachy/Peachy/archive/master.zip' ) );
 		$zip = new ZipArchive();
 		$res = $zip->open( $gitZip );
 		if( $res === true ) {
@@ -139,6 +140,8 @@ Class AutoUpdate {
 			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-master' );
 
 			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
+			
+			file_put_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile, serialize( $this->commits ) );
 		} else {
 			pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\n\n", PECHO_WARN );
 		}
