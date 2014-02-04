@@ -32,7 +32,8 @@ class YAML {
 	 * @return void
 	 */
 	function __construct($data = null) {
-		if( version_compare( PHP_VERSION, '5.2.4', '<' ) ) throw new DependencyError( "PHP 5.2.4", "http://php.net/downloads.php" );
+		peachyCheckPHPVersion('5.2.4');
+		
 		$this->data = $data;
 	}
 	

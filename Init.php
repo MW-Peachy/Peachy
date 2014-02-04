@@ -130,9 +130,9 @@ require_once( $pgIP . 'Includes/Peachy.php' );
  * @return void
  */
 function peachyCheckPHPVersion( $check_version = null ) {
-	if( is_null( $check_version ) ) $check_version = phpversion();
+	if( is_null( $check_version ) ) $check_version = MINPHP;
 	
-	if( version_compare( $check_version, MINPHP, '<' ) ) {
-		throw new DependencyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
+	if( version_compare( PHP_VERSION, $check_version, '<' ) ) {
+		throw new DependencyError( "PHP " . $check_version, "http://php.net/downloads.php" );
 	}
 }
