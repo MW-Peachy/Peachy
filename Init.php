@@ -134,13 +134,9 @@ function peachyCheckPHPVersion( $check_version = null ) {
 	
 	$version = explode( '.', $check_version );
 	
-	$min_version = explode( '.', MINPHP );
-	
-	if( 
-		( $version[0] < $min_version[0] ) ||
-		( $version[0] == $min_version[0] && $version[1] < $min_version[1] ) ||
-		( $version[0] == $min_version[0] && $version[1] == $min_version[1] && $version[2] < $min_version[2] )
-	) throw new DependencyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
+	if( version_compare( $check_version, MINPHP, '<' ) ) {
+		throw new DependencyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
+	}
 	
 	return $version;
 }
