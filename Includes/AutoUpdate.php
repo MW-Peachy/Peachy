@@ -33,7 +33,7 @@ Class AutoUpdate {
 	function __construct( $http ) {
 		global $pgIP, $experimentalupdates;
 		$this->http = $http;
-		$this->repository = ($experimentalupdates ? 'cyberpower678' : 'MW-Peachy');
+		$this->repository = ($experimentalupdates ? 'master' : 'stable');
 		$this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
 		$this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
 	}
@@ -48,7 +48,7 @@ Class AutoUpdate {
 		global $pgIP, $experimentalupdates;
 		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
 		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
-		$data = json_decode( $this->http->get('https://api.github.com/repos/'.$this->repository.'/Peachy/commits', null, $this->getUpdateHeaders(), false ), true );
+		$data = json_decode( $this->http->get('https://api.github.com/repos/Mw-Peachy/Peachy/branches/'.$this->repository, null, array(), false ), true );
 		$this->commits = $data;
 		/*if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
@@ -59,9 +59,13 @@ Class AutoUpdate {
 			return true;
 		}
 		$this->cacheLastGithubETag();
+        if( $this->lastused !== $this->repository ) {
+            pecho( "Changing Peachy version to run using ".( $experimentalupdates ? "experimental" : "stable" )." updates.\n\n", PECHO_NOTICE );
+            return true;
+        }
 		if( file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) ) {
 			$log = unserialize( file_get_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) );
-			if( isset($data[0]['sha']) && $log[0]['sha'] != $data[0]['sha']) {
+			if( isset($data['commit']['sha']) && $log['commit']['sha'] != $data['commit']['sha']) {
 				pecho( "Update available!\n\n", PECHO_NOTICE );
 				return false;
 			} else {
@@ -125,7 +129,7 @@ Class AutoUpdate {
 		if( file_exists( $gitZip ) ) {
 			unlink( $gitZip );
 		}
-		$this->http->download( 'http://github.com/MW-Peachy/Peachy/archive/master.zip', $gitZip, array(), false );
+		$this->http->download( 'http://github.com/MW-Peachy/Peachy/archive/'.$this->repository.'.zip', $gitZip, array(), false );
 		$zip = new ZipArchive();
 		$res = $zip->open( $gitZip );
 		if( $res === true ) {
