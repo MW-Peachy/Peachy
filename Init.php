@@ -81,7 +81,7 @@ if( !file_exists( __DIR__ . '/tmp' ) ) {
 require_once( $pgIP . 'Includes/Exceptions.php' );
 require_once( $pgIP . 'Includes/AutoUpdate.php' );
 
-peachyCheckPHPVersion();
+peachyCheckPHPVersion( MINPHP );
 
 $pgHooks = array();
 $pgProxy = array();
@@ -124,23 +124,13 @@ if ( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
 require_once( $pgIP . 'Includes/Peachy.php' );
 
 /**
- * Simple phpversion() wrapper
- * @param $check_version bool
+ * Simple version_compare() wrapper
+ * @param $check_version string
  * @throws DependencyError
- * @return array
+ * @return void
  */
-function peachyCheckPHPVersion( $check_version = null ) {
-	if( is_null( $check_version ) ) $check_version = phpversion();
-	
-	$version = explode( '.', $check_version );
-	
-	$min_version = explode( '.', MINPHP );
-	
-	if( 
-		( $version[0] < $min_version[0] ) ||
-		( $version[0] == $min_version[0] && $version[1] < $min_version[1] ) ||
-		( $version[0] == $min_version[0] && $version[1] == $min_version[1] && $version[2] < $min_version[2] )
-	) throw new DependencyError( "PHP " . MINPHP, "http://php.net/downloads.php" );
-	
-	return $version;
+function peachyCheckPHPVersion( $check_version ) {
+	if( version_compare( PHP_VERSION, $check_version, '<' ) ) {
+		throw new DependencyError( "PHP " . $check_version, "http://php.net/downloads.php" );
+	}
 }
