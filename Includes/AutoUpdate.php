@@ -143,7 +143,9 @@ Class AutoUpdate {
 
 			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-'.$this->repository );
 
-			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
+			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . 'updateversion', serialize( ($experimentalupdates ? 'master' : 'stable') ) );
+            
+            pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
 			
 			file_put_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile, serialize( $this->commits ) );
 		} else {
