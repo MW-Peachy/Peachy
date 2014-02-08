@@ -112,7 +112,7 @@ Class AutoUpdate {
 
 	private function getLocalPath( $fullUpdatePath ) {
 		global $pgIP;
-		$xplodesAt = DIRECTORY_SEPARATOR . 'gitUpdate' . DIRECTORY_SEPARATOR . 'Peachy-master' . DIRECTORY_SEPARATOR;
+		$xplodesAt = DIRECTORY_SEPARATOR . 'gitUpdate' . DIRECTORY_SEPARATOR . 'Peachy'.$this->repository . DIRECTORY_SEPARATOR;
 		$parts = explode ( $xplodesAt, $fullUpdatePath, 2 );
 		return $pgIP . $parts[1];
 	}
