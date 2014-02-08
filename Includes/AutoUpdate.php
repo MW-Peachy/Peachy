@@ -129,7 +129,7 @@ Class AutoUpdate {
 		if( file_exists( $gitZip ) ) {
 			unlink( $gitZip );
 		}
-		$this->http->download( 'http://github.com/MW-Peachy/Peachy/archive/'.$this->repository.'.zip', $gitZip, array(), false );
+		file_put_contents( $gitZip, file_get_contents( 'http://github.com/MW-Peachy/Peachy/archive/'.$this->repository.'.zip' ) );
 		$zip = new ZipArchive();
 		$res = $zip->open( $gitZip );
 		if( $res === true ) {
