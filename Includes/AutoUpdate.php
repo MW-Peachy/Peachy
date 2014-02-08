@@ -124,7 +124,7 @@ Class AutoUpdate {
 	 * @return bool
 	 */
 	public function updatePeachy() {
-		global $pgIP, $experimentalupdates;
+		global $pgIP;
 		$gitZip = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'gitUpdate.zip';
 		if( file_exists( $gitZip ) ) {
 			unlink( $gitZip );
