@@ -141,7 +141,7 @@ Class AutoUpdate {
 			$zip->extractTo( $gitFolder );
 			$zip->close();
 
-			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-master' );
+			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-'.$this->repository );
 
 			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
 			
