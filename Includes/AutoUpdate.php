@@ -61,7 +61,7 @@ Class AutoUpdate {
 		$this->cacheLastGithubETag();
         if( $this->lastused !== $this->repository ) {
             pecho( "Changing Peachy version to run using ".( $experimentalupdates ? "experimental" : "stable" )." updates.\n\n", PECHO_NOTICE );
-            return true;
+            return false;
         }
 		if( file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) ) {
 			$log = unserialize( file_get_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) );
