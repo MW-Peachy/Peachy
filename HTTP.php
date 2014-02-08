@@ -174,7 +174,7 @@ class HTTP {
 				} else pecho( "Warning: A CURL error occurred.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
 				continue;
 			}
-			break;
+			if( !is_null( $data ) && $data !== false ) break;
 		}
 		return $data;
 	}
