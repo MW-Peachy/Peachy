@@ -35,6 +35,14 @@ class Wiki {
 	 * @access protected
 	 */
 	protected $base_url;
+    
+    /**
+     * SSH Object
+     * 
+     * @var Object
+     * @access protected
+     */
+    protected $SSH;
 	
 	/**
 	 * Username for the user editing the wiki.
@@ -229,7 +237,12 @@ class Wiki {
 	 * @return void|Wiki|bool
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
-		global $pgProxy, $pgVerbose;
+		global $pgProxy, $pgVerbose, $useSSH, $host, $port, $username, $prikey, $passphrase, $protocol;
+        
+        if( $useSSH ) {
+            $this->SSH = new SSH( $host, $port, $username, $passphrase, $prikey, $protocol );
+            if( !$this->SSH->connected ) $this->SSH = null;
+        } else $this->SSH = null;
 
 		if( !array_key_exists( 'encodedparams', $configuration ) ) {
 			$configuration['encodedparams'] = rawurlencode( serialize( $configuration ) );
@@ -2142,7 +2155,7 @@ class Wiki {
 		}
 	}
     
-    /*
+    /**
      * Search the wiki using the OpenSearch protocol.
      *
      * @access public
@@ -2167,7 +2180,7 @@ class Wiki {
 
     }
     
-    /*
+    /**
      * Export an RSD (Really Simple Discovery) schema.
      *
      * @access public 
@@ -2183,7 +2196,7 @@ class Wiki {
         return $this->parsexml( $OSres );
     }
     
-    /*
+    /**
      * Parse an XML string into an array.  For more features, use the XML plugins.
      *
      * @access public
@@ -2223,7 +2236,7 @@ class Wiki {
         return $endarray;
     }
     
-    /*
+    /**
      * Change preferences of the current user.
      *
      * @access public
@@ -2260,5 +2273,15 @@ class Wiki {
             pecho( "Options error...\n\n" . print_r($result, true), PECHO_FATAL );
             return false;
         }
+    }
+    
+    /**
+     * Returns the SSH object
+     * 
+     * @access public
+     * @return Object
+     */
+    public function getSSH() {
+        return $this->SSH;
     }	
 }

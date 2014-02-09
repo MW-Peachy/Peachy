@@ -43,6 +43,15 @@
     //Global bot settings
     $masterrunpage = null;
     
+    //SSH Settings - Should Peachy SSH into a server as it initializes?
+    $useSSH = false;
+    $host = null;
+    $port = 22;
+    $username = null;
+    $passphrase = null; //Passphrase to decrypt key file for authentication or password to authenticate with to server
+    $prikey = null;     //File path to the private key file.
+    $protocol = 2;      //SSH protocol to use.  1=SSH1 or 2=SSH2.
+    
     //Import local settings if available
     if( file_exists($pgIP.'config.local.inc.php') ) require_once( $pgIP.'config.local.inc.php' );
     

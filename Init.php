@@ -92,6 +92,7 @@ require_once( $pgIP . 'HTTP.php' );
 require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
 require_once( $pgIP . 'config.inc.php' );
+require_once( $pgIP . 'Includes/SSH.php' );
 
 $pgVerbose = array();
 if( $displayPechoVerbose ) $pgVerbose[] = -1;
