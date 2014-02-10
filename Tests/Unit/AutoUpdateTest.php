@@ -63,14 +63,6 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 				'/Update available/',
 				serialize( array( 'commit'=>array( 'sha' => 'differenthash!' ) ) )
 			),
-			array( false,
-				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
-				'/Changing Peachy version to run using/',
-				serialize( array( 'commit'=>array( 'sha' => 'testshahash' ) ) ),
-				null,
-				false,
-				true
-			),
 		);
 	}
 
