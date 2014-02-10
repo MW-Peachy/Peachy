@@ -87,6 +87,8 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	 * @covers AutoUpdate::Checkforupdate
 	 */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
+		global $experimentalupdates;
+		$experimentalupdates = $experimental;
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {
 			if( file_exists( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log') ) ) {
