@@ -50,22 +50,34 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 				'/Cant check for updates right now, next window in/'
 			),
 			array( false,
-				array( array( 'sha' => 'testshahash' ) ),
+				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
 				'/No update log found/',
 			),
 			array( true,
-				array( array( 'sha' => 'testshahash' ) ),
+				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
 				'/Peachy is up to date/',
-				serialize( array( array( 'sha' => 'testshahash' ) ) )
+				serialize( array( 'commit'=>array( 'sha' => 'testshahash' ) ) )
 			),
 			array( false,
-				array( array( 'sha' => 'testshahash' ) ),
+				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
 				'/Update available/',
-				serialize( array( array( 'sha' => 'differenthash!' ) ) )
+				serialize( array( 'commit'=>array( 'sha' => 'differenthash!' ) ) )
 			),
 			array( false,
-				array( array( 'sha' => 'testshahash' ) ),
+				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
 				'/Changing Peachy version to run using/',
+				serialize( array( 'commit'=>array( 'sha' => 'testshahash' ) ) ),
+				null,
+				true,
+				false
+			),
+			array( false,
+				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
+				'/Changing Peachy version to run using/',
+				serialize( array( 'commit'=>array( 'sha' => 'testshahash' ) ) ),
+				null,
+				false,
+				true
 			),
 		);
 	}
