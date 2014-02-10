@@ -74,15 +74,18 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	 * @dataProvider provideCheckforupdate
 	 * @covers AutoUpdate::Checkforupdate
 	 */
-	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null ) {
+	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {
-			if( file_exists( __DIR__ . '/../../Includes/StableUpdate.log' ) ) {
-				unlink( __DIR__ . '/../../Includes/StableUpdate.log' );
+			if( file_exists( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log') ) ) {
+				unlink( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log') );
 			}
 		} else {
-			file_put_contents( __DIR__ . '/../../Includes/StableUpdate.log', $updatelog );
+			file_put_contents( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log'), $updatelog );
 		}
+		
+		if( $wasexperimental ) file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'master' ) );
+		else file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'stable' ) );
 
 		$this->expectOutputRegex( $outputRegex );
 		$result = $updater->Checkforupdate();
