@@ -23,6 +23,9 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals( '', $page->get_preload() );
 	}
 
+	/**
+	 * @return \Wiki
+	 */
 	private function getMockWiki() {
 		$mock = $this->getMockBuilder( 'Wiki' )
 			->disableOriginalConstructor()

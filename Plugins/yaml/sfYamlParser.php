@@ -279,7 +279,7 @@ class sfYamlParser
   /**
    * Returns the current line number (takes the offset into account).
    *
-   * @return integer The current line number
+   * @return double The current line number
    */
   protected function getRealCurrentLineNb()
   {

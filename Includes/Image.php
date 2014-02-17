@@ -168,7 +168,8 @@ class Image {
 	 * 
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param string $filename Filename
+	 * @param Wiki $wikiClass
+	 * @param string $title
 	 * @return void
 	 */
 	function __construct( &$wikiClass, $title = null ) {
@@ -248,7 +249,7 @@ class Image {
 	 * @param int $height Height of image. Default -1 (no height)
 	 * @param string $start Timestamp to start at. Default null
 	 * @param string $end Timestamp to end at. Default null
-	 * @param array $prop Properties to retrieve. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
+	 * @param string[] $prop Properties to retrieve. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
 	 * @param string $version Version of metadata to use. Default 'latest'
      * @param string $urlparam A handler specific parameter string. Default null
      * @param bool $localonly Look only for files in the local repository. Default false
@@ -282,7 +283,6 @@ class Image {
 	 * Returns the upload history of the image. If function was already called earlier in the script, it will return the local cache unless $force is set to true. 
 	 * 
 	 * @access public
-	 * @param bool $force Whether or not to always refresh. Default false
 	 * @param string $dir Which direction to go. Default 'older'
 	 * @param int $limit Number of revisions to get. Default null (all revisions)
 	 * @return void
@@ -297,7 +297,6 @@ class Image {
 	 * Returns all pages where the image is used. If function was already called earlier in the script, it will return the local cache unless $force is set to true. 
 	 * 
 	 * @access public
-	 * @param bool $force Whether or not to regenerate list, even if there is a local cache. Default false, set to true to regenerate list.
 	 * @param string|array $namespace Namespaces to look in. If set as a string, must be set in the syntax "0|1|2|...". If an array, simply the namespace IDs to look in. Default null.
 	 * @param string $redirects How to filter for redirects. Options are "all", "redirects", or "nonredirects". Default "all".
 	 * @param bool $followRedir If linking page is a redirect, find all pages that link to that redirect as well. Default false.
@@ -397,7 +396,7 @@ class Image {
 	 * @access public
 	 * @param string $comment Comment for inthe upload in logs (default: '')
 	 * @param string $revertto Archive name of the revision to revert to.  Default null.
-	 * @return bool|void
+	 * @return boolean
 	 */
 	 public function revert( $comment = '', $revertto = null ) {
 	    global $notag, $tag;
@@ -449,8 +448,8 @@ class Image {
     /**
      * Rotate the image clockwise a certain degree.
      *
-     * @param int|string $degree Degrees to rotate image clockwise
-     * @return bool|void
+     * @param integer $degree Degrees to rotate image clockwise
+     * @return boolean
      */
      public function rotate ( $degree = 90 ) {
         $tokens = $this->get_tokens();
@@ -492,13 +491,12 @@ class Image {
 	 * Upload an image to the wiki
 	 * 
 	 * @access public
-	 * @param mixed $localname Location of the file to upload. Either an absolute path, or the name of an image in the Images/ directory will work. Default null (/path/to/peachy/Images/<$this->localname>)
 	 * @param string $text Text on the image file page (default: '')
 	 * @param string $comment Comment for inthe upload in logs (default: '')
 	 * @param bool $watch Should the upload be added to the watchlist (default: false)
 	 * @param bool $ignorewarnings Ignore warnings about the upload (default: true)
 	 * @param bool $async Make potentially large file operations asynchronous when possible.  Default false.
-	 * @return bool|void
+	 * @return boolean
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false, $tboverride = false ) {
 		global $pgIP, $notag, $tag;
@@ -707,7 +705,7 @@ class Image {
 	 * @param string $comment Upload comment. 
 	 * @param bool $watch Whether or not to watch the image on uploading
 	 * @param bool $ignorewarnings Whether or not to ignore upload warnings
-	 * @return void
+	 * @return boolean|null
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $newname = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
 		global $pgIP, $notag, $tag;

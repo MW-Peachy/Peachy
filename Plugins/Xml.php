@@ -103,7 +103,7 @@ class Xml {
 
 	/**
 	 * Shortcut to close an XML element
-	 * @param $element element name
+	 * @param string $element element name
 	 * @return string
 	 */
 	public static function closeElement( $element ) { return "</$element>"; }
@@ -112,7 +112,7 @@ class Xml {
 	 * Same as Xml::element(), but does not escape contents. Handy when the
 	 * content you have is already valid xml.
 	 *
-	 * @param $element element name
+	 * @param string $element element name
 	 * @param $attribs array of attributes
 	 * @param $contents content of the element
 	 * @return string
@@ -180,6 +180,7 @@ class Xml {
 
 	/**
 	 * Internal function for use in checkboxes and radio buttons and such.
+	 * @param string $name
 	 * @return array
 	 */
 	public static function attrib( $name, $present = true ) {
@@ -493,7 +494,7 @@ class Xml {
 	 * Check if a string is well-formed XML.
 	 * Must include the surrounding tag.
 	 *
-	 * @param $text String: string to test.
+	 * @param string $text String: string to test.
 	 * @return bool
 	 *
 	 * @todo Error position reporting return
@@ -867,6 +868,10 @@ class XmlSelect {
 		$this->default = $default;
 	}
 
+	/**
+	 * @param string $name
+	 * @param boolean $value
+	 */
 	public function setAttribute( $name, $value ) {
 		$this->attributes[$name] = $value;
 	}

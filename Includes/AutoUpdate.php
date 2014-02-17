@@ -121,7 +121,7 @@ Class AutoUpdate {
 	 * Updates the Peachy framework
 	 *
 	 * @access public
-	 * @return bool
+	 * @return boolean|null
 	 */
 	public function updatePeachy() {
 		global $pgIP, $experimentalupdates;
@@ -153,6 +153,9 @@ Class AutoUpdate {
 		}
 	}
 
+	/**
+	 * @param string $gitFolder
+	 */
 	private function copyOverGitFiles( $gitFolder ) {
 		/** @var $fileInfo DirectoryIterator */
 		foreach( new DirectoryIterator( $gitFolder ) as $fileInfo ) {

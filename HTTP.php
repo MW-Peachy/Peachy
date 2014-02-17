@@ -125,6 +125,9 @@ class HTTP {
 		curl_setopt($this->curl_instance,CURLOPT_HTTPHEADER, array_merge( array('Expect:'), $extraHeaders ) );
 	}
 
+	/**
+	 * @param boolean $verifyssl
+	 */
 	private function setVerifySSL( $verifyssl = null ) {
 		if( is_null( $verifyssl ) ) global $verifyssl;
 		if( !$verifyssl ) {
@@ -137,6 +140,9 @@ class HTTP {
 		}
 	}
 	
+	/**
+	 * @param string $cookie_file
+	 */
 	function setCookieJar( $cookie_file ) {
 		$this->cookie_jar = $cookie_file;
 		
@@ -155,7 +161,7 @@ class HTTP {
 	}
 
 	/**
-	 * @return bool|string
+	 * @return string
 	 * @throws CURLError
 	 */
 	private function doCurlExecWithRetrys() {
@@ -302,7 +308,7 @@ class HTTP {
 	 * @access public
 	 *
 	 * @param string $url URL to get
-	 * @param array $local Local filename to download to
+	 * @param string $local Local filename to download to
 	 * @param array $headers Array of headers to pass to curl
 	 * @param bool|null $verifyssl
 	 *

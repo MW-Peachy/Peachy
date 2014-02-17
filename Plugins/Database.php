@@ -106,8 +106,8 @@ abstract class DatabaseBase {
 	 * @param string $server Server to connect to
 	 * @param string $port Port
 	 * @param string $user Username
-	 * @param string $pass Password
-	 * @param string $db Database
+	 * @param string $password
+	 * @param string|null $dbname
 	 * @return void
 	 */
 	function __construct( $server, $port, $user, $password, $dbname ) {
@@ -160,6 +160,7 @@ abstract class DatabaseBase {
 	
 	/**
 	 * Actual query running
+	 * @param string $sql
 	 */
 	abstract function doQuery( $sql );
 	
@@ -192,8 +193,8 @@ abstract class DatabaseBase {
 	
 	/**
 	 * SELECT frontend
-	 * @param array|string $table Table(s) to select from. If it is an array, the tables will be JOINed.
-	 * @param string|array $columns Columns to return
+	 * @param string $table Table(s) to select from. If it is an array, the tables will be JOINed.
+	 * @param string $columns Columns to return
 	 * @param string|array $where Conditions for the WHERE part of the query. Default null.
 	 * @param array $options Options to add, such as GROUP BY, HAVING, ORDER BY, LIMIT, EXPLAIN. Default an empty array.
 	 * @param array $join_on If selecting from more than one table, this adds an ON statement to the query. Defualt an empty array.
@@ -492,8 +493,8 @@ class ResultWrapper implements Iterator, Countable, ArrayAccess {
 
 	/**
 	 * Initiate the Iterator
-	 * @param object $database Database object
-	 * @param resource|ResultWrapper $result MySQL resource
+	 * @param DatabaseBase $database Database object
+	 * @param resource $result MySQL resource
 	 * @return void
 	 */
 	function __construct( $database, $result ) {

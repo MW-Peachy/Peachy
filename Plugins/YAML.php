@@ -43,7 +43,7 @@ class YAML {
 	 * @access public
 	 * @static
 	 * @param mixed $data
-	 * @return void
+	 * @return YAML
 	 */
 	public static function load($data) {
 		return new YAML($data);
@@ -55,7 +55,7 @@ class YAML {
 	 * @access public
 	 * @static
 	 * @param mixed $data
-	 * @return void
+	 * @return string|null
 	 */
 	public static function parse($data,$indent = 5) {
 		return self::__invoke($data,$indent);
@@ -132,7 +132,7 @@ class YAML {
 	 * 
 	 * @access public
 	 * @param mixed $data
-	 * @return void
+	 * @return string|null
 	 */
 	public function __invoke($data,$indent = 5) {
 		if( is_array( $data ) ) {

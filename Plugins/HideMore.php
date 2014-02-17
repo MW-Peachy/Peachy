@@ -35,6 +35,9 @@ class HideMore {
 		$this->leaveMetaHeadings = $leaveMetaHeadings;
 	}
 	
+	/**
+	 * @param string[] $matches
+	 */
 	private function replace( $matches, $text ) {
 		
 		$pos = 0;

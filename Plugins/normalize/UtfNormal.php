@@ -547,7 +547,7 @@ class UtfNormal {
 	 * Sorts combining characters into canonical order. This is the
 	 * final step in creating decomposed normal forms D and KD.
 	 * @private
-	 * @param $string String: a valid, decomposed UTF-8 string. Input is not validated.
+	 * @param string $string String: a valid, decomposed UTF-8 string. Input is not validated.
 	 * @return string a UTF-8 string with combining characters sorted in canonical order
 	 */
 	static function fastCombiningSort( $string ) {
@@ -599,7 +599,7 @@ class UtfNormal {
 	 * Produces canonically composed sequences, i.e. normal form C or KC.
 	 *
 	 * @private
-	 * @param $string String: a valid UTF-8 string in sorted normal form D or KD. Input is not validated.
+	 * @param string $string String: a valid UTF-8 string in sorted normal form D or KD. Input is not validated.
 	 * @return string a UTF-8 string with canonical precomposed characters used where possible
 	 */
 	static function fastCompose( $string ) {

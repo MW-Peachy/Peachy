@@ -67,6 +67,9 @@ class WebRequest {
 		return UtfNormal::cleanUp( $s );
 	}
 	
+	/**
+	 * @param string $s
+	 */
 	static function normalize_static( $s ) {
 		return UtfNormal::cleanUp( $s );
 	}
