@@ -237,12 +237,7 @@ class Wiki {
 	 * @return void|Wiki|bool
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
-		global $pgProxy, $pgVerbose, $useSSH, $host, $port, $username, $prikey, $passphrase, $protocol;
-        
-        if( $useSSH ) {
-            $this->SSH = new SSH( $host, $port, $username, $passphrase, $prikey, $protocol );
-            if( !$this->SSH->connected ) $this->SSH = null;
-        } else $this->SSH = null;
+		global $pgProxy, $pgVerbose, $useSSH, $host, $port, $username, $prikey, $passphrase, $protocol, $timeout;
 
 		if( !array_key_exists( 'encodedparams', $configuration ) ) {
 			$configuration['encodedparams'] = rawurlencode( serialize( $configuration ) );
@@ -279,6 +274,11 @@ class Wiki {
 		$http_echo = ( isset( $configuration['httpecho'] ) && $configuration['httpecho'] === "true" );
 		if( is_null( $this->http ) ) $this->http = HTTP::getDefaultInstance( $http_echo );
 
+         if( $useSSH ) {
+            $this->SSH = new SSH( $host, $port, $username, $passphrase, $prikey, $protocol, $timeout , $this->http );
+            if( !$this->SSH->connected ) $this->SSH = null;
+        } else $this->SSH = null;
+        
 		if( isset( $configuration['runpage'] ) ) {
 			$this->runpage = $configuration['runpage'];
 		}

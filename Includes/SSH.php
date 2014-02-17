@@ -16,10 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-require_once( 'SSHCore/Net/SCP.php' );
-require_once( 'SSHCore/Crypt/RSA.php' );
-require_once( 'SSHCore/Net/SFTP.php' );
-
 /**
  * @file
  * SSH object
@@ -87,6 +83,22 @@ require_once( 'SSHCore/Net/SFTP.php' );
      */
     private $sftpobject;
     
+    /**
+    * Stores the commits of the PHPSecLib class
+    * 
+    * @var array
+    * @access private
+    */
+    protected $commits;
+    
+    /**
+    * HTTP class
+    * 
+    * @var Object
+    * @access private
+    */
+    protected $http;
+    
     
     /**
      * Construction method for the SSH class
@@ -96,28 +108,47 @@ require_once( 'SSHCore/Net/SFTP.php' );
      * 
      * @return void
      */    
-    function __construct( $host, $port = 22, $username=null, $passphrase=null, $prikey=null, $protocol = 2, $timeout = 10 ) {
+    function __construct( $host, $port = 22, $username=null, $passphrase=null, $prikey=null, $protocol = 2, $timeout = 10, $http ) {
         pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
-        //Determine which SSH class to use. We could just use $protocol as a variable to define the class, but this method error handles better.
+        global $pgIP;
+        $this->http = $http;
+        if( !file_exists( $pgIP.'Includes/SSHCore' ) ) {
+            pecho( "Setting up the SSH Class for first time use...\n\n", PECHO_NOTICE ); 
+            $data = json_decode( $this->http->get('https://api.github.com/repos/phpseclib/phpseclib/branches/master', null, array(), false ), true );
+            $this->commits = $data;
+            $this->installPHPseclib();
+        }
+        
+        //Check for updates
+        if( !$this->CheckForUpdate() ) $this->installPHPseclib();
+        
+        set_include_path(get_include_path() . PATH_SEPARATOR . $pgIP.'Includes/SSHCore');
+        require_once( 'Net/SCP.php' );
+        require_once( 'Crypt/RSA.php' );
+        require_once( 'Net/SFTP.php' );
         switch( $protocol ) {
             case 1:
-            require_once( 'SSHCore/Net/SSH1.php' );
+            require_once( 'Net/SSH1.php' );
             break;
             case 2:
-            require_once( 'SSHCore/Net/SSH2.php' );
+            require_once( 'Net/SSH2.php' );
             break;
             default:
-            require_once( 'SSHCore/Net/SSH2.php' );
+            require_once( 'Net/SSH2.php' );
             break;
         }
+        
+        //Determine which SSH class to use. We could just use $protocol as a variable to define the class, but this method error handles better.
         $this->protocol = $protocol;
         $this->host = $host;
         $this->username = $username;
         $this->prikey = $prikey;
         if( !$this->connect( $host, $port, $protocol, $timeout ) ) {
+            pecho( "Cannot connect, aborting SSH initialization...\n\n", PECHO_FATAL );
             $this->__destruct();
             return;
         }
+        pecho( "Successfully connected to $host.\n\n", PECHO_NORMAL );
         
         //Now authenticate
         if( !($this->authenticate( $username, $passphrase, $prikey )) ) {
@@ -125,7 +156,7 @@ require_once( 'SSHCore/Net/SFTP.php' );
             return;
         }
         
-        $this->connected = ( $protocol == 2 ? $this->sshobject->isConnected() : $this->sshobject->getSocket() );
+        $this->connected = true;
         if( $this->connected ) echo "Connection socket open.\n\n";
         else {
             echo "A connection error occured. Closing...\n\n";
@@ -155,15 +186,7 @@ require_once( 'SSHCore/Net/SFTP.php' );
             $this->sshobject = new Net_SSH2( $host, $port, $timeout );
             break;
         }
-        $this->sftpobject = new Net_SFTP( $host, $port, $timeout );
-        $this->connected = ( $protocol == 2 ? $this->sshobject->isConnected() : $this->sshobject->getSocket() );
-        if( !($this->sshobject->getSocket()) ) {
-            pecho( "Cannot connect, aborting SSH initialization...\n\n", PECHO_FATAL );
-            return false;
-        } else {
-            pecho( "Successfully connected to $host.\n\n", PECHO_NORMAL );
-            return true;
-        }
+        return $this->sftpobject = new Net_SFTP( $host, $port, $timeout );
     }
     
     /**
@@ -497,6 +520,92 @@ require_once( 'SSHCore/Net/SFTP.php' );
     */
     public function rename( $oldname, $newname ) {
         return $this->sftpobject->rename( $oldname, $newname );  
+    }
+    
+    protected function CheckForUpdate() {
+        global $pgIP;
+        $data = json_decode( $this->http->get('https://api.github.com/repos/phpseclib/phpseclib/branches/master', null, array(), false ), true );
+        $this->commits = $data;
+        if( !file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.'phpseclibupdate' ) ) return false;
+        $log = unserialize( file_get_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.'phpseclibupdate' ) );
+        if( isset($data['commit']['sha']) && $log['commit']['sha'] != $data['commit']['sha']) {
+            pecho( "Updating SSH class!\n\n", PECHO_NOTICE );
+            return false;
+        }
+        return true;
+    }
+    
+    protected function installPHPseclib() {
+        global $pgIP;
+        $gitZip = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'phpseclibupdate.zip';
+        if( file_exists( $gitZip ) ) {
+            unlink( $gitZip );
+        }
+        file_put_contents( $gitZip, file_get_contents( 'http://github.com/phpseclib/phpseclib/archive/master.zip' ) );
+        $zip = new ZipArchive();
+        $res = $zip->open( $gitZip );
+        if( $res === true ) {
+            $gitFolder = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'phpseclibupdate';
+            if( file_exists( $gitFolder ) ) {
+                $this->rrmdir( $gitFolder );
+            }
+            mkdir( $gitFolder, 2775 );
+            $zip->extractTo( $gitFolder );
+            $zip->close();
+
+            $this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'phpseclib-master' . DIRECTORY_SEPARATOR . 'phpseclib' . DIRECTORY_SEPARATOR );
+
+            pecho( "Successfully installed SSH class\n\n", PECHO_NOTICE );
+            
+            file_put_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.'phpseclibupdate', serialize( $this->commits ) );
+        } else {
+            pecho( "Unable to install SSH class\n\n", PECHO_WARN );
+        }
+    }
+    
+    private function copyOverGitFiles( $gitFolder ) {
+        /** @var $fileInfo DirectoryIterator */
+        global $pgIP;
+        if( !file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.'SSHCore' ) ) mkdir( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.'SSHCore', 2775 );
+        foreach( new DirectoryIterator( $gitFolder ) as $fileInfo ) {
+            if( $fileInfo->isDot() ) continue;
+            $gitPath = $fileInfo->getRealPath();
+            $lclPatch = $this->getLocalPath( $gitPath );
+
+            if( $fileInfo->isDir() ) {
+                if( !file_exists( $lclPatch ) ){
+                    mkdir( $lclPatch );
+                }
+                $this->copyOverGitFiles( $gitPath );
+            }
+            elseif( $fileInfo->isFile() ) {
+                file_put_contents( $lclPatch, file_get_contents( $gitPath ) );
+            }
+        }
+    }
+
+    /**
+     * recursively remove a directory
+     * @param string $dir
+     */
+    private function rrmdir($dir) {
+        if (is_dir($dir)) {
+            $objects = scandir($dir);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (filetype($dir."/".$object) == "dir") $this->rrmdir($dir."/".$object); else unlink($dir."/".$object);
+                }
+            }
+            reset($objects);
+            rmdir($dir);
+        }
+    }
+    
+    private function getLocalPath( $fullUpdatePath ) {
+        global $pgIP;
+        $xplodesAt = DIRECTORY_SEPARATOR . 'phpseclibupdate' . DIRECTORY_SEPARATOR . 'phpseclib-master' . DIRECTORY_SEPARATOR . 'phpseclib' . DIRECTORY_SEPARATOR;
+        $parts = explode ( $xplodesAt, $fullUpdatePath, 2 );
+        return $pgIP .  'Includes' . DIRECTORY_SEPARATOR . 'SSHCore' . DIRECTORY_SEPARATOR . $parts[1];
     }
     
     /**

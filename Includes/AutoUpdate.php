@@ -48,7 +48,7 @@ Class AutoUpdate {
 		global $pgIP, $experimentalupdates;
 		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
 		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
-		$data = json_decode( $this->http->get('https://api.github.com/repos/Mw-Peachy/Peachy/branches/'.$this->repository, null, array(), false ), true );
+		$data = json_decode( $this->http->get('https://api.github.com/repos/MW-Peachy/Peachy/branches/'.$this->repository, null, array(), false ), true );
 		$this->commits = $data;
 		/*if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
