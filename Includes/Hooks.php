@@ -80,7 +80,7 @@ class Hooks {
 			if( isset( $object ) ) {
 				$fncarr = array( $object, $method );
 			}
-			elseif( in_string( "::", $method ) ) {
+			elseif( is_string( $method ) && in_string( "::", $method ) ) {
 				$fncarr = explode( "::", $method );
 			}
 			else {

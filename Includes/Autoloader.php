@@ -2,6 +2,9 @@
 
 $pgAutoloader = array(
 	'Wiki' => 'Includes/Wiki.php',
+    'User' => 'Includes/User.php',
+    'Page' => 'Includes/Page.php',
+    'Image' => 'Includes/Image.php',
 	'Script' => 'Script.php',
 	'UtfNormal' => 'Plugins/normalize/UtfNormal.php',
 
@@ -72,9 +75,9 @@ class AutoLoader {
 			return true;
 		}
 
-		if( is_file( $pgIP . 'Plugins/' . strtolower( $class_name ) . '.php' ) ) {
+		if( is_file( $pgIP . 'Plugins/' . $class_name . '.php' ) ) {
 			Hooks::runHook( 'LoadPlugin', array( &$class_name ) );
-			require_once( $pgIP . 'Plugins/' . strtolower( $class_name ) . '.php' );
+			require_once( $pgIP . 'Plugins/' . $class_name . '.php' );
 			return true;
 		}
 	}
