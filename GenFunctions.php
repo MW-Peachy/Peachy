@@ -35,6 +35,9 @@ function iin_array( $needle, $haystack, $strict = false ) {
 	return in_array_recursive( strtoupper_safe( $needle ), array_map( 'strtoupper_safe', $haystack ), $strict );
 }
 
+/**
+ * @return string
+ */
 function strtoupper_safe( $str ) {
 	if( is_string( $str ) ) return strtoupper($str);
 	if( is_array( $str ) ) $str = array_map( 'strtoupper_safe', $str );
@@ -216,7 +219,7 @@ function pecho( $text, $cat = 0, $func = 'echo' ) {
  *  
  * 
  * @access public
- * @param mixed $text
+ * @param string $text
  * @return void
  */
 function cecho( $text, $return = false ) {
@@ -365,6 +368,7 @@ if ( !function_exists( 'mb_substr' ) ) {
 	 * Continuing support for mb_substr. Do not use.
 	 * @link http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/GlobalFunctions.php
 	 * @package Fallback
+	 * @param integer $splitPos
 	 */
 	function mb_substr_split_unicode( $str, $splitPos ) {
 		if( $splitPos == 0 ) {
@@ -440,7 +444,7 @@ if ( !function_exists( 'istainted' ) ) {
 	 * 
 	 * @access public
 	 * @param mixed $var
-	 * @return void
+	 * @return integer
 	 * @package Fallback
 	 */
 	function istainted( $var ) {

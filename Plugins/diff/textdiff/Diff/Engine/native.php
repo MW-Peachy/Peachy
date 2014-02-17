@@ -147,6 +147,7 @@ class Text_Diff_Engine_native {
      * the two files do not match, and likewise that the last lines do not
      * match.  The caller must trim matching lines from the beginning and end
      * of the portions it is going to specify.
+     * @param double $nchunks
      */
     function _diag ($xoff, $xlim, $yoff, $ylim, $nchunks)
     {
@@ -267,6 +268,10 @@ class Text_Diff_Engine_native {
      *
      * Note that XLIM, YLIM are exclusive bounds.  All line numbers are
      * origin-0 and discarded lines are not counted.
+     * @param integer $xoff
+     * @param integer $xlim
+     * @param integer $yoff
+     * @param integer $ylim
      */
     function _compareseq ($xoff, $xlim, $yoff, $ylim)
     {

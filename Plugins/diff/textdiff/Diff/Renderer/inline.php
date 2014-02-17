@@ -74,6 +74,9 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return $header;
     }
 
+    /**
+     * @param string[] $lines
+     */
     function _lines($lines, $prefix = ' ', $encode = true)
     {
         if ($encode) {
@@ -141,6 +144,9 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         return str_replace($nl, "\n", $renderer->render($diff)) . "\n";
     }
 
+    /**
+     * @param string $string
+     */
     function _splitOnWords($string, $newlineEscape = "\n")
     {
         // Ignore \0; otherwise the while loop will never finish.

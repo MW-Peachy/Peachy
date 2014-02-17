@@ -610,7 +610,7 @@ class Page {
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#templates_.2F_tl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param array $namespace Show templates in this namespace(s) only. Default array().
-     * @param array $templates Only list these templates. Default array()
+     * @param array $template Only list these templates. Default array()
      * @return bool|array False on error, array of template titles
 	 */
 	public function get_templates( $force = false, $namespace = array(), $template = array() ) {
@@ -1121,7 +1121,7 @@ class Page {
      * @access public
      * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
      * @param bool $force Force use of API, won't use cached copy (default: false)
-     * @return int Null if it doesn't exist.
+     * @return boolean Null if it doesn't exist.
      */
     public function get_readability( $force = false ) {
         
@@ -2021,7 +2021,7 @@ class Page {
 	/**
 	 * Returns the timestamp of the last edit
 	 * 
-	 * @return int
+	 * @return string
 	 */
 	public function get_lastedit( $force = false ) {
 		if( $force ) $this->get_metadata();
@@ -2347,7 +2347,7 @@ class Page {
 	 * 
 	 * @see Wiki::purge()
 	 * @access public
-	 * @return void|bool
+	 * @return boolean
 	 */
 	public function purge() {
 		return $this->wiki->purge( $this->title );

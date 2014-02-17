@@ -1021,9 +1021,9 @@ class Wiki {
 	 * @param array|string $revids A list of revision IDs to work on
 	 * @param bool $redirects Automatically resolve redirects. Default false.
 	 * @param bool $force Update the links tables. Default false.
-	 * @param bool $converttitles Convert titles to other variants if necessary. Default false.
+	 * @param bool $convert Convert titles to other variants if necessary. Default false.
 	 * @param string $generator Get the list of pages to work on by executing the specified query module. Default null.
-	 * @return void|bool
+	 * @return boolean
 	 */
 	public function purge( $titles = null, $pageids = null, $revids = null, $force = false, $redirects = false, $convert = false, $generator = null ) {
 
@@ -1085,7 +1085,7 @@ class Wiki {
 	 * Returns a list of recent changes
 	 *
 	 * @access public
-	 * @param int|array $namespace Namespace(s) to check
+	 * @param integer $namespace Namespace(s) to check
 	 * @param string $tag Only list recent changes bearing this tag.
 	 * @param int $start Only list changes after this timestamp.
 	 * @param int $end Only list changes before this timestamp.
@@ -1701,7 +1701,7 @@ class Wiki {
 	 * @param string $page Parse the content of this page. Cannot be used together with $text and $title.
 	 * @param string $oldid Parse the content of this revision. Overrides $page and $pageid.
 	 * @param string $pageid Parse the content of this page. Overrides page.
-	 * @param bool $redirect If the page or the pageid parameter is set to a redirect, resolve it. Default true.
+	 * @param bool $redirects If the page or the pageid parameter is set to a redirect, resolve it. Default true.
 	 * @param string $section Only retrieve the content of this section number. Default null.
 	 * @param bool $disablepp Disable the PP Report from the parser output. Defaut false.
 	 * @param bool $generatexml Generate XML parse tree (requires prop=wikitext). Default false.
@@ -2245,7 +2245,7 @@ class Wiki {
      * @param array|string $changeoptions PartList of changes, formatted name=value (e.g. skin=vector), value cannot contain pipe characters. If no value is given (not even an equals sign), e.g., optionname|otheroption|..., the option will be reset to its default value. Default empty.
      * @param string $optionname A name of a option which should have an optionvalue set. Default null.
      * @param string $optionvalue A value of the option specified by the optionname, can contain pipe characters. Default null.
-     * @return array
+     * @return boolean
      */
     public function options( $reset = false, $resetoptions = array( 'all' ), $changeoptions = array(), $optionname = null, $optionvalue = null ) {
         $this->get_tokens();

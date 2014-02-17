@@ -209,7 +209,7 @@ class Template {
      * Get the value of a field
      * 
      * @param string $fieldname Name of the field to find
-     * @return string|boolean Value of template if it exists, otherwise boolean false
+     * @return string|false Value of template if it exists, otherwise boolean false
      */
     public function fieldvalue($fieldname) {
     	if( is_numeric($fieldname)) {

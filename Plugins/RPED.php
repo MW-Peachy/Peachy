@@ -53,7 +53,7 @@ class RPED {
 	 * 
 	 * @static
 	 * @access public
-	 * @param string $pageTitle The title of the page to insert
+	 * @param string $page
 	 * @return void
 	 */
 	public function insert( $page ) {
@@ -69,7 +69,7 @@ class RPED {
 	 * 
 	 * @static
 	 * @access public
-	 * @param string $pageTitle The title of the page to insert
+	 * @param string $page
 	 * @return void
 	 */
 	public function delete( $page ) {

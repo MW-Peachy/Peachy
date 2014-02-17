@@ -67,6 +67,9 @@ class XMLParse {
 		return $outArr;
 	}
 	
+	/**
+	 * @param SimpleXMLElement $xml
+	 */
 	private static function recurse($xml, &$arr, $namespaces) {
 		
 		foreach( $namespaces as $namespace ) {

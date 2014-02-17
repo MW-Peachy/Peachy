@@ -126,7 +126,7 @@ require_once( $pgIP . 'Includes/Peachy.php' );
 
 /**
  * Simple version_compare() wrapper
- * @param $check_version string
+ * @param string $check_version string
  * @throws DependencyError
  * @return void
  */

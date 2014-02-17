@@ -382,7 +382,7 @@ class lime_test
    * @param mixed $exp1
    * @param mixed $exp2
    * @param string $message. (default: '')
-   * @return void
+   * @return boolean
    */
   public function is_ignore_nl($exp1, $exp2, $message = '') {		
 	return $this->is(
@@ -399,7 +399,7 @@ class lime_test
    * @param mixed $exp1
    * @param mixed $exp2
    * @param string $message. (default: '')
-   * @return void
+   * @return boolean
    */
   public function is_strict($exp1, $exp2, $message = '') {		
 	if (is_float($exp1) && is_float($exp2))
@@ -426,7 +426,7 @@ class lime_test
    * @param mixed $exp1
    * @param mixed $exp2
    * @param string $message. (default: '')
-   * @return void
+   * @return boolean
    */
   public function isnt_strict($exp1, $exp2, $message = '') {		
 	if (!$result = $this->ok($exp1 !== $exp2, $message))
@@ -442,7 +442,7 @@ class lime_test
    *
    * @param string $message display output message
    *
-   * @return true
+   * @return boolean
    */
   public function pass($message = '')
   {
@@ -569,6 +569,9 @@ class lime_test
     $this->output->info($message);
   }
 
+  /**
+   * @param string $message
+   */
   public function error($message, $file = null, $line = null, array $traces = array())
   {
     $this->output->error($message, $file, $line, $traces);
@@ -730,6 +733,9 @@ class lime_output
     }
   }
 
+  /**
+   * @param string $method
+   */
   protected function print_trace($method = null, $file = null, $line = null)
   {
     if (!is_null($method))
@@ -762,16 +768,25 @@ class lime_output
     echo ($colorizer_parameter ? $this->colorizer->colorize($message, $colorizer_parameter) : $message)."\n";
   }
 
+  /**
+   * @param string $message
+   */
   public function green_bar($message)
   {
     echo $this->colorizer->colorize($message.str_repeat(' ', 71 - min(71, strlen($message))), 'GREEN_BAR')."\n";
   }
 
+  /**
+   * @param string $message
+   */
   public function red_bar($message)
   {
     echo $this->colorizer->colorize($message.str_repeat(' ', 71 - min(71, strlen($message))), 'RED_BAR')."\n";
   }
 
+  /**
+   * @return string
+   */
   protected function strip_base_dir($text)
   {
     return str_replace(DIRECTORY_SEPARATOR, '/', str_replace(realpath($this->base_dir).DIRECTORY_SEPARATOR, '', $text));

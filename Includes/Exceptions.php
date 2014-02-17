@@ -72,6 +72,10 @@ class CURLError extends Exception {
 	private $errno;
 	private $error;
 	
+	/**
+	 * @param integer $errno
+	 * @param string $error
+	 */
 	public function __construct( $errno, $error ) {
 		$this->errno = $errno;
 		$this->error = $error;
@@ -210,6 +214,10 @@ class DependancyError extends DependencyError {
  * @package Exceptions
  */
 class LoginError extends Exception {
+
+	/**
+	 * @param string[] $error
+	 */
 	public function __construct( $error ) {
 		parent::__construct( 
 			"Login Error: " . $error[0] . " (" . $error[1] . ")"
@@ -238,6 +246,10 @@ class HookError extends Exception {
  * @package Peachy_Database
  */
 class DBError extends Exception {
+
+	/**
+	 * @param string $sql
+	 */
 	public function __construct( $error, $errno, $sql = null ) {
 		parent::__construct( 
 			"Database Error: " . $error . " (code $errno) " . $sql
@@ -251,6 +263,11 @@ class DBError extends Exception {
  * @package Exceptions
  */
 class EditError extends Exception {
+
+	/**
+	 * @param string $error
+	 * @param string $text
+	 */
 	public function __construct( $error, $text ) {
 		parent::__construct( 
 			"Edit Error: " . $error . " ($text)"
@@ -342,6 +359,10 @@ class ImageError extends Exception {
  * @package Exceptions
  */
 class BadEntryError extends Exception {
+
+	/**
+	 * @param string $error
+	 */
 	public function __construct( $error, $text ) {
 		parent::__construct( 
 			"Bad Entry Error: " . $error . " ($text)"

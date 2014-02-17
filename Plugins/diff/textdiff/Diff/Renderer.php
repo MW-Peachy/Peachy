@@ -143,6 +143,12 @@ class Text_Diff_Renderer {
         return $output . $this->_endDiff();
     }
 
+    /**
+     * @param integer $xbeg
+     * @param integer $xlen
+     * @param integer $ybeg
+     * @param integer $ylen
+     */
     function _block($xbeg, $xlen, $ybeg, $ylen, &$edits)
     {
         $output = $this->_startBlock($this->_blockHeader($xbeg, $xlen, $ybeg, $ylen));
@@ -199,6 +205,9 @@ class Text_Diff_Renderer {
         return $xbeg . ($xlen ? ($ylen ? 'c' : 'd') : 'a') . $ybeg;
     }
 
+    /**
+     * @param string $header
+     */
     function _startBlock($header)
     {
         return $header . "\n";

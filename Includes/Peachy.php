@@ -161,6 +161,11 @@ class Peachy {
 		return $config_params;
 	}
 
+	/**
+	 * @param null|string $method
+	 * @param null|string $newfunction
+	 * @param string $message
+	 */
 	public static function deprecatedWarn( $method, $newfunction, $message = null ) {
 		if( is_null( $message ) ) {
 			$message = "Warning: $method is deprecated. Please use $newfunction instead.";

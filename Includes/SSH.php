@@ -563,6 +563,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
     }
     
+    /**
+     * @param string $gitFolder
+     */
     private function copyOverGitFiles( $gitFolder ) {
         /** @var $fileInfo DirectoryIterator */
         global $pgIP;
@@ -601,6 +604,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         }
     }
     
+    /**
+     * @param string $fullUpdatePath
+     */
     private function getLocalPath( $fullUpdatePath ) {
         global $pgIP;
         $xplodesAt = DIRECTORY_SEPARATOR . 'phpseclibupdate' . DIRECTORY_SEPARATOR . 'phpseclib-master' . DIRECTORY_SEPARATOR . 'phpseclib' . DIRECTORY_SEPARATOR;

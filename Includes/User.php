@@ -115,7 +115,8 @@ class User {
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
 	 * @param mixed $username Username
-	 * @return void
+	 * @param Wiki $wikiClass
+	 * @return null|false
 	 */
 	function __construct( &$wikiClass, $username ) {
 		
@@ -313,7 +314,7 @@ class User {
 	 * is_ip function.
 	 * 
 	 * @access public
-	 * @return void
+	 * @return boolean
 	 */
 	public function is_ip() {
 		return $this->ip;
@@ -625,7 +626,7 @@ class User {
 	 * Returns date the user registered
 	 * 
 	 * @access public
-	 * @return date
+	 * @return string
 	 */
 	public function get_registration() {
 		return $this->registration;

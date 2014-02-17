@@ -97,6 +97,9 @@ class RFA {
 	/*
  	* Attempts to find a signature in $input. Returns the name of the user, false on failure.
  	*/
+	/**
+	 * @param string $input
+	 */
 	protected function findsiginline($input, &$iffy) {
 		$iffy = 0;
 		
@@ -174,6 +177,9 @@ class RFA {
 	/*
  	* Analyzes an RFA section. Returns an array of parsed signatures on success. Undefined behaviour on failure.
  	*/
+	/**
+	 * @param string $input
+	 */
 	private function analyze_section($input) {
 		//Remove trailing sharp, if any
 		$input = preg_replace('/#\s*$/','',$input);

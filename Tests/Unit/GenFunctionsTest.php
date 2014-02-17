@@ -98,6 +98,9 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		$this->assertSame( $expected, checkExclusion( $this->getMockWiki(), $text, $username, $optout ) );
 	}
 
+	/**
+	 * @return \Wiki
+	 */
 	private function getMockWiki() {
 		$mock = $this->getMockBuilder( 'Wiki' )
 			->disableOriginalConstructor()
