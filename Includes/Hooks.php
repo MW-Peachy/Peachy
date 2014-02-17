@@ -48,6 +48,7 @@ class Hooks {
 			throw new HookError( "Hook assignment for event `$hook_name` is not an array. Syntax is " . '$pgHooks[\'hookname\'][] = "hook_function";' );
 		 }
 		 
+         $method = null;
 		 foreach( $pgHooks[$hook_name] as $function ) {
 			if( is_array( $function ) ) {
 				if( count( $function ) < 2 ) {
@@ -86,7 +87,7 @@ class Hooks {
 				$fncarr = $method;
 			}
 			
-			is_callable( $fncarr ); //Apparently this is a bug. Thanks, MW!
+			//is_callable( $fncarr ); //Apparently this is a bug. Thanks, MW!
 			
 			if( !is_callable( $fncarr ) ) {
 				throw new BadEntryError( "MissingFunction", "Hook function $fncarr was not defined" );

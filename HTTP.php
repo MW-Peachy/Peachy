@@ -159,7 +159,8 @@ class HTTP {
 	 * @throws CURLError
 	 */
 	private function doCurlExecWithRetrys() {
-		for( $i = 0; $i <= 20; $i++ ) {
+		$data = false;
+        for( $i = 0; $i <= 20; $i++ ) {
 			try {
 				$response = curl_exec( $this->curl_instance );
 				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);

@@ -62,7 +62,7 @@ function in_string( $needle, $haystack, $insensitive = false ) {
  * Recursive in_array function
  * 
  * @param string $needle What to search for
- * @param string $haystack What to search in
+ * @param array $haystack What to search in
  * @param bool $insensitive Whether or not to do a case-insensitive search
  * @return bool True if $needle is found in $haystack
  * @link http://us3.php.net/in_array
