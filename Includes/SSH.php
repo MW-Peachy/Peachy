@@ -108,7 +108,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
      * 
      * @return void
      */    
-    function __construct( $host, $port = 22, $username=null, $passphrase=null, $prikey=null, $protocol = 2, $timeout = 10, $http ) {
+    public function __construct( $host, $port = 22, $username=null, $passphrase=null, $prikey=null, $protocol = 2, $timeout = 10, $http ) {
         pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
         global $pgIP;
         $this->http = $http;
@@ -614,9 +614,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     * @access private
     * @return void
     */
-    function __destruct() {
+    public function __destruct() {
         $this->prikey = null;
-        $this->conected = false;
+        $this->connected = false;
         $this->host = null;
         $this->username = null;
         $this->sshobject->_disconnect( "Peachy Connection Terminated" );
