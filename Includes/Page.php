@@ -371,13 +371,8 @@ class Page {
 
 		pecho( "Getting page info for {$peachout}..\n\n", PECHO_NORMAL );
 
-		$info = $this->get_metadata( $pageInfoArray );
+		$this->get_metadata( $pageInfoArray );
 		if( !is_null( $timestamp ) ) $this->starttimestamp = $timestamp;
-
-		if( isset( $info['query']['redirects'][0] ) ) {
-			$this->redirectFollowed = true;
-		}
-
 	}
 
 	/**
@@ -389,6 +384,7 @@ class Page {
 	 * @param bool $content Should content of that revision be returned as well (default: false)
 	 * @param int $revid Revision ID to start from (default: null)
 	 * @param bool $rollback_token Should a rollback token be returned (default: false)
+	 * @param bool $recurse Used internally to provide more results than can be returned with a single API query
 	 * @return array Revision data
 	 */
 	public function history( $count = 1, $dir = "older", $content = false, $revid = null, $rollback_token = false, $recurse = false ) {
@@ -422,23 +418,21 @@ class Page {
 			}
 
 			return $history[0];
-
-		} else {
-			$historyResult = $this->wiki->apiQuery( $historyArray );
-
-			if( $recurse ) {
-				if( isset( $historyResult['query-continue'] ) ) {
-					return array(
-						$historyResult['query']['pages'][$this->pageid]['revisions'],
-						$historyResult['query-continue']['revisions']['rvcontinue']
-					);
-				}
-				return array( $historyResult['query']['pages'][$this->pageid]['revisions'], null );
-			} else {
-				return $historyResult['query']['pages'][$this->pageid]['revisions'];
-			}
 		}
 
+		$historyResult = $this->wiki->apiQuery( $historyArray );
+
+		if( $recurse ) {
+			if( isset( $historyResult['query-continue'] ) ) {
+				return array(
+					$historyResult['query']['pages'][$this->pageid]['revisions'],
+					$historyResult['query-continue']['revisions']['rvcontinue']
+				);
+			}
+			return array( $historyResult['query']['pages'][$this->pageid]['revisions'], null );
+		}
+
+		return $historyResult['query']['pages'][$this->pageid]['revisions'];
 	}
 
 	/**
@@ -1115,11 +1109,12 @@ class Page {
 		pecho( "Getting the URLs for {$this->title}..\n\n", PECHO_NORMAL );
 
 		$tRes = $this->wiki->apiQuery( $tArray );
+		$info = $tRes['query']['pages'][$this->pageid];
 
 		$this->urls = array();
 
-		if( isset( $tRes['query']['pages'][$this->pageid]['fullurl'] ) ) $this->urls['full'] = $info['fullurl'];
-		if( isset( $tRes['query']['pages'][$this->pageid]['editurl'] ) ) $this->urls['edit'] = $info['editurl'];
+		if( isset( $info['fullurl'] ) ) $this->urls['full'] = $info['fullurl'];
+		if( isset( $info['editurl'] ) ) $this->urls['edit'] = $info['editurl'];
 
 		return $this->urls;
 	}
@@ -1230,11 +1225,11 @@ class Page {
 	 * @param bool $minor Minor edit (default: false)
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)
-	 * @param string $pend Set to 'pre' or 'ap' to prepend or append, respectively (default: null)
+	 * @param string $pend Set to 'pre' or 'ap' to prepend or append, respectively (default: "")
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
 	 * @param string $section Section number. 0 for the top section, 'new' for a new section.  Default null.
 	 * @param string $sectiontitle The title for a new section. Default null.
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
 	public function edit(
@@ -1243,7 +1238,7 @@ class Page {
 		$minor = false,
 		$bot = true,
 		$force = false,
-		$pend = false,
+		$pend = "",
 		$create = false,
 		$section = null,
 		$sectiontitle = null,
@@ -1375,7 +1370,7 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default: go by user preference.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
 	public function prepend( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $watch = null ) {
@@ -1393,7 +1388,7 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
 	public function append( $text, $summary = "", $minor = false, $bot = true, $force = false, $create = false, $watch = null ) {
@@ -1412,7 +1407,7 @@ class Page {
 	 * @param bool $bot Mark as bot edit (default: true)
 	 * @param bool $force Override nobots check (default: false)* @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
 	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return int|bool The revision id of the successful edit, false on failure.
 	 */
 	public function newsection( $text, $sectiontitle, $summary = null, $minor = false, $bot = true, $force = false, $create = false, $watch = null ) {
@@ -1523,24 +1518,20 @@ class Page {
 	 * @return bool True if discussion page, false if not
 	 */
 	public function is_discussion() {
-		if( $this->namespace_id >= 0 && $this->namespace_id % 2 == 1 ) {
-			return true;
-		} else {
-			return false;
-		}
+		return ( $this->namespace_id >= 0 && $this->namespace_id % 2 == 1 );
 	}
 
 	/**
 	 * Returns the title of the discussion (talk) page associated with a page, if it exists.
 	 *
 	 * @return string Title of discussion page
+	 * @throws BadEntryError
 	 */
 	public function get_discussion() {
-		if( $this->namespace_id < 0 || $this->namespace_id === "" ) {
+		if( $this->namespace_id < 0 ) {
 			// No discussion page exists
 			// Guessing we want to error
 			throw new BadEntryError( "get_discussion", "Tried to find the discussion page of a page which could never have one" );
-			return false;
 		} else {
 			$namespaces = $this->wiki->get_namespaces();
 			if( $this->is_discussion() ) {
@@ -1559,7 +1550,7 @@ class Page {
 	 * @param bool $movetalk Whether or not to move any associated talk (discussion) page.
 	 * @param bool $movesubpages Whether or not to move any subpages.
 	 * @param bool $noredirect Whether or not to suppress the leaving of a redirect to the new title at the old title.
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @param bool $nowarnings Ignore any warnings. Default false.
 	 * @return bool True on success
 	 */
@@ -1645,17 +1636,20 @@ class Page {
 	 *
 	 * @param array $levels Array of protections levels. The key is the type, the value is the level. Default: array( 'edit' => 'sysop', 'move' => 'sysop' )
 	 * @param string $reason Reason for protection. Default null
+	 * @param string $expiry Expiry time. Default 'indefinite'
 	 * @param bool $cascade Whether or not to enable cascade protection. Default false
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return bool True on success
 	 */
-	public function protect( $levels = array(
-		'edit' => 'sysop', 'move' => 'sysop'
-	), $reason = null, $expiry = 'indefinite', $cascade = false, $watch = null ) {
+	public function protect( $levels = null, $reason = null, $expiry = 'indefinite', $cascade = false, $watch = null ) {
 		global $notag, $tag;
 		if( !in_array( 'protect', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to protect pages", PECHO_FATAL );
 			return false;
+		}
+
+		if( $levels === null ){
+			$levels = array( 'edit' => 'sysop', 'move' => 'sysop' );
 		}
 
 		$tokens = $this->wiki->get_tokens();
@@ -1721,7 +1715,7 @@ class Page {
 	 * Unprotects the page.
 	 *
 	 * @param string $reason A reason for the unprotection. Defaults to null (blank).
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return bool True on success
 	 */
 	public function unprotect( $reason = null, $watch = null ) {
@@ -1732,7 +1726,7 @@ class Page {
 	 * Deletes the page.
 	 *
 	 * @param string $reason A reason for the deletion. Defaults to null (blank).
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return bool True on success
 	 */
 	public function delete( $reason = null, $watch = null ) {
@@ -1798,7 +1792,7 @@ class Page {
 	 * @access public
 	 * @param string $reason Reason for undeletion
 	 * @param array $timestamps Array of timestamps to selectively restore
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return bool
 	 */
 	public function undelete( $reason = null, $timestamps = null, $watch = null ) {
@@ -1920,7 +1914,7 @@ class Page {
 	/**
 	 * Adds the page to the logged in user's watchlist
 	 *
-	 * @param $lang Language to show the message in
+	 * @param string $lang The code for the language to show any error message in (default: user preference)
 	 * @return bool True on success
 	 */
 	public function watch( $lang = null ) {
@@ -1963,7 +1957,7 @@ class Page {
 	/**
 	 * Removes the page to the logged in user's watchlist
 	 *
-	 * @param $lang Language to show the message in
+	 * @param string $lang The code for the language to show any error message in (default: user preference)
 	 * @return bool True on sucecess
 	 */
 	public function unwatch( $lang = null ) {
@@ -2053,6 +2047,7 @@ class Page {
 	/**
 	 * Returns the timestamp of the last edit
 	 *
+	 * @param bool $force Regenerate the cached value (default: false)
 	 * @return string
 	 */
 	public function get_lastedit( $force = false ) {
@@ -2064,6 +2059,7 @@ class Page {
 	/**
 	 * Returns length of the page
 	 *
+	 * @param bool $force Regenerate the cached value (default: false)
 	 * @return int
 	 */
 	public function get_length( $force = false ) {
@@ -2075,6 +2071,7 @@ class Page {
 	/**
 	 * Returns number of hits the page has received
 	 *
+	 * @param bool $force Regenerate the cached value (default: false)
 	 * @return int
 	 */
 	public function get_hits( $force = false ) {
@@ -2084,11 +2081,11 @@ class Page {
 	}
 
 	/**
-	 * Regenerates lastedit, length, and hits
+	 * (Re)generates lastedit, length, and hits
 	 *
-	 * @param array $pageInfoArray2 Array of values to merge with defaults (default: null)
-	 * @return array Information gathered
 	 * @access protected
+	 * @param array $pageInfoArray2 Array of values to merge with defaults (default: null)
+	 * @throws BadTitle
 	 */
 	protected function get_metadata( $pageInfoArray2 = null ) {
 		$pageInfoArray = array(
@@ -2109,6 +2106,10 @@ class Page {
 			pecho( "Special pages are not currently supported by the API.\n\n", PECHO_ERROR );
 			$this->exists = false;
 			$this->special = true;
+		}
+
+		if( isset( $pageInfoRes['query']['redirects'][0] ) ) {
+			$this->redirectFollowed = true;
 		}
 
 		foreach( $pageInfoRes['query']['pages'] as $key => $info ){
@@ -2153,8 +2154,6 @@ class Page {
 			if( isset( $info['readable'] ) ) $this->readable = true;
 			if( isset( $info['preload'] ) ) $this->preload = $info['preload'];
 			if( isset( $info['displaytitle'] ) ) $this->displaytitle = $info['displaytitle'];
-
-			return $pageInfoRes;
 		}
 	}
 
@@ -2297,6 +2296,8 @@ class Page {
 
 		$messages = false;
 		$blocked = false;
+		$oldtext = '';
+		$runtext = 'enable';
 		if( isset( $preeditinfo['query']['pages'] ) ) {
 			//$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
 			foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
@@ -2315,9 +2316,6 @@ class Page {
 			}
 			if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
 			if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
-		} else {
-			$oldtext = '';
-			$runtext = 'enable';
 		}
 
 		//Perform nobots checks, login checks, /Run checks
@@ -2347,7 +2345,7 @@ class Page {
 	 *
 	 * @access public
 	 * @param array $namespace Which namespaces to search (default: null).
-	 * @param int limit How many results to retrieve (default: null i.e. all).
+	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array A list of pages the title is transcluded in.
 	 */
 	public function embeddedin( $namespace = null, $limit = null ) {
@@ -2388,14 +2386,20 @@ class Page {
 	 * @param string $summary Summary to parse. Default null.
 	 * @param string $id Parse the content of this revision
 	 * @param array $prop Properties to retrieve. array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties' )
+	 * @param string $uselang Code of the language to use in interface messages, etc. (where applicable). Default 'en'.
 	 * @param string $section Only retrieve the content of this section number.  Default null.
 	 * @return array
 	 */
-	public function parse( $summary = null, $id = null, $prop = array(
-		'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid',
-		'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties'
-	), $uselang = 'en', $section = null ) {
-		return $this->wiki->parse( null, null, $summary, false, false, $prop, $uselang, $this->title, $id );
+	public function parse( $summary = null, $id = null, $prop = null, $uselang = 'en', $section = null ) {
+		if( $prop === null ){
+			$prop = array(
+				'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid',
+				'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties'
+			);
+		}
+		return $this->wiki->parse(
+			null, null, $summary, false, false, $prop, $uselang, $this->title, $id, null, false, $section
+		);
 	}
 
 }
