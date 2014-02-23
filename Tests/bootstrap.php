@@ -8,14 +8,12 @@
  * @see https://github.com/sebastianbergmann/phpunit/issues/325#issuecomment-2021106
  */
 global
-$pgVerbose,
-$pgIp,
-$pgHooks,
-$pgProxy,
-$pgUA,
-$pgVerbose,
-$pgIRCTrigger,
-$tmp;
+	$pgVerbose,
+	$pgIp,
+	$pgHooks,
+	$pgVerbose,
+	$pgIRCTrigger,
+	$tmp;
 
 define( 'PEACHY_PHPUNIT_TESTS', 'true!' );
 

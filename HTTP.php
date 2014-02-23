@@ -175,7 +175,7 @@ class HTTP {
 	}
 
 	/**
-	 * @return string
+	 * @return string|bool Data. False on failure.
 	 * @throws CURLError
 	 */
 	private function doCurlExecWithRetrys() {
@@ -319,8 +319,7 @@ class HTTP {
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
-
-//curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
+		// curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
 		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
 		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 0 );
 
@@ -378,6 +377,5 @@ class HTTP {
 			return self::$defaultInstance;
 		}
 	}
-
 
 }
