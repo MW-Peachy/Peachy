@@ -19,12 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class GlobalBlocking {
 
-    public static function load( &$wikiClass ) {
+	public static function load( &$wikiClass ) {
 
-        if( !array_key_exists( 'GlobalBlocking', $wikiClass->get_extensions() ) ) {
-            throw new DependencyError( "GlobalBlocking", "http://www.mediawiki.org/wiki/Extension:GlobalBlocking" );
-        }
-        
-    }
+		if( !array_key_exists( 'GlobalBlocking', $wikiClass->get_extensions() ) ) {
+			throw new DependencyError( "GlobalBlocking", "http://www.mediawiki.org/wiki/Extension:GlobalBlocking" );
+		}
+
+	}
 
 }

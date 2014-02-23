@@ -21,7 +21,7 @@ class Diff {
 
 	/**
 	 * Generates a diff between two strings
-	 * 
+	 *
 	 * @param string $method Which style of diff to generate: unified, inline (HTML), context, colorized, threeway
 	 * @param string $diff1 Old text
 	 * @param string $diff2 New text
@@ -30,44 +30,44 @@ class Diff {
 	 * @link http://pear.php.net/package/Text_Diff/redirected
 	 * @package Text_Diff
 	 */
-	public static function load($method, $diff1, $diff2, $diff3 = null) {
-		switch (strtolower($method)) {
+	public static function load( $method, $diff1, $diff2, $diff3 = null ) {
+		switch( strtolower( $method ) ){
 			case 'unified':
-				$diff = new Text_Diff('auto', array(explode("\n",$diff1), explode("\n",$diff2)));
-	
+				$diff = new Text_Diff( 'auto', array( explode( "\n", $diff1 ), explode( "\n", $diff2 ) ) );
+
 				$renderer = new Text_Diff_Renderer_unified();
-				
-				$diff = $renderer->render($diff);
+
+				$diff = $renderer->render( $diff );
 				break;
 			case 'html':
 			case 'inline':
-				$diff = new Text_Diff('auto', array(explode("\n",$diff1), explode("\n",$diff2)));
-	
+				$diff = new Text_Diff( 'auto', array( explode( "\n", $diff1 ), explode( "\n", $diff2 ) ) );
+
 				$renderer = new Text_Diff_Renderer_inline();
-				
-				$diff = $renderer->render($diff);
+
+				$diff = $renderer->render( $diff );
 				break;
 			case 'colorized':
-				$diff = new Text_Diff('auto', array(explode("\n",$diff1), explode("\n",$diff2)));
-	
+				$diff = new Text_Diff( 'auto', array( explode( "\n", $diff1 ), explode( "\n", $diff2 ) ) );
+
 				$renderer = new Text_Diff_Renderer_colorized();
-				
-				$diff = $renderer->render($diff);
+
+				$diff = $renderer->render( $diff );
 				break;
 			case 'context':
-				$diff = new Text_Diff('auto', array(explode("\n",$diff1), explode("\n",$diff2)));
-	
+				$diff = new Text_Diff( 'auto', array( explode( "\n", $diff1 ), explode( "\n", $diff2 ) ) );
+
 				$renderer = new Text_Diff_Renderer_context();
-				
-				$diff = $renderer->render($diff);
+
+				$diff = $renderer->render( $diff );
 				break;
 			case 'dualview':
-				$diff = new Text_Diff('auto', array(explode("\n",$diff1), explode("\n",$diff2)));
-	
+				$diff = new Text_Diff( 'auto', array( explode( "\n", $diff1 ), explode( "\n", $diff2 ) ) );
+
 				$renderer = new Text_Diff_Renderer_dualview();
-				
-				$diff = $renderer->render($diff);
-				
+
+				$diff = $renderer->render( $diff );
+
 				$old = str_replace(
 					array( 'WOIRUW*EOukcsfGQ', '*ROw2T){E@*jVWOw' ),
 					array( '<strong style="color:#F00;">', '</strong>' ),
@@ -88,14 +88,14 @@ class Diff {
 						$diff
 					)
 				);
-				return array($old, $new);
+				return array( $old, $new );
 				break;
 			case 'threeway':
-				$diff = new Text_Diff3( explode("\n",$diff1), explode("\n",$diff2), explode("\n",$diff3) );
+				$diff = new Text_Diff3( explode( "\n", $diff1 ), explode( "\n", $diff2 ), explode( "\n", $diff3 ) );
 				$diff = implode( "\n", $diff->mergedOutput() );
 				$rendered = null;
 		}
-		unset($renderer);
+		unset( $renderer );
 		return $diff;
 	}
 }

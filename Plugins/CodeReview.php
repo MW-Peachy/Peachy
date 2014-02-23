@@ -20,38 +20,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class CodeReview {
 
 	private $wiki;
-	
+
 	private $repo;
 
 	function __construct( &$wikiClass, $repo ) {
 		$this->wiki = $wikiClass;
 		$this->repo = $repo;
-		
+
 		if( !array_key_exists( 'CodeReview', $wikiClass->get_extensions() ) ) {
 			throw new DependencyError( "CodeReview", "http://www.mediawiki.org/wiki/Extension:CodeReview" );
 		}
 	}
-	
+
 	public function update( $rev ) {
-	
+
 		Hooks::runHook( 'StartCodeReviewUpdate', array( &$rev ) );
-		
+
 		$apiRes = $this->wiki->apiQuery(
 			array(
 				'action' => 'codeupdate',
-				'repo' => $this->repo,
-				'rev' => $rev
-		), true);
-		
-		print_r($apiRes);
+				'repo'   => $this->repo,
+				'rev'    => $rev
+			), true
+		);
+
+		print_r( $apiRes );
 	}
-	
-	public function diff() {}
-	
-	public function testupload() {}
-	
-	public function comments() {}
-	
-	
+
+	public function diff() { }
+
+	public function testupload() { }
+
+	public function comments() { }
+
 
 }

@@ -18,10 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 class SiteMatrix {
-	
+
 	/**
 	 * Loads list of all SiteMatrix wikis
-	 * 
+	 *
 	 * @static
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
@@ -32,48 +32,48 @@ class SiteMatrix {
 		if( !array_key_exists( 'SiteMatrix', $wikiClass->get_extensions() ) ) {
 			throw new DependencyError( "SiteMatrix" );
 		}
-		
-		$SMres = $wikiClass->apiQuery(array(
+
+		$SMres = $wikiClass->apiQuery(
+			array(
 				'action' => 'sitematrix',
 			)
 		);
-		
+
 		$wikis = $SMres['sitematrix'];
 		//return $wikis;
-		
+
 		$retarray = array(
-			'raw' => $wikis,
-			'urls' => array(),
-			'langs' => array(),
-			'names' => array(),
+			'raw'      => $wikis,
+			'urls'     => array(),
+			'langs'    => array(),
+			'names'    => array(),
 			'privates' => array()
 		);
-		
-		foreach( $wikis as $site ) {
-			if( is_array($site ) ) {
-				if( isset( $site['site'])) {
-				
+
+		foreach( $wikis as $site ){
+			if( is_array( $site ) ) {
+				if( isset( $site['site'] ) ) {
+
 					$retarray['langs'][] = $site['code'];
 					$retarray['names'][$site['code']] = $site['name'];
-					
-					foreach( $site['site'] as $site2 ) {
+
+					foreach( $site['site'] as $site2 ){
 						$retarray['urls'][] = $site2['url'];
-						
+
 						if( isset( $site2['private'] ) ) $retarray['privates'][] = $site2;
 					}
-				}
-				else {
-					foreach( $site as $site2 ) {
+				} else {
+					foreach( $site as $site2 ){
 						$sites2['urls'][] = $site2['url'];
-						
+
 						if( isset( $site2['private'] ) ) $retarray['privates'][] = $site2;
 					}
 				}
 			}
 		}
-		
+
 		return $retarray;
-		
+
 	}
 
 }
