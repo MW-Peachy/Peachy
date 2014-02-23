@@ -54,7 +54,7 @@ class WebRequest {
 	 */
 	function normalizeUnicode( $data ) {
 		if( is_array( $data ) ) {
-			foreach( $data as $key => $val ) {
+			foreach( $data as $key => $val ){
 				$data[$key] = $this->normalizeUnicode( $val );
 			}
 		} else {
@@ -62,11 +62,11 @@ class WebRequest {
 		}
 		return $data;
 	}
-	
+
 	function normalize( $s ) {
 		return UtfNormal::cleanUp( $s );
 	}
-	
+
 	/**
 	 * @param string $s
 	 */
@@ -99,39 +99,40 @@ class WebRequest {
 			return $default;
 		}
 	}
-	
+
 	function checkTitleEncoding( $s ) {
 		$ishigh = preg_match( '/[\x80-\xff]/', $s );
-		if ( !$ishigh ) {
+		if( !$ishigh ) {
 			return $s;
 		}
 
-		$isutf8 = preg_match( '/^([\x00-\x7f]|[\xc0-\xdf][\x80-\xbf]|' .
-			'[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3})+$/', $s );
+		$isutf8 = preg_match(
+			'/^([\x00-\x7f]|[\xc0-\xdf][\x80-\xbf]|' .
+			'[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xf7][\x80-\xbf]{3})+$/', $s
+		);
 
-		if ( $isutf8 ) {
+		if( $isutf8 ) {
 			return $s;
 		}
-		return $s;//fallback, has problems.
+		return $s; //fallback, has problems.
 		//return $this->iconv( $this->fallback8bitEncoding(), 'utf-8', $s );
-	} 
-	
+	}
+
 	function iconv( $in, $out, $string ) {
 		$text = @iconv( $in, $out . '//IGNORE', $string );
-		return $text; 
+		return $text;
 	}
-	
+
 	public function getSafeVal( $callback ) {
-	
+
 		if( !method_exists( $this, $callback ) ) {
 			$args = func_get_args();
 			$callback = 'getVal';
-		}
-		else {
+		} else {
 			$args = func_get_args();
 			array_shift( $args );
 		}
-		
+
 		return htmlspecialchars( call_user_func_array( array( $this, $callback ), $args ) );
 	}
 
@@ -287,17 +288,16 @@ class WebRequest {
 	 */
 	public function getValues() {
 		$names = func_get_args();
-		if ( count( $names ) == 0 ) {
+		if( count( $names ) == 0 ) {
 			$names = array_keys( $this->data );
-		}
-		elseif( is_array( $names[0] ) ) {
+		} elseif( is_array( $names[0] ) ) {
 			$names = $names[0];
 		}
 
 		$retVal = array();
-		foreach ( $names as $name ) {
+		foreach( $names as $name ){
 			$value = $this->getVal( $name );
-			if ( !is_null( $value ) ) {
+			if( !is_null( $value ) ) {
 				$retVal[$name] = $value;
 			}
 		}
@@ -341,7 +341,7 @@ class WebRequest {
 	 * @return Mixed: cookie value or $default if the cookie not set
 	 */
 	public function getCookie( $key, $default = null, $prefix = '' ) {
-		return $this->getGPCVal( $_COOKIE, $prefix . $key , $default );
+		return $this->getGPCVal( $_COOKIE, $prefix . $key, $default );
 	}
 
 	/**
@@ -350,7 +350,7 @@ class WebRequest {
 	 * @return String
 	 */
 	public function getRequestURL() {
-		if( isset( $_SERVER['REQUEST_URI']) && strlen($_SERVER['REQUEST_URI']) ) {
+		if( isset( $_SERVER['REQUEST_URI'] ) && strlen( $_SERVER['REQUEST_URI'] ) ) {
 			$base = $_SERVER['REQUEST_URI'];
 		} elseif( isset( $_SERVER['SCRIPT_NAME'] ) ) {
 			// Probably IIS; doesn't set REQUEST_URI
@@ -361,8 +361,8 @@ class WebRequest {
 		} else {
 			// This shouldn't happen!
 			throw new Exception( "Web server doesn't provide either " .
-				"REQUEST_URI or SCRIPT_NAME. Report details of your " .
-				"web server configuration to http://bugzilla.wikimedia.org/" );
+								 "REQUEST_URI or SCRIPT_NAME. Report details of your " .
+								 "web server configuration to http://bugzilla.wikimedia.org/" );
 		}
 		// User-agents should not send a fragment with the URI, but
 		// if they do, and the web server passes it on to us, we
@@ -388,15 +388,15 @@ class WebRequest {
 	public function getFullRequestURL() {
 		return $this->getServer() . $this->getRequestURL();
 	}
-	
+
 	function getIP() {
 		return @$_SERVER['REMOTE_ADDR'];
 	}
-	
+
 	function getServer() {
 		/** URL of the server. It will be automatically built including https mode */
 		$wgServer = '';
-		 
+
 		if( isset( $_SERVER['SERVER_NAME'] ) ) {
 			$wgServerName = $_SERVER['SERVER_NAME'];
 		} elseif( isset( $_SERVER['HOSTNAME'] ) ) {
@@ -408,17 +408,18 @@ class WebRequest {
 		} else {
 			$wgServerName = 'localhost';
 		}
-		 
+
 		# check if server use https:
-		$wgProto = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
-		 
-		$wgServer = $wgProto.'://' . $wgServerName;
+		$wgProto = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ) ? 'https' : 'http';
+
+		$wgServer = $wgProto . '://' . $wgServerName;
 		# If the port is a non-standard one, add it to the URL
-		if(    isset( $_SERVER['SERVER_PORT'] )
-		    && !strpos( $wgServerName, ':' )
-		    && (    ( $wgProto == 'http' && $_SERVER['SERVER_PORT'] != 80 )
-			 || ( $wgProto == 'https' && $_SERVER['SERVER_PORT'] != 443 ) ) ) {
-		 
+		if( isset( $_SERVER['SERVER_PORT'] )
+			&& !strpos( $wgServerName, ':' )
+			&& ( ( $wgProto == 'http' && $_SERVER['SERVER_PORT'] != 80 )
+				 || ( $wgProto == 'https' && $_SERVER['SERVER_PORT'] != 443 ) )
+		) {
+
 			$wgServer .= ":" . $_SERVER['SERVER_PORT'];
 		}
 		return $wgServer;
@@ -430,23 +431,23 @@ class WebRequest {
 	 */
 	public function getHeader( $name ) {
 		$name = strtoupper( $name );
-		if ( function_exists( 'apache_request_headers' ) ) {
-			if ( !$this->headers ) {
-				foreach ( apache_request_headers() as $tempName => $tempValue ) {
-					$this->headers[ strtoupper( $tempName ) ] = $tempValue;
+		if( function_exists( 'apache_request_headers' ) ) {
+			if( !$this->headers ) {
+				foreach( apache_request_headers() as $tempName => $tempValue ){
+					$this->headers[strtoupper( $tempName )] = $tempValue;
 				}
 			}
-			if ( isset( $this->headers[$name] ) ) {
+			if( isset( $this->headers[$name] ) ) {
 				return $this->headers[$name];
 			} else {
 				return false;
 			}
 		} else {
 			$name = 'HTTP_' . str_replace( '-', '_', $name );
-			if ( $name === 'HTTP_CONTENT_LENGTH' && !isset( $_SERVER[$name] ) ) {
+			if( $name === 'HTTP_CONTENT_LENGTH' && !isset( $_SERVER[$name] ) ) {
 				$name = 'CONTENT_LENGTH';
 			}
-			if ( isset( $_SERVER[$name] ) ) {
+			if( isset( $_SERVER[$name] ) ) {
 				return $_SERVER[$name];
 			} else {
 				return false;
@@ -461,8 +462,9 @@ class WebRequest {
 	 * @return Mixed
 	 */
 	public function getSessionData( $key ) {
-		if( !isset( $_SESSION[$key] ) )
+		if( !isset( $_SESSION[$key] ) ) {
 			return null;
+		}
 		return $_SESSION[$key];
 	}
 
@@ -489,41 +491,43 @@ class WebRequest {
 	 * way to perform this security check.
 	 */
 	public function isPathInfoBad() {
-		if ( !isset( $_SERVER['PATH_INFO'] ) ) {
+		if( !isset( $_SERVER['PATH_INFO'] ) ) {
 			return false;
 		}
 		$pi = $_SERVER['PATH_INFO'];
 		$dotPos = strrpos( $pi, '.' );
-		if ( $dotPos === false ) {
+		if( $dotPos === false ) {
 			return false;
 		}
 		$ext = substr( $pi, $dotPos );
 		return !in_array( $ext, array( '.php', '.php5' ) );
 	}
-	
+
 	/**
 	 * Parse the Accept-Language header sent by the client into an array
 	 * @return array( languageCode => q-value ) sorted by q-value in descending order
 	 */
 	public function getAcceptLang() {
 		// Modified version of code found at http://www.thefutureoftheweb.com/blog/use-accept-language-header
-		if ( !isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
+		if( !isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ) {
 			return array();
 		}
-		
+
 		// Break up string into pieces (languages and q factors)
 		$lang_parse = null;
-		preg_match_all( '/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0(\.[0-9]+))?)?/i',
-			$_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse );
-		
-		if ( !count( $lang_parse[1] ) ) {
+		preg_match_all(
+			'/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0(\.[0-9]+))?)?/i',
+			$_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse
+		);
+
+		if( !count( $lang_parse[1] ) ) {
 			return array();
 		}
 		// Create a list like "en" => 0.8
 		$langs = array_combine( $lang_parse[1], $lang_parse[4] );
 		// Set default q factor to 1
-		foreach ( $langs as $lang => $val ) {
-			if ( $val === '' ) {
+		foreach( $langs as $lang => $val ){
+			if( $val === '' ) {
 				$langs[$lang] = 1;
 			}
 		}

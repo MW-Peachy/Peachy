@@ -23,68 +23,67 @@
 
 
 class YAML {
-	
+
 	/**
 	 * __construct function.
-	 * 
+	 *
 	 * @access public
-	 * @param mixed $data. (default: null)
+	 * @param mixed $data . (default: null)
 	 * @return void
 	 */
-	function __construct($data = null) {
-		peachyCheckPHPVersion('5.2.4');
-		
+	function __construct( $data = null ) {
+		peachyCheckPHPVersion( '5.2.4' );
+
 		$this->data = $data;
 	}
-	
+
 	/**
 	 * load function.
-	 * 
+	 *
 	 * @access public
 	 * @static
 	 * @param mixed $data
 	 * @return YAML
 	 */
-	public static function load($data) {
-		return new YAML($data);
+	public static function load( $data ) {
+		return new YAML( $data );
 	}
-	
+
 	/**
 	 * parse function.
-	 * 
+	 *
 	 * @access public
 	 * @static
 	 * @param mixed $data
 	 * @return string|null
 	 */
-	public static function parse($data,$indent = 5) {
-		return self::__invoke($data,$indent);
+	public static function parse( $data, $indent = 5 ) {
+		return self::__invoke( $data, $indent );
 	}
-	
+
 	/**
 	 * toArray function.
-	 * 
+	 *
 	 * @access public
 	 * @return void
 	 */
 	public function toArray() {
 		global $pgAutoloader;
 		$pgAutoloader['sfYamlParser'] = 'Plugins/yaml/sfYamlParser.php';
-		
-		if( !is_string($this->data) ) {
+
+		if( !is_string( $this->data ) ) {
 			throw new BadEntryError( 'wrongtype', 'YAML::toArray() can only be used with a string' );
 		}
-		
-		try {
+
+		try{
 			$yaml = new sfYamlParser();
-			$parsed = $yaml->parse($this->data);
-		}
-		catch( Exception $e ) {
+			$parsed = $yaml->parse( $this->data );
+		} catch( Exception $e ){
 			throw new BadEntryError( 'badyaml', sprintf( 'YAML::toArray() needs a valid YAML string: %s', $e->getMessage() ) );
 		}
-		
+
 		return $parsed;
-		
+
 	}
 
 	/**
@@ -100,46 +99,44 @@ class YAML {
 	public function toYaml( $indent = 5 ) {
 		global $pgAutoloader;
 		$pgAutoloader['sfYamlDumper'] = 'Plugins/yaml/sfYamlDumper.php';
-		
-		if( !is_array($this->data) ) {
+
+		if( !is_array( $this->data ) ) {
 			throw new BadEntryError( 'wrongtype', 'YAML::toYaml() can only be used with an array' );
 		}
-		
-		try {
+
+		try{
 			$yaml = new sfYamlDumper();
 			$parsed = $yaml->dump( $this->data, $indent );
-		}
-		catch( Exception $e ) {
+		} catch( Exception $e ){
 			throw new BadEntryError( 'badyaml', sprintf( 'YAML::toYaml() needs a valid array: %s', $e->getMessage() ) );
 		}
-		
+
 		return $parsed;
-		
+
 	}
-	
+
 	/**
 	 * __toString function.
-	 * 
+	 *
 	 * @access public
 	 * @return string
 	 */
 	public function __toString() {
 		return $this->toYaml();
 	}
-	
+
 	/**
 	 * __invoke function.
-	 * 
+	 *
 	 * @access public
 	 * @param mixed $data
 	 * @return string|null
 	 */
-	public function __invoke($data,$indent = 5) {
+	public function __invoke( $data, $indent = 5 ) {
 		if( is_array( $data ) ) {
-			return YAML::load($data)->toYaml($indent);
-		}
-		else {
-			return YAML::load($data)->toArray();
+			return YAML::load( $data )->toYaml( $indent );
+		} else {
+			return YAML::load( $data )->toArray();
 		}
 	}
 }
