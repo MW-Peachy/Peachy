@@ -19,8 +19,8 @@ This script deletes a bunch of pages using a list of page titles contained
 in a file. The filename is argument #1.
 */
 
-require_once( dirname( dirname(__FILE__) ) . '/Script.php' );
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Script.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 
@@ -32,20 +32,23 @@ $page = $script->getWiki()->initPage( $script->getPage() );
 
 $rfas = array();
 
-foreach( $page->history( null, 'older', true ) as $rev ) {
+foreach( $page->history( null, 'older', true ) as $rev ){
 	$rfa = new RfA( null, null, $rev['*'] );
-	
+
 	if( !$rfa->get_lasterror() ) {
-		$rfas[$rev['timestamp']] = array( count( $rfa->get_support() ), count( $rfa->get_oppose() ), count( $rfa->get_neutral() ), number_format( (count( $rfa->get_oppose() )>0)?(count( $rfa->get_support() )/(count( $rfa->get_oppose() )+count( $rfa->get_support() ))*100):100, 2) );
+		$rfas[$rev['timestamp']] = array(
+			count( $rfa->get_support() ), count( $rfa->get_oppose() ), count( $rfa->get_neutral() ),
+			number_format( ( count( $rfa->get_oppose() ) > 0 ) ? ( count( $rfa->get_support() ) / ( count( $rfa->get_oppose() ) + count( $rfa->get_support() ) ) * 100 ) : 100, 2 )
+		);
 	}
-	
+
 	//date('Y-m-d H:i:s', strtotime($rev['timestamp']))
 }
 
-$rfas = array_reverse($rfas);
+$rfas = array_reverse( $rfas );
 
 $out = null;
-foreach( $rfas as $rfa => $info ) {
-	$out .= "$rfa," .implode(',',$info)."\n";
+foreach( $rfas as $rfa => $info ){
+	$out .= "$rfa," . implode( ',', $info ) . "\n";
 }
 echo $out;

@@ -35,41 +35,45 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 			->will( $this->returnValue( array( 0 => '', 1 => 'Talk' ) ) );
 		$mock->expects( $this->any() )
 			->method( 'apiQuery' )
-			->will( $this->returnCallback( function( $params ) {
-				if( $params['action'] === 'query'
-					&& $params['prop'] === 'info'
-					&& $params['inprop'] === 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle'
-					&& $params['titles'] === 'Foo' )
-				{
-					return array(
-						'query' => array(
-							'pages' => array(
-								1234 => array(
-									'pageid' => 1234,
-									'ns' => 0,
-									'title' => 'Foo',
-									'contentmodel' => 'wikitext',
-									'pagelanguage' => 'en',
-									'touched' => '2014-01-26T01:13:44Z',
-									'lastrevid' => 999,
-									'counter' => '',
-									'length' => 76,
-									'redirect' => '',
-									'protection' => array(),
-									'notificationtimestamp' => '',
-									'talkid' => '66654',
-									'fullurl' => 'imafullurl',
-									'editurl' => 'imaediturl',
-									'readable' => '',
-									'preload' => '',
-									'displaytitle' => 'Foo',
+			->will(
+				$this->returnCallback(
+					function ( $params ) {
+						if( $params['action'] === 'query'
+							&& $params['prop'] === 'info'
+							&& $params['inprop'] === 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle'
+							&& $params['titles'] === 'Foo'
+						) {
+							return array(
+								'query' => array(
+									'pages' => array(
+										1234 => array(
+											'pageid'                => 1234,
+											'ns'                    => 0,
+											'title'                 => 'Foo',
+											'contentmodel'          => 'wikitext',
+											'pagelanguage'          => 'en',
+											'touched'               => '2014-01-26T01:13:44Z',
+											'lastrevid'             => 999,
+											'counter'               => '',
+											'length'                => 76,
+											'redirect'              => '',
+											'protection'            => array(),
+											'notificationtimestamp' => '',
+											'talkid'                => '66654',
+											'fullurl'               => 'imafullurl',
+											'editurl'               => 'imaediturl',
+											'readable'              => '',
+											'preload'               => '',
+											'displaytitle'          => 'Foo',
+										)
+									)
 								)
-							)
-						)
-					);
-				}
-				return array();
-			} ) );
+							);
+						}
+						return array();
+					}
+				)
+			);
 		return $mock;
 	}
 

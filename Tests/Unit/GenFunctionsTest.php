@@ -43,9 +43,9 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 
 	public function provide_in_string() {
 		return array(
-			array( 'B', 'aBc', false , true ),
-			array( 'b', 'aBc', false , false ),
-			array( 'b', 'aBc', true , true ),
+			array( 'B', 'aBc', false, true ),
+			array( 'b', 'aBc', false, false ),
+			array( 'b', 'aBc', true, true ),
 		);
 	}
 

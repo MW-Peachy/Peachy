@@ -19,8 +19,8 @@ This script deletes a bunch of pages using a list of page titles contained
 in a file. The filename is argument #1.
 */
 
-require_once( dirname( dirname(__FILE__) ) . '/Script.php' );
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Script.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 
@@ -33,12 +33,11 @@ if( $script->getArg( 'reason' ) ) {
 	$reason = $script->getArg( 'reason' );
 }
 
-foreach( $script->getList() as $buffer ) {
+foreach( $script->getList() as $buffer ){
 	$page = $script->getWiki()->initPage( $buffer );
 	if( $script->getArg( 'undelete' ) ) {
 		$page->undelete( $reason );
-	}
-	else {
+	} else {
 		$page->delete( $reason );
 	}
 }

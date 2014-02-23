@@ -19,8 +19,8 @@ This script deletes a bunch of pages using a list of page titles contained
 in a file. The filename is argument #1.
 */
 
-require_once( dirname( dirname(__FILE__) ) . '/Script.php' );
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Script.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 
@@ -33,34 +33,34 @@ if( $script->getArg( 'reason' ) ) {
 
 $list = $wiki->categorymembers( "Category:Non-free Wikipedia file size reduction request", false, 6 );
 
-foreach( $list as $buffer ) {
+foreach( $list as $buffer ){
 	$image = new ImageModify( $wiki, $buffer['title'] );
-	
+
 	if( $image->get_mime() == "application/ogg" ) continue;
-	
+
 	echo "\n\n--------------------\n\n";
-	
-	echo $image->get_title( false ) . " - " . $image->get_url()  . "\n\n";
-	
+
+	echo $image->get_title( false ) . " - " . $image->get_url() . "\n\n";
+
 	echo "Original size: " . $image->get_width() . "x" . $image->get_height() . "\n\n";
-	
+
 	$width = CLI::getInt( "New width?" );
-	
+
 	echo "\n";
-	
+
 	if( $width == 0 ) {
 		if( CLI::getBool( "Are you sure?" ) ) {
 			continue;
 		}
 	}
-	
+
 	$image->resize( $width, null, true, null, '', $reason );
-	
+
 	$image = $image->get_page();
-	
+
 	$text = $image->get_text();
-	
+
 	$text = str_ireplace( "{{Non-free reduce}}\n", "", $text );
-	
+
 	$image->edit( $text, "Removing non-free reduce template", true, false );
 }
