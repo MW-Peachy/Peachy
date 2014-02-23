@@ -25,14 +25,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Hooks class
- * Stores and runs {@link http://wiki.peachy.compwhizii.net/wiki/Manual/Hooks hooks} 
- * 
+ * Stores and runs {@link http://wiki.peachy.compwhizii.net/wiki/Manual/Hooks hooks}
+ *
  */
 class Hooks {
 
 	/**
 	 * Search for hook functions and run them if defined
-	 * 
+	 *
 	 * @param string $hook_name Name of hook to search for
 	 * @param array $args Arguments to pass to the hook function
 	 * @throws HookError
@@ -40,64 +40,59 @@ class Hooks {
 	 * @return mixed Output of hook function
 	 */
 	public static function runHook( $hook_name, $args = array() ) {
-		 global $pgHooks;
-		 
-		 if( !isset( $pgHooks[$hook_name] ) ) return null;
-		 
-		 if( !is_array( $pgHooks[$hook_name] ) ) {
+		global $pgHooks;
+
+		if( !isset( $pgHooks[$hook_name] ) ) return null;
+
+		if( !is_array( $pgHooks[$hook_name] ) ) {
 			throw new HookError( "Hook assignment for event `$hook_name` is not an array. Syntax is " . '$pgHooks[\'hookname\'][] = "hook_function";' );
-		 }
-		 
-         $method = null;
-		 foreach( $pgHooks[$hook_name] as $function ) {
+		}
+
+		$method = null;
+		foreach( $pgHooks[$hook_name] as $function ){
 			if( is_array( $function ) ) {
 				if( count( $function ) < 2 ) {
 					throw new HookError( "Not enough parameters in array specified for `$hook_name` hook" );
-				}
-				elseif( is_object( $function[0] ) ) {
+				} elseif( is_object( $function[0] ) ) {
 					$object = $function[0];
 					$method = $function[1];
 					if( count( $function ) > 2 ) {
 						$data = $function[2];
 					}
-				}
-				elseif( is_string( $function[0] ) ) {
+				} elseif( is_string( $function[0] ) ) {
 					$method = $function[0];
 					if( count( $function ) > 1 ) {
 						$data = $function[1];
 					}
 				}
-			   
-			}
-			elseif( is_string( $function ) ) {
+
+			} elseif( is_string( $function ) ) {
 				$method = $function;
 			}
-			
+
 			if( isset( $data ) ) {
-				$args = array_merge( array($data), $args );
-			}			   
-			 
+				$args = array_merge( array( $data ), $args );
+			}
+
 			if( isset( $object ) ) {
 				$fncarr = array( $object, $method );
-			}
-			elseif( is_string( $method ) && in_string( "::", $method ) ) {
+			} elseif( is_string( $method ) && in_string( "::", $method ) ) {
 				$fncarr = explode( "::", $method );
-			}
-			else {
+			} else {
 				$fncarr = $method;
 			}
-			
+
 			//is_callable( $fncarr ); //Apparently this is a bug. Thanks, MW!
-			
+
 			if( !is_callable( $fncarr ) ) {
 				throw new BadEntryError( "MissingFunction", "Hook function $fncarr was not defined" );
 			}
-			
+
 			$hookRet = call_user_func_array( $fncarr, $args );
-			
+
 			if( !is_null( $hookRet ) ) return $hookRet;
-			
-		 }
+
+		}
 
 	}
 
