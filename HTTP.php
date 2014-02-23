@@ -88,8 +88,6 @@ class HTTP {
 	 * @return HTTP
 	 */
 	function __construct( $echo = false ) {
-		global $pgUA;
-
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
 		}
@@ -101,7 +99,10 @@ class HTTP {
 		}
 		$this->cookie_hash = md5( time() . '-' . rand( 0, 999 ) );
 		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.' . $this->cookie_hash . '.dat';
-		$this->user_agent = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
+
+		$userAgent = 'Peachy MediaWiki Bot API';
+		if( defined( PEACHYVERSION ) ) $userAgent .= ' Version ' . PEACHYVERSION;
+		$this->setUserAgent( $userAgent );
 
 		Hooks::runHook( 'HTTPNewCURLInstance', array( &$this, &$echo ) );
 
@@ -116,8 +117,6 @@ class HTTP {
 		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 1 );
 		curl_setopt( $this->curl_instance, CURLOPT_TIMEOUT, 100 );
 		curl_setopt( $this->curl_instance, CURLOPT_CONNECTTIMEOUT, 10 );
-
-		$this->setUserAgent( $pgUA );
 
 	}
 
