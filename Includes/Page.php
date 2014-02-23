@@ -108,52 +108,52 @@ class Page {
 	/**
 	 * Templates used in the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $templates = array();
+	protected $templates;
 
 	/**
 	 * Protection information for the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $protection = array();
+	protected $protection;
 
 	/**
-	 * Cateogories that the page is in
+	 * Categories that the page is in
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $categories = array();
+	protected $categories;
 
 	/**
 	 * Images used in the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $images = array();
+	protected $images;
 
 	/**
 	 * Internal links in the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $links = array();
+	protected $links;
 
 	/**
 	 * Timestamp of the last edit
@@ -182,32 +182,32 @@ class Page {
 	/**
 	 * Language links on the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $langlinks = array();
+	protected $langlinks;
 
 	/**
 	 * External links on the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $extlinks = array();
+	protected $extlinks;
 
 	/**
 	 * Interwiki links on the page
 	 *
-	 * (default value: array())
+	 * (default value: null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $iwlinks = array();
+	protected $iwlinks;
 
 	/**
 	 * Time of script start.  Must be set manually.
@@ -232,22 +232,22 @@ class Page {
 	/**
 	 * Whether the page is watched by the user
 	 *
-	 * (default false)
+	 * (default null)
 	 *
 	 * @var bool
 	 * @access protected
 	 */
-	protected $watched = false;
+	protected $watched;
 
 	/**
 	 * Number of watchers
 	 *
-	 * (default 0)
+	 * (default null)
 	 *
 	 * @var int
 	 * @access protected
 	 */
-	protected $watchers = 0;
+	protected $watchers;
 
 	/**
 	 * Watchlist notification timestamp
@@ -272,22 +272,22 @@ class Page {
 	/**
 	 * Full urls of the page
 	 *
-	 * (default array())
+	 * (default null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $urls = array();
+	protected $urls;
 
 	/**
 	 * Whether the page can be read by a user
 	 *
-	 * (default false)
+	 * (default null)
 	 *
 	 * @var bool
 	 * @access protected
 	 */
-	protected $readable = false;
+	protected $readable;
 
 	/**
 	 * EditFormPreloadText
@@ -312,12 +312,12 @@ class Page {
 	/**
 	 * Page properties
 	 *
-	 * (default array())
+	 * (default null)
 	 *
 	 * @var array
 	 * @access protected
 	 */
-	protected $properties = array();
+	protected $properties;
 
 	/**
 	 * Construction method for the Page class
@@ -519,7 +519,7 @@ class Page {
 
 			return $substr;
 		} else {
-			if( !$force && !empty( $this->content ) ) {
+			if( !$force && $this->content !== null ) {
 				return $this->content;
 			}
 
@@ -573,10 +573,11 @@ class Page {
 	 */
 	public function get_links( $force = false, $namespace = array(), $titles = array() ) {
 
-		if( !$force && count( $this->links ) > 0 ) {
+		if( !$force && $this->links !== null ) {
 			return $this->links;
 		}
 
+		$this->links = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -588,8 +589,6 @@ class Page {
 
 		if( !empty( $namespace ) ) $tArray['plnamespace'] = implode( '|', $namespace );
 		if( !empty( $titles ) ) $tArray['pltitles'] = implode( '|', $titles );
-
-		$this->links = array();
 
 		pecho( "Getting internal links on {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -616,10 +615,11 @@ class Page {
 	 */
 	public function get_templates( $force = false, $namespace = array(), $template = array() ) {
 
-		if( !$force && count( $this->templates ) > 0 && empty( $namespace ) && empty( $template ) ) {
+		if( !$force && $this->templates !== null && empty( $namespace ) && empty( $template ) ) {
 			return $this->templates;
 		}
 
+		$this->templates = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -630,8 +630,6 @@ class Page {
 		);
 		if( !empty( $namespace ) ) $tArray['tlnamespace'] = implode( '|', $namespace );
 		if( !empty( $template ) ) $tArray['tltemplates'] = implode( '|', $template );
-
-		$this->templates = array();
 
 		pecho( "Getting templates transcluded on {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -656,10 +654,11 @@ class Page {
 	 */
 	public function get_properties( $force = false ) {
 
-		if( !$force && count( $this->properties ) > 0 ) {
+		if( !$force && $this->properties !== null ) {
 			return $this->properties;
 		}
 
+		$this->properties = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -667,8 +666,6 @@ class Page {
 			'titles' => $this->title,
 			'_code'  => 'pp'
 		);
-
-		$this->properties = array();
 
 		pecho( "Getting page properties on {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -691,10 +688,11 @@ class Page {
 		'sortkey', 'timestamp', 'hidden'
 	), $hidden = false ) {
 
-		if( !$force && count( $this->categories ) > 0 ) {
+		if( !$force && $this->categories !== null ) {
 			return $this->categories;
 		}
 
+		$this->categories = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -706,8 +704,6 @@ class Page {
 		);
 
 		if( $hidden ) $tArray['clshow'] = 'yes';
-
-		$this->categories = array();
 
 		pecho( "Getting categories {$this->title} is part of..\n\n", PECHO_NORMAL );
 
@@ -734,10 +730,11 @@ class Page {
 	 */
 	public function get_images( $force = false, $images = null ) {
 
-		if( !$force && count( $this->images ) > 0 ) {
+		if( !$force && $this->images !== null ) {
 			return $this->images;
 		}
 
+		$this->images = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -746,8 +743,6 @@ class Page {
 			'_code'    => 'im',
 			'_lhtitle' => 'images'
 		);
-
-		$this->images = array();
 
 		if( !is_null( $images ) ) {
 			if( is_array( $images ) ) {
@@ -780,10 +775,11 @@ class Page {
 	 */
 	public function get_extlinks( $force = false ) {
 
-		if( !$force && count( $this->extlinks ) > 0 ) {
+		if( !$force && $this->extlinks !== null ) {
 			return $this->extlinks;
 		}
 
+		$this->extlinks = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -792,8 +788,6 @@ class Page {
 			'_code'    => 'el',
 			'_lhtitle' => 'extlinks'
 		);
-
-		$this->extlinks = array();
 
 		pecho( "Getting external links used on {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -820,10 +814,11 @@ class Page {
 	 * @return bool|array False on error, returns array of links in the form of lang:title
 	 */
 	public function get_langlinks( $force = false, $fullurl = false, $title = null, $lang = null ) {
-		if( !$force && count( $this->langlinks ) > 0 ) {
+		if( !$force && $this->langlinks !== null ) {
 			return $this->langlinks;
 		}
 
+		$this->langlinks = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -836,8 +831,6 @@ class Page {
 		if( !is_null( $lang ) ) $tArray['lllang'] = $lang;
 		if( !is_null( $title ) ) $tArray['lltitle'] = $title;
 		if( $fullurl ) $tArray['llurl'] = 'yes';
-
-		$this->langlinks = array();
 
 		pecho( "Getting all interlanguage links for {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -868,10 +861,11 @@ class Page {
 	 * @return bool|array False on error, returns array of links in the form of lang:title
 	 */
 	public function get_interwikilinks( $force = false, $fullurl = false, $title = null, $prefix = null ) {
-		if( !$force && count( $this->iwlinks ) > 0 ) {
+		if( !$force && $this->iwlinks !== null ) {
 			return $this->iwlinks;
 		}
 
+		$this->iwlinks = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -885,7 +879,6 @@ class Page {
 		if( !is_null( $title ) ) $tArray['iwtitle'] = $title;
 		if( $fullurl ) $tArray['iwurl'] = 'yes';
 
-		$this->iwlinks = array();
 
 		pecho( "Getting all interwiki links for {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -914,10 +907,11 @@ class Page {
 	 */
 	public function get_protection( $force = false ) {
 
-		if( !$force ) {
+		if( !$force && $this->protection === null ) {
 			return $this->protection;
 		}
 
+		$this->protection = array();
 		if( !$this->exists ) return array();
 
 		$tArray = array(
@@ -979,7 +973,7 @@ class Page {
 	 */
 	public function is_watched( $force = false ) {
 
-		if( !$force ) {
+		if( !$force && $this->watched !== null ) {
 			return $this->watched;
 		}
 
@@ -1011,7 +1005,7 @@ class Page {
 	 */
 	public function get_watchcount( $force = false ) {
 
-		if( !$force ) {
+		if( !$force && $this->watchers !== null ) {
 			return $this->watchers;
 		}
 
@@ -1107,7 +1101,7 @@ class Page {
 	 */
 	public function get_urls( $force = false ) {
 
-		if( !$force ) {
+		if( !$force && $this->urls !== null ) {
 			return $this->urls;
 		}
 
@@ -1140,7 +1134,7 @@ class Page {
 	 */
 	public function get_readability( $force = false ) {
 
-		if( !$force ) {
+		if( !$force && $this->readable !== null ) {
 			return $this->readable;
 		}
 
