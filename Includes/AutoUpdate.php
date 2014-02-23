@@ -33,9 +33,9 @@ Class AutoUpdate {
 	function __construct( $http ) {
 		global $pgIP, $experimentalupdates;
 		$this->http = $http;
-		$this->repository = ($experimentalupdates ? 'master' : 'stable');
-		$this->logfile = ($experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
-		$this->lastused = (file_exists( $pgIP.'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP.'Includes/updateversion' ) ) : 'Unknown' );
+		$this->repository = ( $experimentalupdates ? 'master' : 'stable' );
+		$this->logfile = ( $experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
+		$this->lastused = ( file_exists( $pgIP . 'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP . 'Includes/updateversion' ) ) : 'Unknown' );
 	}
 
 	/**
@@ -48,24 +48,24 @@ Class AutoUpdate {
 		global $pgIP, $experimentalupdates;
 		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
 		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
-		$data = json_decode( $this->http->get('https://api.github.com/repos/MW-Peachy/Peachy/branches/'.$this->repository, null, array(), false ), true );
+		$data = json_decode( $this->http->get( 'https://api.github.com/repos/MW-Peachy/Peachy/branches/' . $this->repository, null, array(), false ), true );
 		$this->commits = $data;
 		/*if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
 			pecho( "Peachy is up to date.\n\n", PECHO_NORMAL );
 			return true;
 		}*/
-		if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos($data['message'], 'API rate limit exceeded') === 0 ) {
+		if( is_array( $data ) && array_key_exists( 'message', $data ) && strpos( $data['message'], 'API rate limit exceeded' ) === 0 ) {
 			pecho( "Cant check for updates right now, next window in " . $this->getTimeToNextLimitWindow() . "\n\n", PECHO_NOTICE );
 			return true;
 		}
 		$this->cacheLastGithubETag();
-        if( $this->lastused !== $this->repository ) {
-            pecho( "Changing Peachy version to run using ".( $experimentalupdates ? "experimental" : "stable" )." updates.\n\n", PECHO_NOTICE );
-            return false;
-        }
-		if( file_exists( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) ) {
-			$log = unserialize( file_get_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile ) );
-			if( isset($data['commit']['sha']) && $log['commit']['sha'] != $data['commit']['sha']) {
+		if( $this->lastused !== $this->repository ) {
+			pecho( "Changing Peachy version to run using " . ( $experimentalupdates ? "experimental" : "stable" ) . " updates.\n\n", PECHO_NOTICE );
+			return false;
+		}
+		if( file_exists( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . $this->logfile ) ) {
+			$log = unserialize( file_get_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . $this->logfile ) );
+			if( isset( $data['commit']['sha'] ) && $log['commit']['sha'] != $data['commit']['sha'] ) {
 				pecho( "Update available!\n\n", PECHO_NOTICE );
 				return false;
 			} else {
@@ -83,8 +83,8 @@ Class AutoUpdate {
 	 */
 	private function getUpdateHeaders() {
 		global $pgIP;
-		if( file_exists( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp' ) ) {
-			$ETag = file_get_contents( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp' );
+		if( file_exists( $pgIP . 'tmp' . DIRECTORY_SEPARATOR . 'github-ETag.tmp' ) ) {
+			$ETag = file_get_contents( $pgIP . 'tmp' . DIRECTORY_SEPARATOR . 'github-ETag.tmp' );
 			return array( 'If-None-Match: "' . $ETag . '"' );
 		}
 		return array();
@@ -96,7 +96,7 @@ Class AutoUpdate {
 	private function cacheLastGithubETag() {
 		global $pgIP;
 		if( preg_match( '/ETag\: \"([^\"]*)\"/', $this->http->getLastHeader(), $matches ) ) {
-			file_put_contents( $pgIP.'tmp'.DIRECTORY_SEPARATOR.'github-ETag.tmp', $matches[1] );
+			file_put_contents( $pgIP . 'tmp' . DIRECTORY_SEPARATOR . 'github-ETag.tmp', $matches[1] );
 		}
 	}
 
@@ -113,7 +113,7 @@ Class AutoUpdate {
 	private function getLocalPath( $fullUpdatePath ) {
 		global $pgIP;
 		$xplodesAt = DIRECTORY_SEPARATOR . 'gitUpdate' . DIRECTORY_SEPARATOR . 'Peachy-' . $this->repository . DIRECTORY_SEPARATOR;
-		$parts = explode ( $xplodesAt, $fullUpdatePath, 2 );
+		$parts = explode( $xplodesAt, $fullUpdatePath, 2 );
 		return $pgIP . $parts[1];
 	}
 
@@ -129,7 +129,7 @@ Class AutoUpdate {
 		if( file_exists( $gitZip ) ) {
 			unlink( $gitZip );
 		}
-		file_put_contents( $gitZip, file_get_contents( 'http://github.com/MW-Peachy/Peachy/archive/'.$this->repository.'.zip' ) );
+		file_put_contents( $gitZip, file_get_contents( 'http://github.com/MW-Peachy/Peachy/archive/' . $this->repository . '.zip' ) );
 		$zip = new ZipArchive();
 		$res = $zip->open( $gitZip );
 		if( $res === true ) {
@@ -141,13 +141,13 @@ Class AutoUpdate {
 			$zip->extractTo( $gitFolder );
 			$zip->close();
 
-			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-'.$this->repository );
+			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-' . $this->repository );
 
-			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . 'updateversion', serialize( ($experimentalupdates ? 'master' : 'stable') ) );
-            
-            pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
-			
-			file_put_contents( $pgIP . 'Includes'.DIRECTORY_SEPARATOR.$this->logfile, serialize( $this->commits ) );
+			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . 'updateversion', serialize( ( $experimentalupdates ? 'master' : 'stable' ) ) );
+
+			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
+
+			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . $this->logfile, serialize( $this->commits ) );
 		} else {
 			pecho( "Update failed!  Peachy could not retrieve all contents from GitHub.\n\n", PECHO_WARN );
 		}
@@ -158,18 +158,17 @@ Class AutoUpdate {
 	 */
 	private function copyOverGitFiles( $gitFolder ) {
 		/** @var $fileInfo DirectoryIterator */
-		foreach( new DirectoryIterator( $gitFolder ) as $fileInfo ) {
+		foreach( new DirectoryIterator( $gitFolder ) as $fileInfo ){
 			if( $fileInfo->isDot() ) continue;
 			$gitPath = $fileInfo->getRealPath();
 			$lclPatch = $this->getLocalPath( $gitPath );
 
 			if( $fileInfo->isDir() ) {
-				if( !file_exists( $lclPatch ) ){
+				if( !file_exists( $lclPatch ) ) {
 					mkdir( $lclPatch );
 				}
 				$this->copyOverGitFiles( $gitPath );
-			}
-			elseif( $fileInfo->isFile() ) {
+			} elseif( $fileInfo->isFile() ) {
 				file_put_contents( $lclPatch, file_get_contents( $gitPath ) );
 			}
 		}
@@ -179,16 +178,16 @@ Class AutoUpdate {
 	 * recursively remove a directory
 	 * @param string $dir
 	 */
-	private function rrmdir($dir) {
-		if (is_dir($dir)) {
-			$objects = scandir($dir);
-			foreach ($objects as $object) {
-				if ($object != "." && $object != "..") {
-					if (filetype($dir."/".$object) == "dir") $this->rrmdir($dir."/".$object); else unlink($dir."/".$object);
+	private function rrmdir( $dir ) {
+		if( is_dir( $dir ) ) {
+			$objects = scandir( $dir );
+			foreach( $objects as $object ){
+				if( $object != "." && $object != ".." ) {
+					if( filetype( $dir . "/" . $object ) == "dir" ) $this->rrmdir( $dir . "/" . $object ); else unlink( $dir . "/" . $object );
 				}
 			}
-			reset($objects);
-			rmdir($dir);
+			reset( $objects );
+			rmdir( $dir );
 		}
 	}
 
@@ -199,12 +198,12 @@ Class AutoUpdate {
 	 * @access public
 	 * @return array
 	 */
-	public function processreturn($data){
+	public function processreturn( $data ) {
 		//Arrayify the data to be readable
-		foreach( $data as $value=>$object ) {
-			if( is_object($data[$value]) ) {
+		foreach( $data as $value => $object ){
+			if( is_object( $data[$value] ) ) {
 				$data[$value] = (array)$object;
-				$data[$value] = $this->processreturn((array)$object);
+				$data[$value] = $this->processreturn( (array)$object );
 			}
 		}
 		return $data;
