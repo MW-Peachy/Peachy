@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-require_once( dirname( dirname(__FILE__) ) . '/Script.php' );
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Script.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 
@@ -33,36 +33,34 @@ if( !$script->getArg( 'module' ) ) {
 if( !file_exists( $script->getArg( 'module' ) ) ) {
 	if( file_exists( $pgIP . '/Configs/Modules/' . $script->getArg( 'module' ) . '.cfg' ) ) {
 		$module_config = parse_ini_file( $pgIP . '/Configs/Modules/' . $script->getArg( 'module' ) . '.cfg' );
-	}
-	else {
+	} else {
 		die( "Invalid module specified.\n\n" );
 	}
-}
-else {
+} else {
 	$module_config = parse_ini_file( $script->getArg( 'module' ) );
 }
 
 if( !count( $module_config ) ) die( "Invalid module syntax.\n\n" );
 
 
-foreach( $script->getList() as $buffer ) {
+foreach( $script->getList() as $buffer ){
 	$page = $script->getWiki()->initPage( $buffer );
-	
+
 	$text = $oldtext = $page->get_text();
-	
+
 	$hidemore = new HideMore;
 	$text = $hidemore->hide( $text );
-	
+
 	echo $text;
-	
+
 	if( isset( $module_config['typos'] ) ) {
 		$text = PeachyAWBFunctions::fixTypos( $text, $buffer );
 	}
-	
+
 	$text = $hidemore->addBack( $text );
-	
+
 	echo Diff::load( 'unified', $oldtext, $text );
-	
+
 }
 
 

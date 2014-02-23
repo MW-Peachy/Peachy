@@ -21,14 +21,14 @@ pages from #en.wikipedia and add/delete them from the rped_table.
 
 error_reporting( E_ALL | E_STRICT );
 
-require_once( dirname( dirname(__FILE__) ) . '/Script.php' );
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Script.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 Peachy::loadPlugin( 'rped' );
 
 if( $script->getArg( 'daemonize' ) ) {
-    $daemonize = true;
+	$daemonize = true;
 }
 $wiki = $script->getWiki();
 $rped = new RPED( $wiki );
@@ -55,9 +55,9 @@ $endSep = "]]";
 $fp = fsockopen( $host, $port, $erno, $errstr, 30 );
 
 // print the error if there is no connection
-if ( !$fp ) {
-    echo $errstr . " (" . $errno . ")<br />\n";
-    die();
+if( !$fp ) {
+	echo $errstr . " (" . $errno . ")<br />\n";
+	die();
 }
 
 // write data through the socket to join the channel
@@ -66,77 +66,73 @@ fwrite( $fp, "USER " . $ident . " " . $host . " bla :" . $realname . "\r\n" );
 fwrite( $fp, "JOIN :" . $chan . "\r\n" );
 
 # Launch daemon!
-if ( isset( $daemonize ) && $daemonize ) {
+if( isset( $daemonize ) && $daemonize ) {
 
-    $pid = pcntl_fork(); // fork
-    if ( $pid < 0 ) {
-        exit;
-    }
-    else if ( $pid ){ // parent
-        exit;
-    }
-    // child
-    $sid = posix_setsid();
-    if ( $sid < 0 ) {
-            exit;
-    }
+	$pid = pcntl_fork(); // fork
+	if( $pid < 0 ) {
+		exit;
+	} elseif( $pid ) { // parent
+		exit;
+	}
+	// child
+	$sid = posix_setsid();
+	if( $sid < 0 ) {
+		exit;
+	}
 }
 
-while ( !feof( $fp ) ) {
-    $line =  fgets( $fp, 512 );
-    if ( !isset ( $daemonize ) || !$daemonize ) {
-        echo $line;
-    }
-    $pingLine = explode( ' ', $line );
-    if ( strtolower( $pingLine[0] ) == 'ping' ) {
-        $response = "PONG " . $pingLine[1] . "\n";
-        fwrite( $fp, "PONG " . $response );
-    }
-    usleep( 10 );
-    $startPos = strpos( $line, $startSep );
-    $endPos = strpos( $line, $endSep );
-    $subLine = substr( $line, $startPos + 5, $endPos -$startPos -8 );
-    if ( $subLine == $deleteLine ) {
-        $delstartPos = strpos( $line, $startSep, $endPos );
-        $delendPos = strpos( $line, $endSep, $endPos + 1 );
-        $delLine = substr( $line, $delstartPos + 5, $delendPos -$delstartPos -8 );
-        $action = substr( $line, $delstartPos -9, 7 );
-        if ( $action == $deletedWord ) {
-            try {
-            	$rped->delete( $delLine );
-            }
-            catch( Exception $e ) {
-            	pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
-            	continue;
-            }
-        } else {
-            try {
-            	$rped->insert( $delLine );
-            }
-            catch( Exception $e ) {
-            	pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
-            	continue;
-            }
-        }
-    }
-    if ( $subLine == $moveLine ) {
-        $delstartPos = strpos( $line, $startSep, $endPos );
-        $delendPos = strpos( $line, $endSep, $endPos + 1 );
-        $delstartPos = strpos( $line, $startSep, $delstartPos + 1 );
-        $delendPos = strpos( $line, $endSep, $delendPos + 1 );
-        $delLine = substr( $line, $delstartPos + 2, $delendPos -$delstartPos -2 );
-        $rped->insert( $delLine );
-    }
-    if ( substr( $line, $endPos + 5, 1 ) == $newCharacter || substr( $line, $endPos + 6, 1 ) == $newCharacter ) {
-        
-        try {
-        	$rped->insert( $subLine );
-        }
-        catch( Exception $e ) {
-        	pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
-        	continue;
-        }
-    }
+while( !feof( $fp ) ){
+	$line = fgets( $fp, 512 );
+	if( !isset ( $daemonize ) || !$daemonize ) {
+		echo $line;
+	}
+	$pingLine = explode( ' ', $line );
+	if( strtolower( $pingLine[0] ) == 'ping' ) {
+		$response = "PONG " . $pingLine[1] . "\n";
+		fwrite( $fp, "PONG " . $response );
+	}
+	usleep( 10 );
+	$startPos = strpos( $line, $startSep );
+	$endPos = strpos( $line, $endSep );
+	$subLine = substr( $line, $startPos + 5, $endPos - $startPos - 8 );
+	if( $subLine == $deleteLine ) {
+		$delstartPos = strpos( $line, $startSep, $endPos );
+		$delendPos = strpos( $line, $endSep, $endPos + 1 );
+		$delLine = substr( $line, $delstartPos + 5, $delendPos - $delstartPos - 8 );
+		$action = substr( $line, $delstartPos - 9, 7 );
+		if( $action == $deletedWord ) {
+			try{
+				$rped->delete( $delLine );
+			} catch( Exception $e ){
+				pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
+				continue;
+			}
+		} else {
+			try{
+				$rped->insert( $delLine );
+			} catch( Exception $e ){
+				pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
+				continue;
+			}
+		}
+	}
+	if( $subLine == $moveLine ) {
+		$delstartPos = strpos( $line, $startSep, $endPos );
+		$delendPos = strpos( $line, $endSep, $endPos + 1 );
+		$delstartPos = strpos( $line, $startSep, $delstartPos + 1 );
+		$delendPos = strpos( $line, $endSep, $delendPos + 1 );
+		$delLine = substr( $line, $delstartPos + 2, $delendPos - $delstartPos - 2 );
+		$rped->insert( $delLine );
+	}
+	if( substr( $line, $endPos + 5, 1 ) == $newCharacter || substr( $line, $endPos + 6, 1 ) == $newCharacter ) {
+
+		try{
+			$rped->insert( $subLine );
+		} catch( Exception $e ){
+			pecho( "Peachy Error: " . $e->getMessage(), PECHO_FATAL );
+			continue;
+		}
+	}
 }
 
 fclose( $fp );

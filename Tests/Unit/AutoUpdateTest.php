@@ -29,7 +29,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		}
 	}
 
-	private function getUpdater( $http ){
+	private function getUpdater( $http ) {
 		return new AutoUpdate( $http );
 	}
 
@@ -45,43 +45,48 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 
 	public function provideCheckforupdate() {
 		return array(
-			array( true,
-				array( 'message' => 'API rate limit exceeded'),
+			array(
+				true,
+				array( 'message' => 'API rate limit exceeded' ),
 				'/Cant check for updates right now, next window in/'
 			),
-			array( false,
-				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
+			array(
+				false,
+				array( 'commit' => array( 'sha' => 'testshahash' ) ),
 				'/No update log found/',
 			),
-			array( true,
-				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
+			array(
+				true,
+				array( 'commit' => array( 'sha' => 'testshahash' ) ),
 				'/Peachy is up to date/',
-				serialize( array( 'commit'=>array( 'sha' => 'testshahash' ) ) )
+				serialize( array( 'commit' => array( 'sha' => 'testshahash' ) ) )
 			),
-			array( false,
-				array( 'commit'=>array( 'sha' => 'testshahash' ) ),
+			array(
+				false,
+				array( 'commit' => array( 'sha' => 'testshahash' ) ),
 				'/Update available/',
-				serialize( array( 'commit'=>array( 'sha' => 'differenthash!' ) ) )
+				serialize( array( 'commit' => array( 'sha' => 'differenthash!' ) ) )
 			),
 		);
 	}
 
 	/**
 	 * @dataProvider provideCheckforupdate
-	 * @covers AutoUpdate::Checkforupdate
+	 * @covers       AutoUpdate::Checkforupdate
 	 */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {
-			if( file_exists( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log') ) ) {
-				unlink( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log') );
+			if( file_exists( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) ) ) {
+				unlink( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) );
 			}
 		} else {
-			file_put_contents( __DIR__ . '/../../Includes/'.($experimental ? 'Update.log' : 'StableUpdate.log'), $updatelog );
+			file_put_contents( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ), $updatelog );
 		}
-		
-		if( $wasexperimental ) file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'master' ) );
-		else file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'stable' ) );
+
+		if( $wasexperimental ) {
+			file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'master' ) );
+		} else file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'stable' ) );
 
 		$this->expectOutputRegex( $outputRegex );
 		$result = $updater->Checkforupdate();

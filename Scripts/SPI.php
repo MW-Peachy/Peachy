@@ -19,7 +19,7 @@ This script deletes a bunch of pages using a list of page titles contained
 in a file. The filename is argument #1.
 */
 
-require_once( dirname( dirname(__FILE__) ) . '/Init.php' );
+require_once( dirname( dirname( __FILE__ ) ) . '/Init.php' );
 
 $script = new Script();
 
@@ -42,7 +42,7 @@ if( $script->getArg( 'output' ) ) {
 
 $checkusers = $wiki->allusers( null, array( 'checkuser' ) );
 
-foreach( $checkusers as $key => $cu ) {
+foreach( $checkusers as $key => $cu ){
 	$checkusers[$key] = $cu['name'];
 }
 
@@ -52,72 +52,93 @@ $clerks = $m[1];
 
 $list = $wiki->categorymembers( "Category:Open SPI cases", false, 4 );
 
-$cases = array( 'open' => array(), 'curequest' => array(), 'endorsed' => array(), 'declined' => array(), 'cudeclined' => array(), 'inprogress' => array(), 'checked' => array(), 'hold' => array(), 'moreinfo' => array(), 'relisted' => array(), 'closed' => array() );
+$cases = array( 'open'       => array(), 'curequest' => array(), 'endorsed' => array(), 'declined' => array(),
+				'cudeclined' => array(), 'inprogress' => array(), 'checked' => array(), 'hold' => array(),
+				'moreinfo'   => array(), 'relisted' => array(), 'closed' => array()
+);
 
-foreach( $list as $case ) {
+foreach( $list as $case ){
 	$case = $case['title'];
-	
+
 	if( !preg_match( '/^Wikipedia:Sockpuppet investigations\//i', $case ) ) continue;
-	
+
 	$case = $wiki->initPage( $case );
-	
+
 	$template = new Template( $case->get_text(), "SPI case status" );
-	
-	$status = strtolower( $template->fieldValue(1) );
+
+	$status = strtolower( $template->fieldValue( 1 ) );
 	if( !$status ) $status = "open";
-	
+
 	$retArray = array( 'case' => str_replace( 'Wikipedia:Sockpuppet investigations/', '', $case->get_title() ) );
-	
-	
+
+
 	preg_match( '/\d{2}:\d{2}, \d{2} \D* \d{4} \(UTC\)/', $case->get_text(), $date );
-	$retArray['filed'] = date( 'Y-m-d H:m \U\T\C', strtotime($date[0]));
-	
-	
+	$retArray['filed'] = date( 'Y-m-d H:m \U\T\C', strtotime( $date[0] ) );
+
+
 	$history = $ei = $case->history( $wiki->get_api_limit() + 1 );
-	
-	while( isset( $ei[ $wiki->get_api_limit() ] ) ) {
-		$ei = $case->history( $wiki->get_api_limit() + 1, 'older', false, $ei[9]['revid']);
-		foreach( $ei as $eg ) {
+
+	while( isset( $ei[$wiki->get_api_limit()] ) ){
+		$ei = $case->history( $wiki->get_api_limit() + 1, 'older', false, $ei[9]['revid'] );
+		foreach( $ei as $eg ){
 			$history[] = $eg;
 		}
 	}
-	
-	foreach( $history as $rev ) {
+
+	foreach( $history as $rev ){
 		if( ( in_array( $rev['user'], $checkusers ) || in_array( $rev['user'], $clerks ) ) && !isset( $retArray['cuedit'] ) ) {
-			if( strtotime($rev['timestamp']) >= strtotime($date[0]) ) {
+			if( strtotime( $rev['timestamp'] ) >= strtotime( $date[0] ) ) {
 				$retArray['cuuser'] = $rev['user'];
-				$retArray['cuedit'] = date( 'Y-m-d H:m \U\T\C', strtotime($rev['timestamp']));
+				$retArray['cuedit'] = date( 'Y-m-d H:m \U\T\C', strtotime( $rev['timestamp'] ) );
 			}
 		}
-		
+
 		if( !isset( $retArray['lastuser'] ) ) {
-			$retArray['lastedit'] = date( 'Y-m-d H:m \U\T\C', strtotime($rev['timestamp']));
+			$retArray['lastedit'] = date( 'Y-m-d H:m \U\T\C', strtotime( $rev['timestamp'] ) );
 			$retArray['lastuser'] = $rev['user'];
 		}
 	}
-	
+
 	if( !isset( $retArray['cuuser'] ) ) {
 		$retArray['cuuser'] = $retArray['cuedit'] = "''none''";
 	}
-	
-	switch( $status ) {
-		case 'endorse': $status = 'endorsed';break;
-		case 'decline': $status = 'declined';break;
-		case 'cudecline': $status = 'cudeclined';break;
-		case 'relist': $status = 'relisted';break;
-		case 'completed': $status = 'checked';break;
-		case 'checkuser': $status = 'curequest';break;
-		case 'cu': $status = 'curequest';break;
-		case 'request': $status = 'curequest';break;
+
+	switch( $status ){
+		case 'endorse':
+			$status = 'endorsed';
+			break;
+		case 'decline':
+			$status = 'declined';
+			break;
+		case 'cudecline':
+			$status = 'cudeclined';
+			break;
+		case 'relist':
+			$status = 'relisted';
+			break;
+		case 'completed':
+			$status = 'checked';
+			break;
+		case 'checkuser':
+			$status = 'curequest';
+			break;
+		case 'cu':
+			$status = 'curequest';
+			break;
+		case 'request':
+			$status = 'curequest';
+			break;
 	}
-	
+
 	$cases[$status][] = $retArray;
-	
+
 }
 
-foreach( $cases as $style => $var ) usort( $cases[$style], 'sortThem' );
+foreach( $cases as $style => $var ){
+	usort( $cases[$style], 'sortThem' );
+}
 
-print_r($cases);
+print_r( $cases );
 
 $out = <<<WIKI
 {|class="wikitable sortable" width="100%"
@@ -126,8 +147,8 @@ $out = <<<WIKI
 
 WIKI;
 
-foreach( $cases as $status => $caselist ) {
-	foreach( $caselist as $case ) {
+foreach( $cases as $status => $caselist ){
+	foreach( $caselist as $case ){
 		$out .= "{{SPIstatusentry|{$case['case']}|$status|{$case['filed']}|{$case['lastuser']}|{$case['lastedit']}|{$case['cuuser']}|{$case['cuedit']}}}\n";
 	}
 }
