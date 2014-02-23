@@ -27,17 +27,17 @@ Peachy is not responsible for any damage caused to the system running it.
  */
 
 /**
- * The version that Peachy is running 
+ * The version that Peachy is running
  */
 define( 'PEACHYVERSION', '2.0 (alpha 7)' );
 
 /**
- * Minimum MediaWiki version that is required for Peachy 
+ * Minimum MediaWiki version that is required for Peachy
  */
 define( 'MINMW', '1.21' );
 
 /**
- * Minimum PHP version that is required for Peachy 
+ * Minimum PHP version that is required for Peachy
  */
 define( 'MINPHP', '5.2.1' );
 
@@ -71,7 +71,7 @@ define( 'PECHO_ERROR', 3 );
  */
 define( 'PECHO_FATAL', 4 );
 
-$pgIP = dirname(__FILE__) . DIRECTORY_SEPARATOR;
+$pgIP = dirname( __FILE__ ) . DIRECTORY_SEPARATOR;
 
 //If out /tmp directory doesnt exist, make it!
 if( !file_exists( __DIR__ . '/tmp' ) ) {
@@ -112,10 +112,10 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 }
 
 // Suppress warnings if timezone not set on server
-date_default_timezone_set(@date_default_timezone_get());
+date_default_timezone_set( @date_default_timezone_get() );
 
 //Check for updates before loading Peachy.
-if ( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
+if( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
 	//the below MUST have its own Http object or else things will break
 	$updater = new AutoUpdate( new Http() );
 	$Uptodate = $updater->Checkforupdate();

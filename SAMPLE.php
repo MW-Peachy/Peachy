@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 require( 'Init.php' );
 
-$x = Peachy::newWiki("sample"); //Loads the Configs/sample.cfg file
+$x = Peachy::newWiki( "sample" ); //Loads the Configs/sample.cfg file
 
 $sites = new SiteMatrix( $x ); //Generates sitematrix, logic in Plugins/sitematrix.php
 
