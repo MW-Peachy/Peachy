@@ -178,23 +178,4 @@ Class AutoUpdate {
 			rmdir( $dir );
 		}
 	}
-
-	/**
-	 * Cleans up the returned Git information.
-	 *
-	 * @param mixed $data The object returned from the json_decode to be converted to an array.
-	 * @access public
-	 * @return array
-	 */
-	public function processreturn( $data ) {
-		//Arrayify the data to be readable
-		foreach( $data as $value => $object ){
-			if( is_object( $data[$value] ) ) {
-				$data[$value] = (array)$object;
-				$data[$value] = $this->processreturn( (array)$object );
-			}
-		}
-		return $data;
-	}
-
 }
