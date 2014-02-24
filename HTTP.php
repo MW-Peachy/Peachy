@@ -225,6 +225,7 @@ class HTTP {
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 1 );
 		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_POST, 0 );
 
 		/*if( !is_null( $this->use_cookie ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_COOKIE, $this->use_cookie);
@@ -279,6 +280,7 @@ class HTTP {
 		$this->setVerifySSL( $verifyssl );
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 0 );
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 0 );
 		curl_setopt( $this->curl_instance, CURLOPT_POST, 1 );
 		curl_setopt( $this->curl_instance, CURLOPT_POSTFIELDS, $data );
 
@@ -320,6 +322,8 @@ class HTTP {
 		$this->setVerifySSL( $verifyssl );
 
 		// curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_POST, 0 );
 		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
 		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 0 );
 
