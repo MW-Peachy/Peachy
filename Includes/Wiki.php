@@ -234,7 +234,7 @@ class Wiki {
 	 * @param array $extensions Array of names of extensions installed on the wiki and their versions (default: array())
 	 * @param int $recursed Is the function recursing itself? Used internally, don't use (default: 0)
 	 * @param mixed $token Token if the wiki needs a token. Used internally, don't use (default: null)
-	 * @return void|Wiki|bool
+	 * @throws LoginError
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
 		global $pgProxy, $pgVerbose, $useSSH, $host, $port, $username, $prikey, $passphrase, $protocol, $timeout;
@@ -441,11 +441,8 @@ class Wiki {
 					pecho( "Successfully logged in to {$this->base_url} as {$this->username}\n\n", PECHO_NORMAL );
 
 					$this->runSuccess( $configuration );
-
-
 			}
 		}
-
 	}
 
 	public function is_logged_in() {
@@ -519,10 +516,12 @@ class Wiki {
 	 * @access public
 	 * @param array $arrayParams Parameters given to query with (default: array())
 	 * @param bool $post Should it be a POST reqeust? (default: false)
+	 * @param bool $errorcheck
 	 * @param bool $recursed Is this a recursed reqest (default: false)
+	 * @throws LoggedOut
 	 * @return array Returns an array with the API result
 	 */
-	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $forcenoassert = false ) {
+	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false ) {
 
 		global $pgIP, $maxattempts, $killonfailure, $displayGetOutData, $logCommunicationData, $logFailedCommunicationData, $logGetCommunicationData, $logPostCommunicationData, $logSuccessfulCommunicationData;
 		$requestid = mt_rand();
@@ -1058,7 +1057,7 @@ class Wiki {
 
 		Hooks::runHook( 'StartPurge', array( &$apiArr ) );
 
-		$result = $this->apiQuery( $apiArr, true, true, false, true );
+		$result = $this->apiQuery( $apiArr, true, true, false );
 
 		if( isset( $result['purge'] ) ) {
 			foreach( $result['purge'] as $page ){
@@ -1080,7 +1079,7 @@ class Wiki {
 	 * Returns a list of recent changes
 	 *
 	 * @access public
-	 * @param integer $namespace Namespace(s) to check
+	 * @param integer|array|string $namespace Namespace(s) to check
 	 * @param string $tag Only list recent changes bearing this tag.
 	 * @param int $start Only list changes after this timestamp.
 	 * @param int $end Only list changes before this timestamp.
@@ -1096,12 +1095,16 @@ class Wiki {
 	 * @param int $limit A hard limit to impose on the number of results returned.
 	 * @return array Recent changes matching the description.
 	 */
-	public function recentchanges( $namespace = 0, $tag = false, $start = false, $end = false, $user = false, $excludeuser = false, $dir = 'older', $minor = null, $bot = null, $anon = null, $redirect = null, $patrolled = null, $prop = array(
-		'user', 'comment', 'flags', 'timestamp', 'title', 'ids', 'sizes', 'tags'
-	), $limit = 50 ) {
+	public function recentchanges( $namespace = 0, $tag = null, $start = null, $end = null, $user = null, $excludeuser = null, $dir = 'older', $minor = null, $bot = null, $anon = null, $redirect = null, $patrolled = null, $prop = null, $limit = 50 ) {
 
 		if( is_array( $namespace ) ) {
 			$namespace = implode( '|', $namespace );
+		}
+
+		if( is_null( $prop ) ){
+			$prop = array(
+				'user', 'comment', 'flags', 'timestamp', 'title', 'ids', 'sizes', 'tags'
+			);
 		}
 
 		$rcArray = array(
@@ -1113,11 +1116,11 @@ class Wiki {
 			'_limit'      => $limit
 		);
 
-		if( $tag ) $rcArray['rctag'] = $tag;
-		if( $start ) $rcArray['rcstart'] = $start;
-		if( $end ) $rcArray['rcend'] = $end;
-		if( $user ) $rcArray['rcuser'] = $user;
-		if( $excludeuser ) $rcArray['rcexcludeuser'] = $excludeuser;
+		if( !is_null( $tag ) ) $rcArray['rctag'] = $tag;
+		if( !is_null( $start ) ) $rcArray['rcstart'] = $start;
+		if( !is_null( $end ) ) $rcArray['rcend'] = $end;
+		if( !is_null( $user ) ) $rcArray['rcuser'] = $user;
+		if( !is_null( $excludeuser ) ) $rcArray['rcexcludeuser'] = $excludeuser;
 
 		$rcshow = array();
 
@@ -1183,6 +1186,7 @@ class Wiki {
 	 * @param array $prop What properties to retrieve (default: array('size', 'wordcount', 'timestamp', 'snippet') ).
 	 * @param bool $includeredirects Whether to include redirects or not (default: true).
 	 * @param int $limit A hard limit on the number of results to retrieve (default: null i.e. all).
+	 * @return array
 	 */
 	public function search( $search, $fulltext = true, $namespaces = array( 0 ), $prop = array(
 		'size', 'wordcount', 'timestamp', 'snippet'
@@ -1481,15 +1485,16 @@ class Wiki {
 		);
 
 		if( $subcat ) $cmArray['cmtype'] = 'page|subcat';
+		if( $namespace !== null ) {
+			if( is_array( $namespace ) ) $namespace = implode( '|', $namespace );
+			$cmArray['cmnamespace'] = $namespace;
+		}
 
 		Hooks::runHook( 'PreQueryCategorymembers', array( &$cmArray ) );
 
 		pecho( "Getting list of pages in the $category category...\n\n", PECHO_NORMAL );
 
-		$top_category = $this->listHandler( $cmArray );
-
-		return $top_category;
-
+		return $this->listHandler( $cmArray );
 	}
 
 	/**
@@ -1726,17 +1731,20 @@ class Wiki {
 	 * @param bool $mainpage Apply mobile main page transformations
 	 * @return array
 	 */
-	public function parse( $text = null, $title = null, $summary = null, $pst = false, $onlypst = false, $prop = array(
-		'text', 'langlinks', 'categories', 'categorieshtml', 'languageshtml', 'links', 'templates', 'images',
-		'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext',
-		'properties'
-	), $uselang = 'en', $page = null, $oldid = null, $pageid = null, $redirects = false, $section = null, $disablepp = false, $generatexml = false, $contentformat = null, $contentmodel = null, $mobileformat = null, $noimages = false, $mainpage = false ) {
+	public function parse( $text = null, $title = null, $summary = null, $pst = false, $onlypst = false, $prop = null, $uselang = 'en', $page = null, $oldid = null, $pageid = null, $redirects = false, $section = null, $disablepp = false, $generatexml = false, $contentformat = null, $contentmodel = null, $mobileformat = null, $noimages = false, $mainpage = false ) {
 
 		if( $generatexml ) {
 			if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
 			$apiArray['generatexml'] = 'yes';
 		}
 
+		if( $prop !== null ){
+			$prop = array(
+				'text', 'langlinks', 'categories', 'categorieshtml', 'languageshtml', 'links', 'templates', 'images',
+				'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext',
+				'properties'
+			);
+		};
 		$apiArray = array(
 			'action'  => 'parse',
 			'uselang' => $uselang,
@@ -1768,12 +1776,12 @@ class Wiki {
 
 		if( $pst ) $apiArray['pst'] = 'yes';
 		if( $onlypst ) $apiArray['onlypst'] = 'yes';
-		if( $redirect ) $apiArray['redirects'] = 'yes';
+		if( $redirects ) $apiArray['redirects'] = 'yes';
 		if( $disablepp ) $apiArray['disablepp'] = 'yes';
 		if( $noimages ) $apiArray['noimages'] = 'yes';
 		if( $mainpage ) $apiArray['mainpage'] = 'yes';
 
-		Hooks::runHook( 'PreParse', array( &$etArray ) );
+		Hooks::runHook( 'PreParse', array( &$apiArray ) );
 
 		pecho( "Parsing...\n\n", PECHO_NORMAL );
 
@@ -1879,7 +1887,7 @@ class Wiki {
 	 * @param mixed $rev1
 	 * @param mixed $rev2
 	 * @param mixed $rev3
-	 * @return void
+	 * @return string|bool False on failure
 	 * @see Diff::load
 	 */
 	public function diff( $method = 'unified', $rev1, $rev2, $rev3 = null ) {
@@ -1904,10 +1912,10 @@ class Wiki {
 
 		Hooks::runHook( 'PreDiff', array( &$r1array, &$r2array, &$r3array, &$method ) );
 
+		$r1text = $r2text = $r3text = null;
 		if( !is_null( $rev3 ) ) {
 			pecho( "Getting $method diff of revisions $rev1, $rev2, and $rev3...\n\n", PECHO_NORMAL );
 			$r3 = $this->apiQuery( $r3array );
-
 
 			if( isset( $r3['query']['badrevids'] ) ) {
 				pecho( "A bad third revision ID was passed.\n\n", PECHO_FATAL );
@@ -1919,12 +1927,10 @@ class Wiki {
 			}
 		} else {
 			pecho( "Getting $method diff of revisions $rev1 and $rev2...\n\n", PECHO_NORMAL );
-			$r3text = null;
 		}
 
 		$r1 = $this->apiQuery( $r1array );
 		$r2 = $this->apiQuery( $r2array );
-
 
 		if( isset( $r1['query']['badrevids'] ) ) {
 			pecho( "A bad first revision ID was passed.\n\n", PECHO_FATAL );
@@ -2232,7 +2238,7 @@ class Wiki {
 	 * Parse an XML string into an array.  For more features, use the XML plugins.
 	 *
 	 * @access public
-	 * @param object $xml The XML blob to be parsed.
+	 * @param string|object $xml The XML blob to be parsed.
 	 * @param bool $recurse Part of the parsing parameters.  Leave false.
 	 * @param int $level Part of the parsing parameters.  Leave set to 1.
 	 * @return array
@@ -2242,7 +2248,9 @@ class Wiki {
 			$parser = xml_parser_create();
 			xml_parse_into_struct( $parser, $xml, $values );
 			xml_parser_free( $parser );
-		} else $values = $xml;
+		} else {
+			$values = $xml;
+		}
 		$endarray = array();
 		foreach( $values as $id => $value ){
 			if( $value['type'] == 'open' ) {
