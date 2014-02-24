@@ -5,12 +5,9 @@ php:
   - 5.4
   - 5.3
 
-before_script:
-  - cd Tests
-
 script:
-  - ./phplint.sh
-  - phpunit --configuration Unit.xml --coverage-clover=coverage.clover
+  - ./Tests/phplint.sh
+  - phpunit --coverage-clover=coverage.clover
 
 after_script:
   - wget https://scrutinizer-ci.com/ocular.phar
