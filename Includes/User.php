@@ -219,7 +219,7 @@ class User {
 			return false;
 		}
 
-		$token = $this->apiQuery(
+		$token = $this->wiki->apiQuery(
 			array(
 				'action' => 'createaccount',
 				'name'   => $this->username
@@ -485,7 +485,7 @@ class User {
 	 * @param bool $liveonly Whether or not to only get the live edit count. Only works with $database. Defaulf false.
 	 * @return int Edit count
 	 */
-	public function get_editcount( $force = false, &$database = null, $liveonly = false ) {
+	public function get_editcount( $force = false, Database &$database = null, $liveonly = false ) {
 		global $useLabs;
 		//First check if $database exists, because that returns a more accurate count
 		if( !is_null( $database ) && ( $database instanceOf Database || $database instanceOf DatabaseBase ) ) {
