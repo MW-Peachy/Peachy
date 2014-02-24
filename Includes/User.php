@@ -118,7 +118,7 @@ class User {
 	 * @param Wiki $wikiClass
 	 * @return null|false
 	 */
-	function __construct( &$wikiClass, $username ) {
+	function __construct( Wiki &$wikiClass, $username ) {
 
 		$this->wiki = & $wikiClass;
 

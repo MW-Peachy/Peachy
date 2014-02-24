@@ -43,7 +43,7 @@ class RPED {
 	 * @param Wiki &$wikiClass The Wiki class object
 	 * @return void
 	 */
-	function __construct( &$wikiClass ) {
+	function __construct( Wiki &$wikiClass ) {
 		$this->wiki = $wikiClass;
 		$defaultMaxURLLength = 2000;
 		return;

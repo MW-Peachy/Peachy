@@ -91,7 +91,7 @@ class GlobalUserInfo {
 	 * @param mixed $username Username
 	 * @return void
 	 */
-	function __construct( &$wikiClass, $username ) {
+	function __construct( Wiki &$wikiClass, $username ) {
 
 		if( !array_key_exists( 'Central Auth', $wikiClass->get_extensions() ) ) {
 			throw new DependencyError( "CentralAuth", "http://www.mediawiki.org/wiki/Extension:CentralAuth" );

@@ -100,7 +100,7 @@ class PeachyAWBFunctions {
 
 	public static $typo_list = array();
 
-	public static function fixVars( $wiki ) {
+	public static function fixVars( Wiki $wiki ) {
 		$interwiki = $wiki->siteinfo( array( 'interwikimap' ) );
 		self::$interwiki_map = $interwiki['query']['interwikimap'];
 	}

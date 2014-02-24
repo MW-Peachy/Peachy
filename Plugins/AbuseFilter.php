@@ -34,7 +34,7 @@ class AbuseFilter {
 	 * @param Wiki &$wikiClass The Wiki class object
 	 * @return void
 	 */
-	function __construct( &$wikiClass ) {
+	function __construct( Wiki &$wikiClass ) {
 		$this->wiki = $wikiClass;
 
 		if( !array_key_exists( 'Abuse Filter', $wikiClass->get_extensions() ) ) {

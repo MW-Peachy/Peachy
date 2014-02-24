@@ -235,7 +235,7 @@ class RFA {
 	/*
  	* Analyzes an RFA. Returns TRUE on success, FALSE on failure
  	*/
-	function __construct( $wiki, $page, $rawwikitext = null ) {
+	function __construct( Wiki $wiki, $page, $rawwikitext = null ) {
 		if( is_null( $rawwikitext ) ) $rawwikitext = $wiki->initPage( $page )->get_text();
 
 		$split = preg_split(

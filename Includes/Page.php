@@ -331,7 +331,7 @@ class Page {
 	 * @param string $timestamp Set the start of a program or start reference to avoid edit conflicts.
 	 * @return void
 	 */
-	function __construct( $wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
+	function __construct( Wiki $wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
 		$this->wiki = $wikiClass;
 
 		if( is_null( $title ) && is_null( $pageid ) ) {
