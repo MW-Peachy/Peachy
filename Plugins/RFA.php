@@ -1,29 +1,26 @@
 <?php
-
-/*
-RfA Analysis Library, modified for use with Peachy
-Copyright (C) 2006 Tangotango (tangotango.wp _at_ gmail _dot_ com)
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*/
-
-/*
- * An RFA object contains the parsed information for an RFA
- * @todo Add proper PHPDoc
+/**
+ * RfA Analysis Library, modified for use with Peachy
+ * Copyright (C) 2006 Tangotango (tangotango.wp _at_ gmail _dot_ com)
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/**
+ * An RFA object contains the parsed information for an RFA
+ */
 class RFA {
 	protected $username = false;
 	protected $enddate = false;
@@ -61,19 +58,13 @@ class RFA {
 		return $this->lasterror;
 	}
 
-	protected function reset() {
-		$username = false;
-		$enddate = false;
-		$support = array();
-		$oppose = array();
-		$neutral = array();
-		$duplicates = array();
-		$lasterror = '';
-	}
-
-	/*
- 	* Attempts to find a signature in $input using the default regex. Returns matches.
- 	*/
+	/**
+	 * Attempts to find a signature in $input using the default regex. Returns matches.
+	 * @param $input
+	 * @param $matches
+	 *
+	 * @return int
+	 */
 	protected function findsig( $input, &$matches ) {
 		//Supports User: and User talk: wikilinks, {{fullurl}}, unsubsted {{unsigned}}, unsubsted {{unsigned2}}, anything that looks like a custom sig template
 		return preg_match_all(
@@ -86,9 +77,13 @@ class RFA {
 		);
 	}
 
-	/*
- 	* Attempts to find a signature in $input using a different regex. Returns matches.
- 	*/
+	/**
+	 * Attempts to find a signature in $input using a different regex. Returns matches.
+	 * @param $input
+	 * @param $matches
+	 *
+	 * @return int
+	 */
 	protected function findsig2( $input, &$matches ) {
 		return preg_match_all(
 			"/\[\[[Uu]ser(?:[\s_][Tt]alk)?\:([^\]\/\|]*)" //5: "[[User:XX/PageAboutMe" links (notice no end tag)
@@ -97,11 +92,12 @@ class RFA {
 		);
 	}
 
-	/*
- 	* Attempts to find a signature in $input. Returns the name of the user, false on failure.
- 	*/
 	/**
-	 * @param string $input
+	 * Attempts to find a signature in $input. Returns the name of the user, false on failure.
+	 * @param $input
+	 * @param $iffy
+	 *
+	 * @return bool|string
 	 */
 	protected function findsiginline( $input, &$iffy ) {
 		$iffy = 0;
@@ -127,7 +123,7 @@ class RFA {
 				}
 			}
 
-			//Start the main signature-finding:		
+			//Start the main signature-finding:
 			$matches = array();
 			if( $this->findsig( $parsee, $matches ) == 0 ) {
 				//Okay, signature not found. Let's try the backup regex
@@ -178,11 +174,11 @@ class RFA {
 		return false; //Signature not found
 	}
 
-	/*
- 	* Analyzes an RFA section. Returns an array of parsed signatures on success. Undefined behaviour on failure.
- 	*/
 	/**
+	 * Analyzes an RFA section. Returns an array of parsed signatures on success. Undefined behaviour on failure.
 	 * @param string $input
+	 *
+	 * @return array
 	 */
 	private function analyze_section( $input ) {
 		//Remove trailing sharp, if any
@@ -232,9 +228,12 @@ class RFA {
 		return $parsed;
 	}
 
-	/*
- 	* Analyzes an RFA. Returns TRUE on success, FALSE on failure
- 	*/
+	/**
+	 * Analyzes an RFA. Returns TRUE on success, FALSE on failure
+	 * @param Wiki $wiki
+	 * @param $page
+	 * @param null $rawwikitext
+	 */
 	function __construct( Wiki $wiki, $page, $rawwikitext = null ) {
 		if( is_null( $rawwikitext ) ) $rawwikitext = $wiki->initPage( $page )->get_text();
 
