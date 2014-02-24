@@ -111,7 +111,7 @@ function rglob( $pattern = '*', $flags = 0, $path = '' ) {
  * @param string $optout Text to search for in the optout= parameter. (default: null)
  * @return bool True on match of an appropriate nobots template
  */
-function checkExclusion( $wiki, $text = '', $username = null, $optout = null ) {
+function checkExclusion( Wiki $wiki, $text = '', $username = null, $optout = null ) {
 	if( !$wiki->get_nobots() ) return false;
 
 	if( in_string( "{{nobots}}", $text ) ) return true;

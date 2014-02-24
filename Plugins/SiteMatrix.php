@@ -27,7 +27,7 @@ class SiteMatrix {
 	 * @param Wiki &$wikiClass The Wiki class object
 	 * @return array List of all wikis
 	 */
-	public static function load( &$wikiClass ) {
+	public static function load( Wiki &$wikiClass ) {
 
 		if( !array_key_exists( 'SiteMatrix', $wikiClass->get_extensions() ) ) {
 			throw new DependencyError( "SiteMatrix" );

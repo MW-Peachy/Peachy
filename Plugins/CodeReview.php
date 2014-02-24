@@ -23,7 +23,7 @@ class CodeReview {
 
 	private $repo;
 
-	function __construct( &$wikiClass, $repo ) {
+	function __construct( Wiki &$wikiClass, $repo ) {
 		$this->wiki = $wikiClass;
 		$this->repo = $repo;
 

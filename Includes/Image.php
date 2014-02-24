@@ -172,7 +172,7 @@ class Image {
 	 * @param string $title
 	 * @return void
 	 */
-	function __construct( &$wikiClass, $title = null ) {
+	function __construct( Wiki &$wikiClass, $title = null ) {
 
 		$this->wiki = & $wikiClass;
 
