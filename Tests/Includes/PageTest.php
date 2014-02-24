@@ -8,19 +8,38 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 
 	/**
 	 * @covers Page::__construct
+	 * @dataProvider provideValidConstruction
 	 */
-	public function testCanConstruct() {
-		$this->expectOutputString( "Getting page info for Foo..\n\n" );
+	public function testCanConstruct( $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
+		if( is_int( $pageid ) ) {
+			$this->expectOutputString( "Getting page info for page ID {$pageid}..\n\n" );
+			$expectedPageId = $pageid;
+		} else {
+			$this->expectOutputString( "Getting page info for {$title}..\n\n" );
+			$expectedPageId = 1234;
+		}
 
-		$page = new Page( $this->getMockWiki(), 'Foo' );
+		$page = new Page( $this->getMockWiki(), $title, $pageid, $followRedir, $normalize, $timestamp );
 
-		$this->assertEquals( 1234, $page->get_id() );
+		$this->assertEquals( $expectedPageId, $page->get_id() );
 		$this->assertEquals( 0, $page->get_namespace() );
 		$this->assertEquals( 'Foo', $page->get_title() );
 		$this->assertEquals( 76, $page->get_length() );
 		$this->assertEquals( false, $page->redirectFollowed() );
 		$this->assertEquals( 66654, $page->get_talkID() );
 		$this->assertEquals( '', $page->get_preload() );
+	}
+
+	public function provideValidConstruction() {
+		return array(
+			array( 'Foo' ),
+			array( 'Foo', 1234 ),
+			array( 'Foo', 1234, false ),
+			array( 'Foo', 1234, true ),
+			array( 'Foo', 1234, false, true ),
+			array( 'Foo', 1234, true, false ),
+			array( 'Foo', 1234, true, true, '20141212121212' ),
+		);
 	}
 
 	/**
@@ -41,15 +60,21 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 						if( $params['action'] === 'query'
 							&& $params['prop'] === 'info'
 							&& $params['inprop'] === 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle'
-							&& $params['titles'] === 'Foo'
 						) {
+							if( array_key_exists( 'titles', $params ) ) {
+								$title = $params['titles'];
+								$pageid = 1234;
+							} else {
+								$title = 'Foo';
+								$pageid = $params['pageids'];
+							}
 							return array(
 								'query' => array(
 									'pages' => array(
-										1234 => array(
-											'pageid'                => 1234,
+										$pageid => array(
+											'pageid'                => $pageid,
 											'ns'                    => 0,
-											'title'                 => 'Foo',
+											'title'                 => $title,
 											'contentmodel'          => 'wikitext',
 											'pagelanguage'          => 'en',
 											'touched'               => '2014-01-26T01:13:44Z',
