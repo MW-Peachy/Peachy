@@ -239,12 +239,29 @@ class Page {
 	 * @param mixed $pageid ID of the page (default: null)
 	 * @param bool $followRedir Should it follow a redirect when retrieving the page (default: true)
 	 * @param bool $normalize Should the class automatically normalize the title (default: true)
-	 * @param string $timestamp Set the start of a program or start reference to avoid edit conflicts.
+	 * @param string|double|int $timestamp Set the start of a program or start reference to avoid edit conflicts.
 	 *
+	 * @throws InvalidArgumentException
 	 * @throws NoTitle
 	 * @return Page
 	 */
 	public function __construct( Wiki $wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
+		if( !is_string( $title ) && !is_null( $title ) ) {
+			throw new InvalidArgumentException( '$title must be a string or null' );
+		}
+		if( !is_int( $pageid ) && !is_null( $pageid ) ) {
+			throw new InvalidArgumentException( '$pageid must be a int or null' );
+		}
+		if( !is_bool( $followRedir ) ) {
+			throw new InvalidArgumentException( '$followRedir must be a bool' );
+		}
+		if( !is_bool( $normalize ) ) {
+			throw new InvalidArgumentException( '$normalize must be a bool' );
+		}
+		if( !is_string( $timestamp ) && !is_double( $timestamp ) && !is_int( $timestamp ) && !is_null( $timestamp ) ) {
+			throw new InvalidArgumentException( '$timestamp must be a string, int, double or null' );
+		}
+
 		$this->wiki = $wikiClass;
 
 		if( is_null( $title ) && is_null( $pageid ) ) {

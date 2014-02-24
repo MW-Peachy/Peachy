@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Page;
+use stdClass;
 
 class PageTest extends \PHPUnit_Framework_TestCase {
 
@@ -10,7 +11,7 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Page::__construct
 	 * @dataProvider provideValidConstruction
 	 */
-	public function testCanConstruct( $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
+	public function testValidConstruction( $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
 		if( is_int( $pageid ) ) {
 			$this->expectOutputString( "Getting page info for page ID {$pageid}..\n\n" );
 			$expectedPageId = $pageid;
@@ -39,6 +40,28 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 			array( 'Foo', 1234, false, true ),
 			array( 'Foo', 1234, true, false ),
 			array( 'Foo', 1234, true, true, '20141212121212' ),
+			array( 'Foo', 1234, true, true, 2014 ),
+			array( 'Foo', 1234, true, true, 20141212121212 ),
+		);
+	}
+
+	/**
+	 * @covers Page::__construct
+	 * @dataProvider provideInvalidConstruction
+	 */
+	public function testInvalidConstruction( $expectedException, $wiki, $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
+		$this->setExpectedException( $expectedException );
+		new Page( $wiki, $title, $pageid, $followRedir, $normalize, $timestamp );
+	}
+
+	public function provideInvalidConstruction() {
+		return array(
+			array( 'NoTitle', $this->getMockWiki(), null, null ),
+			array( 'InvalidArgumentException', $this->getMockWiki(), new stdClass() ),
+			array( 'InvalidArgumentException', $this->getMockWiki(), 'ImATitle', new stdClass() ),
+			array( 'InvalidArgumentException', $this->getMockWiki(), 'ImATitle', null, null ),
+			array( 'InvalidArgumentException', $this->getMockWiki(), 'ImATitle', null, true, null ),
+			array( 'InvalidArgumentException', $this->getMockWiki(), 'ImATitle', null, true, true, new stdClass() ),
 		);
 	}
 
