@@ -1,25 +1,21 @@
 <?php
-
-/*
-This file is part of Peachy MediaWiki Bot API
-
-Peachy is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 /**
+ * This file is part of Peachy MediaWiki Bot API
+ *
+ * Peachy is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  * @file
- * Page object
  */
 
 /**
@@ -29,309 +25,226 @@ class Page {
 
 	/**
 	 * Wiki class
-	 *
 	 * @var Wiki
-	 * @access protected
 	 */
 	protected $wiki;
 
 	/**
 	 * Title of the page
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $title;
 
 	/**
 	 * The ID of the page
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $pageid;
 
 	/**
 	 * If the page exists or not
-	 *
 	 * (default value: true)
-	 *
 	 * @var bool
-	 * @access protected
 	 */
 	protected $exists = true;
 
 	/**
 	 * Whether or not the page is a special page
-	 *
 	 * (default value: false)
-	 *
 	 * @var bool
-	 * @access protected
 	 */
 	protected $special = false;
 
 	/**
 	 * When retriving the page information was a redirect followed
-	 *
 	 * (default value: false)
-	 *
 	 * @var bool
-	 * @access protected
 	 */
 	protected $redirectFollowed = false;
 
 	/**
 	 * The page title without the namespace bit
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $title_wo_namespace;
 
 	/**
 	 * The ID of the namespace
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $namespace_id;
 
 	/**
 	 * Page text
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $content;
 
 	/**
 	 * Templates used in the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $templates;
 
 	/**
 	 * Protection information for the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $protection;
 
 	/**
 	 * Categories that the page is in
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $categories;
 
 	/**
 	 * Images used in the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $images;
 
 	/**
 	 * Internal links in the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $links;
 
 	/**
 	 * Timestamp of the last edit
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $lastedit;
 
 	/**
 	 * Length of the page in bytes
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $length;
 
 	/**
 	 * Amount of hits (views) the page has
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $hits;
 
 	/**
 	 * Language links on the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $langlinks;
 
 	/**
 	 * External links on the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $extlinks;
 
 	/**
 	 * Interwiki links on the page
-	 *
 	 * (default value: null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $iwlinks;
 
 	/**
 	 * Time of script start.  Must be set manually.
-	 *
 	 * (default null)
-	 *
 	 * @var mixed
-	 * @access protected
 	 */
 	protected $starttimestamp;
 
 	/**
 	 * Page ID of the talk page.
-	 *
 	 * (default null)
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $talkid;
 
 	/**
 	 * Whether the page is watched by the user
-	 *
 	 * (default null)
-	 *
 	 * @var bool
-	 * @access protected
 	 */
 	protected $watched;
 
 	/**
 	 * Number of watchers
-	 *
 	 * (default null)
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $watchers;
 
 	/**
 	 * Watchlist notification timestamp
-	 *
 	 * (default null)
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $watchlisttimestamp;
 
 	/**
 	 * Page ID of parent page
-	 *
 	 * (default null)
-	 *
 	 * @var int
-	 * @access protected
 	 */
 	protected $subjectid;
 
 	/**
 	 * Full urls of the page
-	 *
 	 * (default null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $urls;
 
 	/**
 	 * Whether the page can be read by a user
-	 *
 	 * (default null)
-	 *
 	 * @var bool
-	 * @access protected
 	 */
 	protected $readable;
 
 	/**
 	 * EditFormPreloadText
-	 *
 	 * (default null)
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $preload;
 
 	/**
 	 * Page's title formatting
-	 *
 	 * (default null)
-	 *
 	 * @var string
-	 * @access protected
 	 */
 	protected $displaytitle;
 
 	/**
 	 * Page properties
-	 *
 	 * (default null)
-	 *
 	 * @var array
-	 * @access protected
 	 */
 	protected $properties;
 
 	/**
 	 * Construction method for the Page class
 	 *
-	 * @access public
 	 * @param Wiki $wikiClass The Wiki class object
 	 * @param mixed $title Title of the page (default: null)
 	 * @param mixed $pageid ID of the page (default: null)
 	 * @param bool $followRedir Should it follow a redirect when retrieving the page (default: true)
 	 * @param bool $normalize Should the class automatically normalize the title (default: true)
 	 * @param string $timestamp Set the start of a program or start reference to avoid edit conflicts.
-	 * @return void
+	 *
+	 * @throws NoTitle
+	 * @return Page
 	 */
-	function __construct( Wiki $wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
+	public function __construct( Wiki $wikiClass, $title = null, $pageid = null, $followRedir = true, $normalize = true, $timestamp = null ) {
 		$this->wiki = $wikiClass;
 
 		if( is_null( $title ) && is_null( $pageid ) ) {
@@ -378,7 +291,6 @@ class Page {
 	/**
 	 * Returns page history. Can be specified to return content as well
 	 *
-	 * @access public
 	 * @param int $count Revisions to return (default: 1)
 	 * @param string $dir Direction to return revisions (default: "older")
 	 * @param bool $content Should content of that revision be returned as well (default: false)
@@ -438,7 +350,6 @@ class Page {
 	/**
 	 * Retrieves text from a page, or a cached copy unless $force is true
 	 *
-	 * @access public
 	 * @param bool $force Grab text from the API, don't use the cached copy (default: false)
 	 * @param string|int $section Section title or ID to retrieve
 	 * @return string Page content
@@ -536,7 +447,6 @@ class Page {
 	/**
 	 * Returns if the page exists
 	 *
-	 * @access public
 	 * @return bool Exists
 	 * @deprecated since 18 June 2013
 	 */
@@ -548,7 +458,6 @@ class Page {
 	/**
 	 * Returns if the page exists
 	 *
-	 * @access public
 	 * @return bool Exists
 	 */
 	public function get_exists() {
@@ -558,7 +467,6 @@ class Page {
 	/**
 	 * Returns links on the page.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#links_.2F_pl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param array $namespace Show links in this namespace(s) only.  Default array()
@@ -599,8 +507,7 @@ class Page {
 
 	/**
 	 * Returns templates on the page
-	 *
-	 * @access public
+	 * 
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#templates_.2F_tl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param array $namespace Show templates in this namespace(s) only. Default array().
@@ -640,8 +547,7 @@ class Page {
 
 	/**
 	 * Get various properties defined in the page content
-	 *
-	 * @access public
+	 * 
 	 * @link https://www.mediawiki.org/wiki/API:Properties#pageprops_.2F_pp
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return bool|array False on error, array of template titles
@@ -670,8 +576,7 @@ class Page {
 
 	/**
 	 * Returns categories of page
-	 *
-	 * @access public
+	 * 
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#categories_.2F_cl
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param array|string $prop Which additional properties to get for each category. Default all
@@ -715,8 +620,7 @@ class Page {
 
 	/**
 	 * Returns images used in the page
-	 *
-	 * @access public
+	 * 
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#images_.2F_im
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param string|array $images Only list these images. Default null.
@@ -761,8 +665,7 @@ class Page {
 
 	/**
 	 * Returns external links used in the page
-	 *
-	 * @access public
+	 * 
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#extlinks_.2F_el
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return bool|array False on error, returns array of URLs
@@ -799,7 +702,6 @@ class Page {
 	/**
 	 * Returns interlanguage links on the page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#langlinks_.2F_ll
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param bool $fullurl Include a list of full of URLs.  Output formatting changes.  Requires force parameter to be true to return a different result.
@@ -846,7 +748,6 @@ class Page {
 	/**
 	 * Returns interwiki links on the page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#langlinks_.2F_ll
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @param bool $fullurl Include a list of full of URLs.  Output formatting changes.  Requires force parameter to be true to return a different result.
@@ -894,7 +795,6 @@ class Page {
 	/**
 	 * Returns the protection level of the page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return bool|array False on error, returns array with protection levels
@@ -928,7 +828,6 @@ class Page {
 	/**
 	 * Returns the page ID of the talk page for each non-talk page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return int Null or empty if no id exists.
@@ -960,7 +859,6 @@ class Page {
 	/**
 	 * Returns the watch status of the page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return bool
@@ -992,7 +890,6 @@ class Page {
 	/**
 	 * Returns the count for the number of watchers of a page.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return int
@@ -1024,7 +921,6 @@ class Page {
 	/**
 	 * Returns the watchlist notification timestamp of each page.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return string
@@ -1056,7 +952,6 @@ class Page {
 	/**
 	 * Returns the page ID of the parent page for each talk page.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return int Null if it doesn't exist.
@@ -1088,7 +983,6 @@ class Page {
 	/**
 	 * Gives a full URL to the page, and also an edit URL.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return array
@@ -1122,7 +1016,6 @@ class Page {
 	/**
 	 * Returns whether the user can read this page.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return boolean Null if it doesn't exist.
@@ -1154,7 +1047,6 @@ class Page {
 	/**
 	 * Gives the text returned by EditFormPreloadText.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return string
@@ -1186,7 +1078,6 @@ class Page {
 	/**
 	 * Gives the way the page title is actually displayed.
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Properties#info_.2F_in
 	 * @param bool $force Force use of API, won't use cached copy (default: false)
 	 * @return string
@@ -1218,7 +1109,6 @@ class Page {
 	/**
 	 * Edits the page
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Edit_-_Create%26Edit_pages
 	 * @param string $text Text of the page that will be saved
 	 * @param string $summary Summary of the edit (default: "")
@@ -1362,7 +1252,6 @@ class Page {
 	/**
 	 * Add text to the beginning of the page. Shortcut for Page::edit()
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Edit_-_Create%26Edit_pages
 	 * @param string $text Text of the page that will be saved
 	 * @param string $summary Summary of the edit (default: "")
@@ -1380,7 +1269,6 @@ class Page {
 	/**
 	 * Add text to the end of the page. Shortcut for Page::edit()
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Edit_-_Create%26Edit_pages
 	 * @param string $text Text of the page that will be saved
 	 * @param string $summary Summary of the edit (default: "")
@@ -1398,7 +1286,6 @@ class Page {
 	/**
 	 * Create a new section.  Shortcut for Page::edit()
 	 *
-	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Edit_-_Create%26Edit_pages
 	 * @param string $text Text of the page that will be saved
 	 * @param string $sectiontitle The title for a new section. Default null.
@@ -1418,7 +1305,6 @@ class Page {
 	/*
 	 * Undoes one or more edits. (Subject to standard editing restrictions.)
 	 *
-	 * @access public
 	 * @param bool $force Force an undo, despite e.g. new messages (default false).
 	 * @param string $summary Override the default edit summary (default null).
 	 * @param int $revisions The number of revisions to undo (default 1).
@@ -1791,7 +1677,6 @@ class Page {
 	/**
 	 * Undeletes the page
 	 *
-	 * @access public
 	 * @param string $reason Reason for undeletion
 	 * @param array $timestamps Array of timestamps to selectively restore
 	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
@@ -1863,7 +1748,6 @@ class Page {
 	/**
 	 * List deleted revisions of the page
 	 *
-	 * @access public
 	 * @param bool $content Whether or not to retrieve the content of each revision, Default false
 	 * @param string $user Only list revisions by this user. Default null.
 	 * @param string $excludeuser Don't list revisions by this user. Default null
@@ -2085,7 +1969,6 @@ class Page {
 	/**
 	 * (Re)generates lastedit, length, and hits
 	 *
-	 * @access protected
 	 * @param array $pageInfoArray2 Array of values to merge with defaults (default: null)
 	 * @throws BadTitle
 	 */
@@ -2162,7 +2045,6 @@ class Page {
 	/**
 	 * Returns all links to the page
 	 *
-	 * @access public
 	 * @param array $namespaces Namespaces to get. Default array( 0 );
 	 * @param string $redirects How to handle redirects. 'all' = List all pages. 'redirects' = Only list redirects. 'nonredirects' = Don't list redirects. Default 'all'
 	 * @param bool $followredir List links through redirects to the page
@@ -2189,7 +2071,6 @@ class Page {
 	/*
 	 * Rollbacks the latest edit(s) to a page.
 	 * 
-	 * @access public
 	 * @see http://www.mediawiki.org/wiki/API:Edit_-_Rollback
 	 * @param bool $force Whether to force an (attempt at an) edit, regardless of news messages, etc.
 	 * @param string $summary Override the default edit summary for this rollback. Default null.
@@ -2275,7 +2156,6 @@ class Page {
 	/*
 	 * Performs nobots checking, new message checking, etc
 	 * 
-	 * @access public
 	 * @return void
 	 */
 	protected function preEditChecks( $action = "Edit" ) {
@@ -2285,7 +2165,6 @@ class Page {
 	/**
 	 * Returns array of pages that embed (transclude) the page given.
 	 *
-	 * @access public
 	 * @param array $namespace Which namespaces to search (default: null).
 	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array A list of pages the title is transcluded in.
@@ -2314,7 +2193,6 @@ class Page {
 	 * Purges a list of pages. Shortcut for {@link Wiki::purge()}
 	 *
 	 * @see Wiki::purge()
-	 * @access public
 	 * @return boolean
 	 */
 	public function purge() {
@@ -2324,7 +2202,6 @@ class Page {
 	/**
 	 * Parses wikitext and returns parser output. Shortcut for Wiki::parse
 	 *
-	 * @access public
 	 * @param string $summary Summary to parse. Default null.
 	 * @param string $id Parse the content of this revision
 	 * @param array $prop Properties to retrieve. array( 'text', 'langlinks', 'categories', 'links', 'templates', 'images', 'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext', 'properties' )
