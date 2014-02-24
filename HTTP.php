@@ -88,8 +88,6 @@ class HTTP {
 	 * @return HTTP
 	 */
 	function __construct( $echo = false ) {
-		global $pgUA;
-
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
 		}
@@ -101,7 +99,10 @@ class HTTP {
 		}
 		$this->cookie_hash = md5( time() . '-' . rand( 0, 999 ) );
 		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.' . $this->cookie_hash . '.dat';
-		$this->user_agent = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
+
+		$userAgent = 'Peachy MediaWiki Bot API';
+		if( defined( PEACHYVERSION ) ) $userAgent .= ' Version ' . PEACHYVERSION;
+		$this->setUserAgent( $userAgent );
 
 		Hooks::runHook( 'HTTPNewCURLInstance', array( &$this, &$echo ) );
 
@@ -117,8 +118,19 @@ class HTTP {
 		curl_setopt( $this->curl_instance, CURLOPT_TIMEOUT, 100 );
 		curl_setopt( $this->curl_instance, CURLOPT_CONNECTTIMEOUT, 10 );
 
-		$this->setUserAgent( $pgUA );
-
+		global $pgProxy;
+		if( isset( $pgProxy ) && count( $pgProxy ) ) {
+			curl_setopt( $this->curl_instance, CURLOPT_PROXY, $pgProxy['addr'] );
+			if( isset( $pgProxy['type'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYTYPE, $pgProxy['type'] );
+			}
+			if( isset( $pgProxy['userpass'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYUSERPWD, $pgProxy['userpass'] );
+			}
+			if( isset( $pgProxy['port'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYPORT, $pgProxy['port'] );
+			}
+		}
 	}
 
 	private function setCurlHeaders( $extraHeaders = array() ) {
@@ -163,7 +175,7 @@ class HTTP {
 	}
 
 	/**
-	 * @return string
+	 * @return string|bool Data. False on failure.
 	 * @throws CURLError
 	 */
 	private function doCurlExecWithRetrys() {
@@ -206,23 +218,10 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	public function get( $url, $data = null, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy, $displayGetOutData;
+		global $argv, $displayGetOutData;
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
-
-		if( count( $pgProxy ) ) {
-			curl_setopt( $this->curl_instance, CURLOPT_PROXY, $pgProxy['addr'] );
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYTYPE, $pgProxy['type'] );
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYUSERPWD, $pgProxy['userpass'] );
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYPORT, $pgProxy['port'] );
-			}
-		}
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 1 );
 		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 1 );
@@ -274,23 +273,10 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	function post( $url, $data, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy, $displayPostOutData;
+		global $argv, $displayPostOutData;
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
-
-		if( count( $pgProxy ) ) {
-			curl_setopt( $this->curl_instance, CURLOPT_PROXY, $pgProxy['addr'] );
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYTYPE, $pgProxy['type'] );
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYUSERPWD, $pgProxy['userpass'] );
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYPORT, $pgProxy['port'] );
-			}
-		}
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 0 );
 		curl_setopt( $this->curl_instance, CURLOPT_POST, 1 );
@@ -326,28 +312,14 @@ class HTTP {
 	 * @return bool
 	 */
 	function download( $url, $local, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy;
+		global $argv;
 
 		$out = fopen( $local, 'wb' );
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
-		if( count( $pgProxy ) ) {
-			curl_setopt( $this->curl_instance, CURLOPT_PROXY, $pgProxy['addr'] );
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYTYPE, $pgProxy['type'] );
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYUSERPWD, $pgProxy['userpass'] );
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt( $this->curl_instance, CURLOPT_PROXYPORT, $pgProxy['port'] );
-			}
-		}
-
-
-//curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
+		// curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
 		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
 		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 0 );
 
@@ -405,6 +377,5 @@ class HTTP {
 			return self::$defaultInstance;
 		}
 	}
-
 
 }
