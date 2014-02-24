@@ -101,7 +101,7 @@ class HTTP {
 		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.' . $this->cookie_hash . '.dat';
 
 		$userAgent = 'Peachy MediaWiki Bot API';
-		if( defined( PEACHYVERSION ) ) $userAgent .= ' Version ' . PEACHYVERSION;
+		if( defined( 'PEACHYVERSION' ) ) $userAgent .= ' Version ' . PEACHYVERSION;
 		$this->setUserAgent( $userAgent );
 
 		Hooks::runHook( 'HTTPNewCURLInstance', array( &$this, &$echo ) );
