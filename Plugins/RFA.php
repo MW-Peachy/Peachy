@@ -22,6 +22,7 @@
  * An RFA object contains the parsed information for an RFA
  */
 class RFA {
+
 	protected $username = false;
 	protected $enddate = false;
 	protected $support = array();
@@ -30,211 +31,13 @@ class RFA {
 	protected $duplicates = array();
 	protected $lasterror = '';
 
-	public function get_username() {
-		return $this->username;
-	}
-
-	public function get_enddate() {
-		return $this->enddate;
-	}
-
-	public function get_support() {
-		return $this->support;
-	}
-
-	public function get_oppose() {
-		return $this->oppose;
-	}
-
-	public function get_neutral() {
-		return $this->neutral;
-	}
-
-	public function get_duplicates() {
-		return $this->duplicates;
-	}
-
-	public function get_lasterror() {
-		return $this->lasterror;
-	}
-
-	/**
-	 * Attempts to find a signature in $input using the default regex. Returns matches.
-	 * @param $input
-	 * @param $matches
-	 *
-	 * @return int
-	 */
-	protected function findsig( $input, &$matches ) {
-		//Supports User: and User talk: wikilinks, {{fullurl}}, unsubsted {{unsigned}}, unsubsted {{unsigned2}}, anything that looks like a custom sig template
-		return preg_match_all(
-			"/\[\[[Uu]ser(?:[\s_][Tt]alk)?\:([^\]\|\/]*)(?:\|[^\]]*)?\]\]" //1: Normal [[User:XX]] and [[User talk:XX]]
-			. "|\{\{(?:[Ff]ullurl\:[Uu]ser(?:[\s_][Tt]alk)?\:|[Uu]nsigned\|)([^\}\|]*)(?:|[\|\}]*)?\}\}" //2: {{fullurl}} and {{unsigned}} templates
-			. "|(?:\{\{)[Uu]ser(?:[\s_][Tt]alk)?\:([^\}\/\|]*)" //3: {{User:XX/sig}} templates
-			. "|\{\{[Uu]nsigned2\|[^\|]*\|([^\}]*)\}\}" //4: {{unsigned2|Date|XX}} templates
-			. "|(?:\[\[)[Uu]ser\:([^\]\/\|]*)\/[Ss]ig[\|\]]/" //5: [[User:XX/sig]] links (compromise measure)
-			, $input, $matches, PREG_OFFSET_CAPTURE
-		);
-	}
-
-	/**
-	 * Attempts to find a signature in $input using a different regex. Returns matches.
-	 * @param $input
-	 * @param $matches
-	 *
-	 * @return int
-	 */
-	protected function findsig2( $input, &$matches ) {
-		return preg_match_all(
-			"/\[\[[Uu]ser(?:[\s_][Tt]alk)?\:([^\]\/\|]*)" //5: "[[User:XX/PageAboutMe" links (notice no end tag)
-			. "|\[\[[Ss]pecial\:[Cc]ontributions\/([^\|\]]*)/"
-			, $input, $matches, PREG_OFFSET_CAPTURE
-		);
-	}
-
-	/**
-	 * Attempts to find a signature in $input. Returns the name of the user, false on failure.
-	 * @param $input
-	 * @param $iffy
-	 *
-	 * @return bool|string
-	 */
-	protected function findsiginline( $input, &$iffy ) {
-		$iffy = 0;
-
-		$parsee_array = explode( "\n", $input );
-		for( $n = 0; $n < count( $parsee_array ); $n++ ){ //This for will terminate when a sig is found.
-			$parsee = $parsee_array[$n];
-			//Okay, let's try and remove "copied from above" messages. If the line has more than one timestamp, we'll disregard anything after the first.
-			//Note: we're ignoring people who use custom timestamps - if these peoples' votes are moved, the mover's name will show up as having voted.
-
-			//If more than one timestamp is found in the first portion of the vote:
-			$tsmatches = array();
-			$dummymatches = array();
-			if( preg_match_all( '/' . "[0-2][0-9]\:[0-5][0-9], [1-3]?[0-9] (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4} \(UTC\)" . '/', $parsee, $tsmatches, PREG_OFFSET_CAPTURE ) > 1 ) {
-				//Go through each timestamp-section, looking for a signature
-				foreach( $tsmatches[0] as $minisection ){
-					$temp = substr( $parsee, 0, $minisection[1] );
-					//If a signature is found, stop and use it as voter
-					if( $this->findsig( $temp, $dummymatches ) != 0 ) { //KNOWN ISSUE: Write description later
-						$parsee = $temp;
-						break;
-					}
-				}
-			}
-
-			//Start the main signature-finding:
-			$matches = array();
-			if( $this->findsig( $parsee, $matches ) == 0 ) {
-				//Okay, signature not found. Let's try the backup regex
-				if( $this->findsig2( $parsee, $matches ) == 0 ) {
-					//Signature was not found in this iteration of the main loop :(
-					continue; //Go on to next newline (may be iffy)
-				} else {
-					$merged = array_merge( $matches[1], $matches[2] );
-				}
-			} else {
-				//Merge the match arrays:
-				$merged = array_merge( $matches[5], $matches[1], $matches[3], $matches[2], $matches[4] );
-			}
-			//Remove blank values and arrays of the form ('',-1):
-			foreach( $merged as $key => $value ){
-				if( is_array( $value ) && ( $value[0] == '' ) && ( $value[1] == -1 ) ) {
-					unset( $merged[$key] );
-				} elseif( $value == "" ) {
-					unset( $merged[$key] );
-				}
-			}
-
-			//Let's find out the real signature
-			$keys = array();
-			$values = array();
-			foreach( $merged as $mergee ){
-				$keys[] = $mergee[0];
-				$values[] = $mergee[1];
-			}
-			//Now sort:
-			array_multisort( $values, SORT_DESC, SORT_NUMERIC, $keys );
-			//Now we should have the most relevant match (i.e., the sig) at the top of $keys
-			$i = 0;
-			$foundsig = '';
-			while( $foundsig == '' ){
-				$foundsig = trim( $keys[$i++] );
-				if( $i == count( $keys ) ) break; //If we can only find blank usernames in the sig, catch overflow
-				//Also fires when the first sig is also the last sig, so not an error
-			}
-
-			//Set iffy flag (level 1) if went beyond first line
-			if( $n > 0 ) {
-				$iffy = 1;
-			}
-			return $foundsig; //Found!		
-		}
-
-		return false; //Signature not found
-	}
-
-	/**
-	 * Analyzes an RFA section. Returns an array of parsed signatures on success. Undefined behaviour on failure.
-	 * @param string $input
-	 *
-	 * @return array
-	 */
-	private function analyze_section( $input ) {
-		//Remove trailing sharp, if any
-		$input = preg_replace( '/#\s*$/', '', $input );
-
-		//Old preg_split regex: "/(^|\n)\s*\#[^\#\:\*]/"
-		$parsed = preg_split( "/(^|\n)\#/", $input );
-		//Shift off first empty element:
-		array_shift( $parsed );
-
-		foreach( $parsed as &$parsee ){ //Foreach line
-			//If the line is empty for some reason, ignore
-			$parsee = trim( $parsee );
-			if( empty( $parsee ) ) continue;
-
-			//If the line has been indented (disabled), or is a comment, ignore
-			if( ( $parsee[0] == ':' ) || ( $parsee[0] == '*' ) || ( $parsee[0] == '#' ) ) {
-				$parsee = '///###///';
-				continue;
-			}; //struck-out vote or comment
-
-			$parsedsig = $this->findsiginline( $parsee, $iffy ); //Find signature
-			$orgsig = $parsee;
-			$parsee = array();
-			$parsee['context'] = $orgsig;
-			if( $parsedsig === false ) {
-				$parsee['error'] = 'Signature not found';
-			} else {
-				$parsee['name'] = $parsedsig;
-			}
-			if( @$iffy == 1 ) {
-				$parsee['iffy'] = '1';
-			}
-		} //Foreach line
-
-		if( ( count( $parsed ) == 1 ) && ( @trim( $parsed[0]['name'] ) == '' ) ) { //filters out placeholder sharp sign used in empty sections
-			$parsed = array();
-		}
-
-		//Delete struck-out keys "continued" in foreach
-		foreach( $parsed as $key => $value ){
-			if( $value == '///###///' ) {
-				unset( $parsed[$key] );
-			}
-		}
-
-		return $parsed;
-	}
-
 	/**
 	 * Analyzes an RFA. Returns TRUE on success, FALSE on failure
 	 * @param Wiki $wiki
 	 * @param $page
 	 * @param null $rawwikitext
 	 */
-	function __construct( Wiki $wiki, $page, $rawwikitext = null ) {
+	public function __construct( Wiki $wiki, $page, $rawwikitext = null ) {
 		if( is_null( $rawwikitext ) ) $rawwikitext = $wiki->initPage( $page )->get_text();
 
 		$split = preg_split(
@@ -306,9 +109,9 @@ class RFA {
 			return false;
 		}
 
-		$this->support = $this->analyze_section( $support );
-		$this->oppose = $this->analyze_section( $oppose );
-		$this->neutral = $this->analyze_section( $neutral );
+		$this->support = $this->analyzeSection( $support );
+		$this->oppose = $this->analyzeSection( $oppose );
+		$this->neutral = $this->analyzeSection( $neutral );
 
 		//Merge all votes in one array and sort:
 		$m = array();
@@ -333,4 +136,203 @@ class RFA {
 
 		return true;
 	}
+
+	public function get_username() {
+		return $this->username;
+	}
+
+	public function get_enddate() {
+		return $this->enddate;
+	}
+
+	public function get_support() {
+		return $this->support;
+	}
+
+	public function get_oppose() {
+		return $this->oppose;
+	}
+
+	public function get_neutral() {
+		return $this->neutral;
+	}
+
+	public function get_duplicates() {
+		return $this->duplicates;
+	}
+
+	public function get_lasterror() {
+		return $this->lasterror;
+	}
+
+	/**
+	 * Attempts to find a signature in $input using the default regex. Returns matches.
+	 * @param $input
+	 * @param $matches
+	 *
+	 * @return int
+	 */
+	protected function findSig( $input, &$matches ) {
+		//Supports User: and User talk: wikilinks, {{fullurl}}, unsubsted {{unsigned}}, unsubsted {{unsigned2}}, anything that looks like a custom sig template
+		return preg_match_all(
+			"/\[\[[Uu]ser(?:[\s_][Tt]alk)?\:([^\]\|\/]*)(?:\|[^\]]*)?\]\]" //1: Normal [[User:XX]] and [[User talk:XX]]
+			. "|\{\{(?:[Ff]ullurl\:[Uu]ser(?:[\s_][Tt]alk)?\:|[Uu]nsigned\|)([^\}\|]*)(?:|[\|\}]*)?\}\}" //2: {{fullurl}} and {{unsigned}} templates
+			. "|(?:\{\{)[Uu]ser(?:[\s_][Tt]alk)?\:([^\}\/\|]*)" //3: {{User:XX/sig}} templates
+			. "|\{\{[Uu]nsigned2\|[^\|]*\|([^\}]*)\}\}" //4: {{unsigned2|Date|XX}} templates
+			. "|(?:\[\[)[Uu]ser\:([^\]\/\|]*)\/[Ss]ig[\|\]]/" //5: [[User:XX/sig]] links (compromise measure)
+			, $input, $matches, PREG_OFFSET_CAPTURE
+		);
+	}
+
+	/**
+	 * Attempts to find a signature in $input using a different regex. Returns matches.
+	 * @param $input
+	 * @param $matches
+	 *
+	 * @return int
+	 */
+	protected function findSigAlt( $input, &$matches ) {
+		return preg_match_all(
+			"/\[\[[Uu]ser(?:[\s_][Tt]alk)?\:([^\]\/\|]*)" //5: "[[User:XX/PageAboutMe" links (notice no end tag)
+			. "|\[\[[Ss]pecial\:[Cc]ontributions\/([^\|\]]*)/"
+			, $input, $matches, PREG_OFFSET_CAPTURE
+		);
+	}
+
+	/**
+	 * Attempts to find a signature in $input. Returns the name of the user, false on failure.
+	 * @param $input
+	 * @param $iffy
+	 *
+	 * @return bool|string false if not found Signature, or the Signature if it is found
+	 */
+	protected function findSigInLine( $input, &$iffy ) {
+		$iffy = 0;
+
+		$parsee_array = explode( "\n", $input );
+		for( $n = 0; $n < count( $parsee_array ); $n++ ){ //This for will terminate when a sig is found.
+			$parsee = $parsee_array[$n];
+			//Okay, let's try and remove "copied from above" messages. If the line has more than one timestamp, we'll disregard anything after the first.
+			//Note: we're ignoring people who use custom timestamps - if these peoples' votes are moved, the mover's name will show up as having voted.
+
+			//If more than one timestamp is found in the first portion of the vote:
+			$tsmatches = array();
+			$dummymatches = array();
+			if( preg_match_all( '/' . "[0-2][0-9]\:[0-5][0-9], [1-3]?[0-9] (?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4} \(UTC\)" . '/', $parsee, $tsmatches, PREG_OFFSET_CAPTURE ) > 1 ) {
+				//Go through each timestamp-section, looking for a signature
+				foreach( $tsmatches[0] as $minisection ){
+					$temp = substr( $parsee, 0, $minisection[1] );
+					//If a signature is found, stop and use it as voter
+					if( $this->findSig( $temp, $dummymatches ) != 0 ) { //KNOWN ISSUE: Write description later
+						$parsee = $temp;
+						break;
+					}
+				}
+			}
+
+			//Start the main signature-finding:
+			$matches = array();
+			if( $this->findSig( $parsee, $matches ) == 0 ) {
+				//Okay, signature not found. Let's try the backup regex
+				if( $this->findSigAlt( $parsee, $matches ) == 0 ) {
+					//Signature was not found in this iteration of the main loop :(
+					continue; //Go on to next newline (may be iffy)
+				} else {
+					$merged = array_merge( $matches[1], $matches[2] );
+				}
+			} else {
+				//Merge the match arrays:
+				$merged = array_merge( $matches[5], $matches[1], $matches[3], $matches[2], $matches[4] );
+			}
+			//Remove blank values and arrays of the form ('',-1):
+			foreach( $merged as $key => $value ){
+				if( is_array( $value ) && ( $value[0] == '' ) && ( $value[1] == -1 ) ) {
+					unset( $merged[$key] );
+				} elseif( $value == "" ) {
+					unset( $merged[$key] );
+				}
+			}
+
+			//Let's find out the real signature
+			$keys = array();
+			$values = array();
+			foreach( $merged as $mergee ){
+				$keys[] = $mergee[0];
+				$values[] = $mergee[1];
+			}
+			//Now sort:
+			array_multisort( $values, SORT_DESC, SORT_NUMERIC, $keys );
+			//Now we should have the most relevant match (i.e., the sig) at the top of $keys
+			$i = 0;
+			$foundsig = '';
+			while( $foundsig == '' ){
+				$foundsig = trim( $keys[$i++] );
+				if( $i == count( $keys ) ) break; //If we can only find blank usernames in the sig, catch overflow
+				//Also fires when the first sig is also the last sig, so not an error
+			}
+
+			//Set iffy flag (level 1) if went beyond first line
+			if( $n > 0 ) {
+				$iffy = 1;
+			}
+			return $foundsig;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Analyzes an RFA section. Returns an array of parsed signatures on success. Undefined behaviour on failure.
+	 * @param string $input
+	 *
+	 * @return array
+	 */
+	private function analyzeSection( $input ) {
+		//Remove trailing sharp, if any
+		$input = preg_replace( '/#\s*$/', '', $input );
+
+		//Old preg_split regex: "/(^|\n)\s*\#[^\#\:\*]/"
+		$parsed = preg_split( "/(^|\n)\#/", $input );
+		//Shift off first empty element:
+		array_shift( $parsed );
+
+		foreach( $parsed as &$parsee ){ //Foreach line
+			//If the line is empty for some reason, ignore
+			$parsee = trim( $parsee );
+			if( empty( $parsee ) ) continue;
+
+			//If the line has been indented (disabled), or is a comment, ignore
+			if( ( $parsee[0] == ':' ) || ( $parsee[0] == '*' ) || ( $parsee[0] == '#' ) ) {
+				$parsee = '///###///';
+				continue;
+			}; //struck-out vote or comment
+
+			$parsedsig = $this->findSigInLine( $parsee, $iffy ); //Find signature
+			$orgsig = $parsee;
+			$parsee = array();
+			$parsee['context'] = $orgsig;
+			if( $parsedsig === false ) {
+				$parsee['error'] = 'Signature not found';
+			} else {
+				$parsee['name'] = $parsedsig;
+			}
+			if( @$iffy == 1 ) {
+				$parsee['iffy'] = '1';
+			}
+		} //Foreach line
+
+		if( ( count( $parsed ) == 1 ) && ( @trim( $parsed[0]['name'] ) == '' ) ) { //filters out placeholder sharp sign used in empty sections
+			$parsed = array();
+		}
+
+		//Delete struck-out keys "continued" in foreach
+		foreach( $parsed as $key => $value ){
+			if( $value == '///###///' ) {
+				unset( $parsed[$key] );
+			}
+		}
+
+		return $parsed;
+	}
+
 }
