@@ -15,8 +15,8 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		parent::setUpBeforeClass();
 
 		//cache anything in the StableUpdate log to restore after
-		if( file_exists( __DIR__ . '/../Includes/StableUpdate.log' ) ) {
-			self::$logContents = file_get_contents( __DIR__ . '/../Includes/StableUpdate.log' );
+		if( file_exists( __DIR__ . '/../../Includes/StableUpdate.log' ) ) {
+			self::$logContents = file_get_contents( __DIR__ . '/../../Includes/StableUpdate.log' );
 		}
 	}
 
@@ -25,7 +25,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 
 		//restore the StableUpdate log to previous contents
 		if( isset( self::$logContents ) ) {
-			file_put_contents( __DIR__ . '/../Includes/StableUpdate.log', self::$logContents );
+			file_put_contents( __DIR__ . '/../../Includes/StableUpdate.log', self::$logContents );
 		}
 	}
 
@@ -77,16 +77,16 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {
-			if( file_exists( __DIR__ . '/../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) ) ) {
-				unlink( __DIR__ . '/../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) );
+			if( file_exists( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) ) ) {
+				unlink( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ) );
 			}
 		} else {
-			file_put_contents( __DIR__ . '/../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ), $updatelog );
+			file_put_contents( __DIR__ . '/../../Includes/' . ( $experimental ? 'Update.log' : 'StableUpdate.log' ), $updatelog );
 		}
 
 		if( $wasexperimental ) {
-			file_put_contents( __DIR__ . '/../Includes/updateversion', serialize( 'master' ) );
-		} else file_put_contents( __DIR__ . '/../Includes/updateversion', serialize( 'stable' ) );
+			file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'master' ) );
+		} else file_put_contents( __DIR__ . '/../../Includes/updateversion', serialize( 'stable' ) );
 
 		$this->expectOutputRegex( $outputRegex );
 		$result = $updater->Checkforupdate();
