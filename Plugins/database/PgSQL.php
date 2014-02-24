@@ -30,13 +30,14 @@ class DatabasePgSQL extends DatabaseBase {
 
 	/**
 	 * @param string $sql
+	 * @return resource
 	 */
 	public function doQuery( $sql ) {
 		if( function_exists( 'mb_convert_encoding' ) ) {
 			$sql = mb_convert_encoding( $sql, 'UTF-8' );
 		}
 
-		$ret = pg_query( $sql, $this->mConn );
+		$ret = pg_query( $this->mConn, $sql );
 
 		return $ret;
 	}
@@ -55,7 +56,7 @@ class DatabasePgSQL extends DatabaseBase {
 
 		$this->mOpened = false;
 
-		$this->mConn = pg_connect( "host={$this->mServer} port=" . substr( $this->mPost, 1 ) . " dbname={$this->mDB} user={$this->mUser} password={$this->mPassword}" );
+		$this->mConn = pg_connect( "host={$this->mServer} port=" . substr( $this->mPort, 1 ) . " dbname={$this->mDB} user={$this->mUser} password={$this->mPassword}" );
 
 		if( !$this->mConn ) {
 			throw new DBError( $this->lastErrno(), $this->lastError() );
