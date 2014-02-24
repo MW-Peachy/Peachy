@@ -79,18 +79,6 @@ Class AutoUpdate {
 	}
 
 	/**
-	 * @return array headers to be used for github api request
-	 */
-	private function getUpdateHeaders() {
-		global $pgIP;
-		if( file_exists( $pgIP . 'tmp' . DIRECTORY_SEPARATOR . 'github-ETag.tmp' ) ) {
-			$ETag = file_get_contents( $pgIP . 'tmp' . DIRECTORY_SEPARATOR . 'github-ETag.tmp' );
-			return array( 'If-None-Match: "' . $ETag . '"' );
-		}
-		return array();
-	}
-
-	/**
 	 * Caches the last Etag from github in a tmp file
 	 */
 	private function cacheLastGithubETag() {
