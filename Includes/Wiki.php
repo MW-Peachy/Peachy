@@ -2325,4 +2325,78 @@ class Wiki {
 	public function getSSH() {
 		return $this->SSH;
 	}
+    
+    /**
+     * Performs nobots checking, new message checking, etc
+     * 
+     * @var string $action Name of action.
+     * @var string $title Name of page to check for nobots
+     * @access public
+     * @return void
+     */
+    public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
+        global $disablechecks, $masterrunpage;
+        if( $disablechecks ) return;
+        $preeditinfo = array(
+            'action' => 'query',
+            'meta'   => 'userinfo',
+            'uiprop' => 'hasmsg|blockinfo',
+            'prop'   => 'revisions',
+            'rvprop' => 'content'
+        );
+
+        if( !is_null( $this->get_runpage() ) ) {
+            $preeditinfo['titles'] = $this->get_runpage();
+        }
+        if( !is_null( $title ) ) {
+            $preeditinfo['titles'] .= ( !is_null( $this->get_runpage() ) ? "|" : "" ) . $title;
+        }
+
+        $preeditinfo = $this->apiQuery( $preeditinfo );
+
+        $messages = false;
+        $blocked = false;
+        $oldtext = '';
+        $runtext = 'enable';
+        if( isset( $preeditinfo['query']['pages'] ) ) {
+            //$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
+            foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
+                if( $pageid == $pageidp ) {
+                    $oldtext = $page['revisions'][0]['*'];
+                } elseif( $pageid == "-1" ) {
+                    if( $page['title'] == $this->get_runpage() ) {
+                        pecho( "$action failed, enable page does not exist.\n\n", PECHO_WARN );
+                        throw new EditError( "Enablepage", "Enable  page does not exist." );
+                    } else {
+                        $oldtext = '';
+                    }
+                } else {
+                    $runtext = $page['revisions'][0]['*'];
+                }
+            }
+            if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
+            if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
+        }
+
+        //Perform nobots checks, login checks, /Run checks
+        if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout() ) && $this->get_nobots() ) {
+            throw new EditError( "Nobots", "The page has a nobots template" );
+        }
+
+        if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->initPage( $masterrunpage )->get_text() ) ) {
+            throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
+        }
+
+        if( !is_null( $this->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
+            throw new EditError( "Enablepage", "Script was disabled by Run page" );
+        }
+
+        if( $messages && $this->get_stoponnewmessages() ) {
+            throw new EditError( "NewMessages", "User has new messages" );
+        }
+
+        if( $blocked ) {
+            throw new EditError( "Blocked", "User has been blocked" );
+        }
+    }
 }

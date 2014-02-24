@@ -807,55 +807,7 @@ class User {
 	 * @return void
 	 */
 	protected function preEditChecks( $action = "Edit" ) {
-		global $disablechecks, $masterrunpage;
-		if( $disablechecks ) return;
-		$preeditinfo = array(
-			'action' => 'query',
-			'meta'   => 'userinfo',
-			'uiprop' => 'hasmsg|blockinfo',
-			'prop'   => 'revisions',
-			'rvprop' => 'content'
-		);
-
-		if( !is_null( $this->wiki->get_runpage() ) ) {
-			$preeditinfo['titles'] = $this->wiki->get_runpage();
-		}
-
-		$preeditinfo = $this->wiki->apiQuery( $preeditinfo );
-
-		$messages = false;
-		$blocked = false;
-		if( isset( $preeditinfo['query']['pages'] ) && !is_null( $this->wiki->get_runpage() ) ) {
-			//$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
-			foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
-				if( $pageid == "-1" ) {
-					pecho( "$action failed, enable page does not exist.\n\n", PECHO_WARN );
-					throw new EditError( "Enablepage", "Enable page does not exist." );
-				} else {
-					$runtext = $page['revisions'][0]['*'];
-				}
-			}
-			if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
-			if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
-		}
-
-		//Perform login checks, /Run checks
-
-		if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->wiki->initPage( $masterrunpage )->get_text() ) ) {
-			throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
-		}
-
-		if( !is_null( $this->wiki->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
-			throw new EditError( "Enablepage", "Script was disabled by Run page" );
-		}
-
-		if( $messages && $this->wiki->get_stoponnewmessages() ) {
-			throw new EditError( "NewMessages", "User has new messages" );
-		}
-
-		if( $blocked ) {
-			throw new EditError( "Blocked", "User has been blocked" );
-		}
+		$this->wiki->preEditChecks( $action );
 	}
 
 	/**

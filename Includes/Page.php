@@ -1727,9 +1727,10 @@ class Page {
 	 *
 	 * @param string $reason A reason for the deletion. Defaults to null (blank).
 	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
+     * @param string $oldimage The name of the old image to delete as provided by iiprop=archivename
 	 * @return bool True on success
 	 */
-	public function delete( $reason = null, $watch = null ) {
+	public function delete( $reason = null, $watch = null, $oldimage = null ) {
 		global $notag, $tag;
 
 		if( !in_array( 'delete', $this->wiki->get_userrights() ) ) {
@@ -1758,6 +1759,7 @@ class Page {
 				$editarray['watchlist'] = $watch;
 			} else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
+        if( !is_null( $oldimage ) ) $editarray['oldimage'] = $oldimage;
 
 		Hooks::runHook( 'StartDelete', array( &$editarray ) );
 
@@ -2277,67 +2279,7 @@ class Page {
 	 * @return void
 	 */
 	protected function preEditChecks( $action = "Edit" ) {
-		global $disablechecks, $masterrunpage;
-		if( $disablechecks ) return;
-		$preeditinfo = array(
-			'action' => 'query',
-			'meta'   => 'userinfo',
-			'uiprop' => 'hasmsg|blockinfo',
-			'prop'   => 'revisions',
-			'titles' => $this->title,
-			'rvprop' => 'content'
-		);
-
-		if( !is_null( $this->wiki->get_runpage() ) ) {
-			$preeditinfo['titles'] .= "|" . $this->wiki->get_runpage();
-		}
-
-		$preeditinfo = $this->wiki->apiQuery( $preeditinfo );
-
-		$messages = false;
-		$blocked = false;
-		$oldtext = '';
-		$runtext = 'enable';
-		if( isset( $preeditinfo['query']['pages'] ) ) {
-			//$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
-			foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
-				if( $pageid == $this->pageid ) {
-					$oldtext = $page['revisions'][0]['*'];
-				} elseif( $pageid == "-1" ) {
-					if( $page['title'] == $this->wiki->get_runpage() ) {
-						pecho( "$action failed, enable page does not exist.\n\n", PECHO_WARN );
-						throw new EditError( "Enablepage", "Enable  page does not exist." );
-					} else {
-						$oldtext = '';
-					}
-				} else {
-					$runtext = $page['revisions'][0]['*'];
-				}
-			}
-			if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
-			if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
-		}
-
-		//Perform nobots checks, login checks, /Run checks
-		if( checkExclusion( $this->wiki, $oldtext, $this->wiki->get_username(), $this->wiki->get_optout() ) && $this->wiki->get_nobots() ) {
-			throw new EditError( "Nobots", "The page has a nobots template" );
-		}
-
-		if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->wiki->initPage( $masterrunpage )->get_text() ) ) {
-			throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
-		}
-
-		if( !is_null( $this->wiki->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
-			throw new EditError( "Enablepage", "Script was disabled by Run page" );
-		}
-
-		if( $messages && $this->wiki->get_stoponnewmessages() ) {
-			throw new EditError( "NewMessages", "User has new messages" );
-		}
-
-		if( $blocked ) {
-			throw new EditError( "Blocked", "User has been blocked" );
-		}
+	    $this->wiki->preEditChecks( $action, $this->title, $this->pageid );
 	}
 
 	/**
