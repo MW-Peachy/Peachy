@@ -53,7 +53,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 			array(
 				false,
 				array( 'commit' => array( 'sha' => 'testshahash' ) ),
-				'/No update log found\n\nPeachy Updated!  Changes will go into effect on the next run./',
+				'/No update log found.*?Peachy Updated!  Changes will go into effect on the next run./',
 			),
 			array(
 				true,
@@ -64,7 +64,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 			array(
 				false,
 				array( 'commit' => array( 'sha' => 'testshahash' ) ),
-				'/Update available\n\nPeachy Updated!  Changes will go into effect on the next run./',
+				'/Update available.*?Peachy Updated!  Changes will go into effect on the next run./',
 				serialize( array( 'commit' => array( 'sha' => 'differenthash!' ) ) )
 			),
 		);
