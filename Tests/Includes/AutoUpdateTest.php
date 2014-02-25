@@ -53,7 +53,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 			array(
 				false,
 				array( 'commit' => array( 'sha' => 'testshahash' ) ),
-				'/No update log found/',
+				'/No update log found\n\nPeachy Updated!  Changes will go into effect on the next run./',
 			),
 			array(
 				true,
@@ -64,7 +64,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 			array(
 				false,
 				array( 'commit' => array( 'sha' => 'testshahash' ) ),
-				'/Update available/',
+				'/Update available\n\nPeachy Updated!  Changes will go into effect on the next run./',
 				serialize( array( 'commit' => array( 'sha' => 'differenthash!' ) ) )
 			),
 		);
@@ -75,6 +75,12 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	 * @covers       AutoUpdate::Checkforupdate
 	 * @covers	AutoUpdate::cacheLastGithubETag
 	 * @covers	AutoUpdate::getTimeToNextLimitWindow
+	 * @covers	AutoUpdate::__construct
+	 * @covers	AutoUpdate::updatePeachy
+	 * 
+	 * 
+	 
+	 
 	 */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
@@ -92,6 +98,7 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 
 		$this->expectOutputRegex( $outputRegex );
 		$result = $updater->Checkforupdate();
+		if( !$result ) $updater->updatePeachy();
 		$this->assertEquals( $expected, $result );
 	}
 
