@@ -77,10 +77,9 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	 * @covers	AutoUpdate::getTimeToNextLimitWindow
 	 * @covers	AutoUpdate::__construct
 	 * @covers	AutoUpdate::updatePeachy
-	 * 
-	 * 
-	 
-	 
+	 * @covers	AutoUpdate::getLocalPath
+	 * @covers	AutoUpdate::copyOverGitFiles
+	 * @covers	AutoUpdate::rrmdir
 	 */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
