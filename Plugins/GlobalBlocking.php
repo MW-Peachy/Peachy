@@ -17,10 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * DatabaseMySQLi class, specifies the MySQLi-specific functions
- * @package Database
- */
-class DatabaseMySQLi extends DatabaseMySQL {
+class GlobalBlocking {
+
+	public static function load( Wiki &$wikiClass ) {
+
+		if( !array_key_exists( 'GlobalBlocking', $wikiClass->get_extensions() ) ) {
+			throw new DependencyError( "GlobalBlocking", "http://www.mediawiki.org/wiki/Extension:GlobalBlocking" );
+		}
+
+	}
 
 }

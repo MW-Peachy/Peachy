@@ -29,12 +29,11 @@ class Peachy {
 		if( !is_null( $config_name ) ) {
 			$config_params = self::parse_config( $config_name );
 
-		}
-		else {
+		} else {
 			$config_params = array(
 				'username' => $username,
 				'password' => $password,
-				'baseurl' => $base_url
+				'baseurl'  => $base_url
 			);
 
 		}
@@ -70,13 +69,17 @@ class Peachy {
 	public static function wikiChecks( $base_url ) {
 		$http = HTTP::getDefaultInstance();
 
-		$siteinfo = unserialize( $http->get(
-			$base_url,
-			array( 'action' => 'query',
-				'meta' => 'siteinfo',
-				'format' => 'php',
-				'siprop' => 'extensions|general',
-			)));
+		$siteinfo = unserialize(
+			$http->get(
+				$base_url,
+				array(
+					'action' => 'query',
+					'meta'   => 'siteinfo',
+					'format' => 'php',
+					'siprop' => 'extensions|general',
+				)
+			)
+		);
 
 		if( isset( $siteinfo['error'] ) && $siteinfo['error']['code'] == 'readapidenied' ) {
 			global $pgHooks;
@@ -92,11 +95,10 @@ class Peachy {
 
 		$extensions = array();
 
-		foreach( $siteinfo['query']['extensions'] as $ext ) {
+		foreach( $siteinfo['query']['extensions'] as $ext ){
 			if( isset( $ext['version'] ) ) {
 				$extensions[$ext['name']] = $ext['version'];
-			}
-			else {
+			} else {
 				$extensions[$ext['name']] = '';
 			}
 		}
@@ -144,12 +146,10 @@ class Peachy {
 		if( !is_file( $config_name ) ) {
 			if( !is_file( $pgIP . 'Configs/' . $config_name . '.cfg' ) ) {
 				throw new BadEntryError( "BadConfig", "A non-existent configuration file was specified." );
-			}
-			else {
+			} else {
 				$config_name = $pgIP . 'Configs/' . $config_name . '.cfg';
 			}
 		}
-
 
 
 		$config_params = parse_ini_file( $config_name );
@@ -161,6 +161,11 @@ class Peachy {
 		return $config_params;
 	}
 
+	/**
+	 * @param null|string $method
+	 * @param null|string $newfunction
+	 * @param string $message
+	 */
 	public static function deprecatedWarn( $method, $newfunction, $message = null ) {
 		if( is_null( $message ) ) {
 			$message = "Warning: $method is deprecated. Please use $newfunction instead.";
@@ -182,7 +187,7 @@ class Peachy {
 		}
 
 		$lines = file( $entries );
-		if ( !count( $lines ) ) {
+		if( !count( $lines ) ) {
 			return false;
 		}
 
@@ -192,14 +197,14 @@ class Peachy {
 		}
 
 		// Subversion is release 1.4 or above.
-		if ( count( $lines ) < 11 ) {
+		if( count( $lines ) < 11 ) {
 			return false;
 		}
 
 		$info = array(
-			'checkout-rev' => intval( trim( $lines[3] ) ),
-			'url' => trim( $lines[4] ),
-			'repo-url' => trim( $lines[5] ),
+			'checkout-rev'  => intval( trim( $lines[3] ) ),
+			'url'           => trim( $lines[4] ),
+			'repo-url'      => trim( $lines[5] ),
 			'directory-rev' => intval( trim( $lines[10] ) )
 		);
 

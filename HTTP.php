@@ -27,42 +27,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * HTTP Class, stores cURL functions
  */
 class HTTP {
-	
+
 	/**
 	 * Curl object
-	 * 
+	 *
 	 * @var resource a cURL handle
 	 * @access private
 	 */
 	private $curl_instance;
-	
+
 	/**
 	 * Hash to use for cookies
-	 * 
+	 *
 	 * @var string
 	 * @access private
 	 */
-	private $cookie_hash;                                       
-	
+	private $cookie_hash;
+
 	/**
 	 * Whether or not to enable GET:, POST:, and DLOAD: messages being sent to the terminal.
-	 * 
+	 *
 	 * @var bool
 	 * @access private
 	 */
 	private $echo;
-	
+
 	/**
 	 * Useragent
-	 * 
+	 *
 	 * @var mixed
 	 * @access private
 	 */
 	private $user_agent;
-	
+
 	/**
 	 * Temporary file where cookies are stored
-	 * 
+	 *
 	 * @var mixed
 	 * @access private
 	 */
@@ -88,93 +88,119 @@ class HTTP {
 	 * @return HTTP
 	 */
 	function __construct( $echo = false ) {
-		global $pgUA;
-		
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
 		}
-		
+
 		$this->echo = $echo;
 		$this->curl_instance = curl_init();
 		if( $this->curl_instance === false ) {
 			throw new RuntimeException( 'Failed to initialize curl' );
 		}
 		$this->cookie_hash = md5( time() . '-' . rand( 0, 999 ) );
-		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.'.$this->cookie_hash.'.dat';
-		$this->user_agent = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
-		
+		$this->cookie_jar = sys_get_temp_dir() . 'peachy.cookies.' . $this->cookie_hash . '.dat';
+
+		$userAgent = 'Peachy MediaWiki Bot API';
+		if( defined( 'PEACHYVERSION' ) ) $userAgent .= ' Version ' . PEACHYVERSION;
+		$this->setUserAgent( $userAgent );
+
 		Hooks::runHook( 'HTTPNewCURLInstance', array( &$this, &$echo ) );
-		
+
 		$this->setCookieJar( $this->cookie_jar );
-		
-		curl_setopt($this->curl_instance,CURLOPT_MAXCONNECTS,100);
-		curl_setopt($this->curl_instance,CURLOPT_CLOSEPOLICY,CURLCLOSEPOLICY_LEAST_RECENTLY_USED);
-		curl_setopt($this->curl_instance,CURLOPT_MAXREDIRS,10);
+
+		curl_setopt( $this->curl_instance, CURLOPT_MAXCONNECTS, 100 );
+		curl_setopt( $this->curl_instance, CURLOPT_CLOSEPOLICY, CURLCLOSEPOLICY_LEAST_RECENTLY_USED );
+		curl_setopt( $this->curl_instance, CURLOPT_MAXREDIRS, 10 );
 		$this->setCurlHeaders();
-		curl_setopt($this->curl_instance,CURLOPT_ENCODING, 'gzip');
-		curl_setopt($this->curl_instance,CURLOPT_RETURNTRANSFER,1);
-		curl_setopt($this->curl_instance, CURLOPT_HEADER, 1);
-		curl_setopt($this->curl_instance,CURLOPT_TIMEOUT,100);
-		curl_setopt($this->curl_instance,CURLOPT_CONNECTTIMEOUT,10);
+		curl_setopt( $this->curl_instance, CURLOPT_ENCODING, 'gzip' );
+		curl_setopt( $this->curl_instance, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_TIMEOUT, 100 );
+		curl_setopt( $this->curl_instance, CURLOPT_CONNECTTIMEOUT, 10 );
 
-		$this->setUserAgent( $pgUA );
-
+		global $pgProxy;
+		if( isset( $pgProxy ) && count( $pgProxy ) ) {
+			curl_setopt( $this->curl_instance, CURLOPT_PROXY, $pgProxy['addr'] );
+			if( isset( $pgProxy['type'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYTYPE, $pgProxy['type'] );
+			}
+			if( isset( $pgProxy['userpass'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYUSERPWD, $pgProxy['userpass'] );
+			}
+			if( isset( $pgProxy['port'] ) ) {
+				curl_setopt( $this->curl_instance, CURLOPT_PROXYPORT, $pgProxy['port'] );
+			}
+		}
 	}
 
 	private function setCurlHeaders( $extraHeaders = array() ) {
-		curl_setopt($this->curl_instance,CURLOPT_HTTPHEADER, array_merge( array('Expect:'), $extraHeaders ) );
-	}
-
-	private function setVerifySSL( $verifyssl = null ) {
-		if( is_null( $verifyssl ) ) global $verifyssl;
-		if( !$verifyssl ) {
-			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, 0);
-		} else {
-			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYPEER, true);
-			//support for value of 1 will be removed in cURL 7.28.1
-			curl_setopt ($this->curl_instance, CURLOPT_SSL_VERIFYHOST, 2);
-		}
-	}
-	
-	function setCookieJar( $cookie_file ) {
-		$this->cookie_jar = $cookie_file;
-		
-		Hooks::runHook( 'HTTPSetCookieJar', array( &$cookie_file ) );
-		
-		curl_setopt($this->curl_instance,CURLOPT_COOKIEJAR, $cookie_file);
-		curl_setopt($this->curl_instance,CURLOPT_COOKIEFILE, $cookie_file);
-	}
-	
-	function setUserAgent( $user_agent = null ) {
-		$this->user_agent = $user_agent;
-		
-		Hooks::runHook( 'HTTPSetUserAgent', array( &$user_agent ) );
-		
-		curl_setopt($this->curl_instance,CURLOPT_USERAGENT, $user_agent);
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPHEADER, array_merge( array( 'Expect:' ), $extraHeaders ) );
 	}
 
 	/**
-	 * @return bool|string
+	 * @param boolean $verifyssl
+	 */
+	private function setVerifySSL( $verifyssl = null ) {
+		if( is_null( $verifyssl ) ) {
+			global $verifyssl;
+		}
+		if( !$verifyssl ) {
+			curl_setopt( $this->curl_instance, CURLOPT_SSL_VERIFYPEER, false );
+			curl_setopt( $this->curl_instance, CURLOPT_SSL_VERIFYHOST, 0 );
+		} else {
+			curl_setopt( $this->curl_instance, CURLOPT_SSL_VERIFYPEER, true );
+			//support for value of 1 will be removed in cURL 7.28.1
+			curl_setopt( $this->curl_instance, CURLOPT_SSL_VERIFYHOST, 2 );
+		}
+	}
+
+	/**
+	 * @param string $cookie_file
+	 */
+	function setCookieJar( $cookie_file ) {
+		$this->cookie_jar = $cookie_file;
+
+		Hooks::runHook( 'HTTPSetCookieJar', array( &$cookie_file ) );
+
+		curl_setopt( $this->curl_instance, CURLOPT_COOKIEJAR, $cookie_file );
+		curl_setopt( $this->curl_instance, CURLOPT_COOKIEFILE, $cookie_file );
+	}
+
+	function setUserAgent( $user_agent = null ) {
+		$this->user_agent = $user_agent;
+
+		Hooks::runHook( 'HTTPSetUserAgent', array( &$user_agent ) );
+
+		curl_setopt( $this->curl_instance, CURLOPT_USERAGENT, $user_agent );
+	}
+
+	/**
+	 * @return string|bool Data. False on failure.
 	 * @throws CURLError
 	 */
 	private function doCurlExecWithRetrys() {
-		for( $i = 0; $i <= 20; $i++ ) {
-			try {
+		$data = false;
+		for( $i = 0; $i <= 20; $i++ ){
+			try{
 				$response = curl_exec( $this->curl_instance );
-				$header_size = curl_getinfo($this->curl_instance, CURLINFO_HEADER_SIZE);
-				$this->lastHeader = substr($response, 0, $header_size);
-				$data = substr($response, $header_size);
-			}
-			catch( Exception $e ) {
-				if( curl_errno( $this->curl_instance ) != 0 ) throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+				$header_size = curl_getinfo( $this->curl_instance, CURLINFO_HEADER_SIZE );
+				$this->lastHeader = substr( $response, 0, $header_size );
+				$data = substr( $response, $header_size );
+			} catch( Exception $e ){
+				if( curl_errno( $this->curl_instance ) != 0 ) {
+					throw new CURLError( curl_errno( $this->curl_instance ), curl_error( $this->curl_instance ) );
+				}
 				if( $i == 20 ) {
-					pecho( "Warning: A CURL error occurred.  Attempted 20 times.  Terminating attempts.", PECHO_WARN);
+					pecho( "Warning: A CURL error occurred.  Attempted 20 times.  Terminating attempts.", PECHO_WARN );
 					return false;
-				} else pecho( "Warning: A CURL error occurred.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN);
+				} else {
+					pecho( "Warning: A CURL error occurred.  Details can be found in the PHP error log.  Retrying...", PECHO_WARN );
+				}
 				continue;
 			}
-			if( !is_null( $data ) && $data !== false ) break;
+			if( !is_null( $data ) && $data !== false ) {
+				break;
+			}
 		}
 		return $data;
 	}
@@ -192,50 +218,40 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	public function get( $url, $data = null, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy, $displayGetOutData;
+		global $argv, $displayGetOutData;
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
-		if( count( $pgProxy ) ) {
-			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYTYPE, $pgProxy['type']);
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYUSERPWD, $pgProxy['userpass']);
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYPORT, $pgProxy['port']);
-			}
-		}
-		
-		curl_setopt($this->curl_instance,CURLOPT_FOLLOWLOCATION,1);
-		curl_setopt($this->curl_instance,CURLOPT_HTTPGET,1);
-		
+		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_POST, 0 );
+
 		/*if( !is_null( $this->use_cookie ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_COOKIE, $this->use_cookie);
 		}*/
-		
+
 		if( !is_null( $data ) && is_array( $data ) ) {
 			$url .= '?' . http_build_query( $data );
 		}
-		
-		curl_setopt($this->curl_instance,CURLOPT_URL,$url);
-		
-		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
-			if( $displayGetOutData ) pecho( "GET: $url\n", PECHO_NORMAL );
+
+		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
+
+		if( ( !is_null( $argv ) && in_array( 'peachyecho', $argv ) ) || $this->echo ) {
+			if( $displayGetOutData ) {
+				pecho( "GET: $url\n", PECHO_NORMAL );
+			}
 		}
 
 		Hooks::runHook( 'HTTPGet', array( &$this, &$url, &$data ) );
 
 		return $this->doCurlExecWithRetrys();
-		
+
 	}
-	
+
 	/**
 	 * Returns the HTTP code of the last request
-	 * 
+	 *
 	 * @access public
 	 * @return int HTTP code
 	 */
@@ -258,36 +274,26 @@ class HTTP {
 	 * @return bool|string Result
 	 */
 	function post( $url, $data, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy,$displayPostOutData;
+		global $argv, $displayPostOutData;
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
-		if( count( $pgProxy ) ) {
-			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYTYPE, $pgProxy['type']);
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYUSERPWD, $pgProxy['userpass']);
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYPORT, $pgProxy['port']);
-			}
-		}
-		
-		curl_setopt($this->curl_instance,CURLOPT_FOLLOWLOCATION,0);
-		curl_setopt($this->curl_instance,CURLOPT_POST,1);
-		curl_setopt($this->curl_instance,CURLOPT_POSTFIELDS, $data);
-		
+		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 0 );
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 0 );
+		curl_setopt( $this->curl_instance, CURLOPT_POST, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_POSTFIELDS, $data );
+
 		/*if( !is_null( $this->use_cookie ) ) {
 			curl_setopt($this->curl_instance,CURLOPT_COOKIE, $this->use_cookie);
 		}*/
-		
-		curl_setopt($this->curl_instance,CURLOPT_URL,$url);
-		
-		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
-			if( $displayPostOutData ) pecho( "POST: $url\n", PECHO_NORMAL );
+
+		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
+
+		if( ( !is_null( $argv ) && in_array( 'peachyecho', $argv ) ) || $this->echo ) {
+			if( $displayPostOutData ) {
+				pecho( "POST: $url\n", PECHO_NORMAL );
+			}
 		}
 
 		Hooks::runHook( 'HTTPPost', array( &$this, &$url, &$data ) );
@@ -301,49 +307,37 @@ class HTTP {
 	 * @access public
 	 *
 	 * @param string $url URL to get
-	 * @param array $local Local filename to download to
+	 * @param string $local Local filename to download to
 	 * @param array $headers Array of headers to pass to curl
 	 * @param bool|null $verifyssl
 	 *
 	 * @return bool
 	 */
 	function download( $url, $local, $headers = array(), $verifyssl = null ) {
-		global $argv, $pgProxy;
-		
-		$out = fopen($local, 'wb');
+		global $argv;
+
+		$out = fopen( $local, 'wb' );
 
 		$this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
-		
-		if( count( $pgProxy ) ) {
-			curl_setopt($this->curl_instance,CURLOPT_PROXY, $pgProxy['addr']);
-			if( isset( $pgProxy['type'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYTYPE, $pgProxy['type']);
-			}
-			if( isset( $pgProxy['userpass'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYUSERPWD, $pgProxy['userpass']);
-			}
-			if( isset( $pgProxy['port'] ) ) {
-				curl_setopt($this->curl_instance,CURLOPT_PROXYPORT, $pgProxy['port']);
-			}
-		}
-		
 
-		//curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
-		curl_setopt($this->curl_instance, CURLOPT_URL, $url);
-		curl_setopt($this->curl_instance, CURLOPT_HEADER, 0);
-		
-		if( (!is_null( $argv ) && in_array( 'peachyecho', $argv )) || $this->echo ) {
+		// curl_setopt($this->curl_instance, CURLOPT_FILE, $out);
+		curl_setopt( $this->curl_instance, CURLOPT_HTTPGET, 1 );
+		curl_setopt( $this->curl_instance, CURLOPT_POST, 0 );
+		curl_setopt( $this->curl_instance, CURLOPT_URL, $url );
+		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 0 );
+
+		if( ( !is_null( $argv ) && in_array( 'peachyecho', $argv ) ) || $this->echo ) {
 			pecho( "DLOAD: $url\n", PECHO_NORMAL );
 		}
 
 		Hooks::runHook( 'HTTPDownload', array( &$this, &$url, &$local ) );
 
 		fwrite( $out, $this->doCurlExecWithRetrys() );
-		fclose($out);
+		fclose( $out );
 
 		return true;
-		
+
 	}
 
 	/**
@@ -353,17 +347,17 @@ class HTTP {
 	public function getLastHeader() {
 		return $this->lastHeader;
 	}
-	
+
 	/**
 	 * Destructor, deletes cookies and closes cURL class
-	 * 
+	 *
 	 * @access public
 	 * @return void
 	 */
-	function __destruct () {
+	function __destruct() {
 		Hooks::runHook( 'HTTPClose', array( &$this ) );
 
-		curl_close($this->curl_instance);
+		curl_close( $this->curl_instance );
 
 		//@unlink($this->cookie_jar);
 	}
@@ -373,19 +367,19 @@ class HTTP {
 	 */
 	static $defaultInstance = null;
 	static $defaultInstanceWithEcho = null;
-	static function getDefaultInstance( $echo = false ){
+
+	static function getDefaultInstance( $echo = false ) {
 		if( $echo ) {
-			if( is_null( self::$defaultInstanceWithEcho ) ){
+			if( is_null( self::$defaultInstanceWithEcho ) ) {
 				self::$defaultInstanceWithEcho = new Http( $echo );
 			}
 			return self::$defaultInstanceWithEcho;
 		} else {
-			if( is_null( self::$defaultInstance ) ){
+			if( is_null( self::$defaultInstance ) ) {
 				self::$defaultInstance = new Http( $echo );
 			}
 			return self::$defaultInstance;
 		}
 	}
-
 
 }

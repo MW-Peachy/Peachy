@@ -11,12 +11,9 @@ global
 	$pgVerbose,
 	$pgIp,
 	$pgHooks,
-	$pgProxy,
-	$pgUA,
 	$pgVerbose,
 	$pgIRCTrigger,
-	$tmp
-;
+	$tmp;
 
 define( 'PEACHY_PHPUNIT_TESTS', 'true!' );
 

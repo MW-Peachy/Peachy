@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- colors don't work on Windows! -->
+<phpunit bootstrap="Tests/bootstrap.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         forceCoversAnnotation="true"
+         stopOnError="false"
+         stopOnFailure="false"
+         stopOnIncomplete="false"
+         stopOnSkipped="false"
+         strict="true"
+         verbose="true">
+    <testsuites>
+        <testsuite name="PeachyUnitTests">
+            <directory suffix="Test.php">Tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist addUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">Includes</directory>
+            <directory suffix=".php">Plugins</directory>
+            <directory suffix=".php">Scripts</directory>
+        </whitelist>
+    </filter>
+</phpunit>
