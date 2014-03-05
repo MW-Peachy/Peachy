@@ -125,7 +125,7 @@ Class AutoUpdate {
 			if( file_exists( $gitFolder ) ) {
 				$this->rrmdir( $gitFolder );
 			}
-			mkdir( $gitFolder, 2775 );
+			mkdir( $gitFolder, 02775 );
 			$zip->extractTo( $gitFolder );
 			$zip->close();
 
