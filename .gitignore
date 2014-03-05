@@ -225,6 +225,8 @@ test.php
 acc.php
 config.local.inc.php
 Includes/updateversion
+Includes/SSHCore
+Includes/phpseclibupdate
 
 Configs/*
 !Configs/redirector.cfg

@@ -18,19 +18,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * DatabaseMySQL class, specifies the MySQL-specific functions 
+ * DatabaseMySQL class, specifies the MySQL-specific functions
  * @package Database
  */
 class DatabaseMySQL extends DatabaseBase {
-	
+
 	/**
-	 * Runs a mysql query. 
+	 * Runs a mysql query.
 	 * @param string $sql SQL to run
 	 * @return resource
 	 */
 	public function doQuery( $sql ) {
 		$ret = mysql_query( $sql, $this->mConn );
-		return $ret; 
+		return $ret;
 	}
 
 	/**
@@ -42,51 +42,48 @@ class DatabaseMySQL extends DatabaseBase {
 		if( !function_exists( 'mysql_connect' ) ) {
 			throw new DependencyError( "MySQL", "http://us2.php.net/manual/en/book.mysql.php" );
 		}
-		
+
 		if( version_compare( mysql_get_client_info(), '5.0' ) < 0 ) {
 			throw new DependencyError( "MySQL 5.0", "http://us2.php.net/manual/en/book.mysql.php" );
-		} 
-		
-		$this->close(); 
-		
-		$this->mOpened = false; 
-		
-		if ( ini_get( 'mysql.connect_timeout' ) <= 3 ) {
+		}
+
+		$this->close();
+
+		$this->mOpened = false;
+
+		if( ini_get( 'mysql.connect_timeout' ) <= 3 ) {
 			$numAttempts = 2;
-		} 
-		else {
+		} else {
 			$numAttempts = 1;
-		} 
-		
-		for ( $i = 0; $i < $numAttempts && !$this->mConn; $i++ ) {
-			if ( $i > 1 ) {
+		}
+
+		for( $i = 0; $i < $numAttempts && !$this->mConn; $i++ ){
+			if( $i > 1 ) {
 				usleep( 1000 );
 			}
-			
+
 			$this->mConn = mysql_connect( $this->mServer . $this->mPort, $this->mUser, $this->mPassword, true );
-		} 
-		
+		}
+
 		if( $this->mConn && !is_null( $this->mDB ) ) {
 			$this->mOpened = @mysql_select_db( $this->mDB, $this->mConn );
+		} else {
+			$this->mOpened = (bool)$this->mConn;
 		}
-		else {
-			$this->mOpened = (bool) $this->mConn;
-		}
-		
+
 		return $this->mOpened;
 	}
-	
+
 	/**
 	 * Closes the database connection
 	 * @return bool
 	 */
 	public function close() {
 		$this->mOpened = false;
-		
+
 		if( $this->mConn ) {
-			return mysql_close( $this->mConn ); 
-		}
-		else {
+			return mysql_close( $this->mConn );
+		} else {
 			return true;
 		}
 	}
@@ -100,15 +97,15 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return object
 	 */
 	public function fetchObject( $res ) {
-	
+
 		Hooks::runHook( 'DatabaseFetchObject', array( &$res ) );
-		
-		$row = mysql_fetch_object( $res ); 
-		
+
+		$row = mysql_fetch_object( $res );
+
 		if( $this->lastErrno() ) {
 			throw new DBError( $this->lastErrno(), $this->lastError() );
 		}
-		
+
 		return $row;
 	}
 
@@ -121,14 +118,14 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return array
 	 */
 	public function fetchRow( $res ) {
-	
+
 		Hooks::runHook( 'DatabaseFetchRow', array( &$res ) );
-		$row = mysql_fetch_assoc( $res ); 
-		
+		$row = mysql_fetch_assoc( $res );
+
 		if( $this->lastErrno() ) {
 			throw new DBError( $this->lastErrno(), $this->lastError() );
 		}
-		
+
 		return $row;
 	}
 
@@ -141,15 +138,15 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return int
 	 */
 	public function numRows( $res ) {
-	
+
 		Hooks::runHook( 'DatabaseNumRows', array( &$res ) );
-		
-		$row = mysql_num_rows( $res ); 
-		
+
+		$row = mysql_num_rows( $res );
+
 		if( $this->lastErrno() ) {
 			throw new DBError( $this->lastErrno(), $this->lastError() );
 		}
-		
+
 		return $row;
 	}
 
@@ -162,18 +159,18 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return int
 	 */
 	public function numFields( $res ) {
-		
+
 		Hooks::runHook( 'DatabaseNumFields', array( &$res ) );
-		
-		$row = mysql_num_fields( $res ); 
-		
+
+		$row = mysql_num_fields( $res );
+
 		if( $this->lastErrno() ) {
 			throw new DBError( $this->lastErrno(), $this->lastError() );
 		}
-		
+
 		return $row;
 	}
-	
+
 	/**
 	 * Get the name of a specified field using mysql_field_name()
 	 * @param resource $res MySQL result from mysql_query()
@@ -181,108 +178,106 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return string
 	 */
 	public function get_field_name( $res, $n ) {
-		
+
 		Hooks::runHook( 'DatabaseFieldName', array( &$res, &$n ) );
-		
-		return mysql_field_name( $res, $n ); 
+
+		return mysql_field_name( $res, $n );
 	}
-	
+
 	/**
 	 * Returns ID generated in the previous query
 	 * @return int
 	 */
-	public function get_insert_id() { 
-		
+	public function get_insert_id() {
+
 		Hooks::runHook( 'DatabaseGetInsertId', array() );
-		return mysql_insert_id( $this->mConn ); 
-	} 
-	
+		return mysql_insert_id( $this->mConn );
+	}
+
 	/**
 	 * Returns the error code from the last query
 	 * @return int
 	 */
 	public function lastErrno() {
-		if ( $this->mConn ) {
+		if( $this->mConn ) {
 			return mysql_errno( $this->mConn );
-		} 
-		else {
+		} else {
 			return mysql_errno();
 		}
 	}
-	
+
 	/**
 	 * Returns the error string from the last query
 	 * @return string
 	 */
 	public function lastError() {
-		if ( $this->mConn ) {
+		if( $this->mConn ) {
 			$error = mysql_error( $this->mConn );
-			if ( !$error ) {
+			if( !$error ) {
 				$error = mysql_error();
 			}
-		} 
-		else {
+		} else {
 			$error = mysql_error();
 		}
-		
+
 		return $error;
 	}
-	
+
 	/**
 	 * Returns the number of affected rows in the last query
 	 * @return int
 	 */
 	public function affectedRows() {
-	
+
 		Hooks::runHook( 'DatabaseAffectedRows', array() );
-		 
-		return mysql_affected_rows( $this->mConn ); 
-	} 
-	
+
+		return mysql_affected_rows( $this->mConn );
+	}
+
 	/**
 	 * Sanitizes a text field
 	 * @param string $s
 	 * @return string
 	 */
 	public function strencode( $s ) {
-	
+
 		Hooks::runHook( 'DatabaseEscape', array( &$s ) );
-		
+
 		$sQuoted = mysql_real_escape_string( $s, $this->mConn );
 
 		if( !$sQuoted ) {
 			$this->ping();
 			$sQuoted = mysql_real_escape_string( $s, $this->mConn );
 		}
-	
+
 		return $sQuoted;
-	} 
-	
+	}
+
 	/**
 	 * Pings the server and reconnects if necessary
 	 * @return bool
 	 */
 	public function ping() {
-	
+
 		Hooks::runHook( 'DatabasePing', array() );
-		
+
 		$ping = mysql_ping( $this->mConn );
-		
-		if ( $ping ) {
+
+		if( $ping ) {
 			return true;
 		}
 
 		mysql_close( $this->mConn );
-		
+
 		$this->mOpened = false;
-		
+
 		$this->mConn = false;
-		
+
 		$this->open( $this->mServer, $this->mUser, $this->mPassword, $this->mDBname );
-		
-		return true; 
+
+		return true;
 	}
-	
+
 	/**
 	 * Moves internal result pointer
 	 * @param resource $res MySQL result from mysql_query()
@@ -290,11 +285,11 @@ class DatabaseMySQL extends DatabaseBase {
 	 * @return bool
 	 */
 	public function dataSeek( $res, $row ) {
-		
+
 		Hooks::runHook( 'DatabaseDataSeek', array( &$res, &$row ) );
-		
+
 		return mysql_data_seek( $res, $row );
 	}
-	
-	
+
+
 }

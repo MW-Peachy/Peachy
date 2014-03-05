@@ -24,13 +24,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Generic Peachy Error
- * 
+ *
  * @package Exceptions
  */
 class PeachyError extends Exception {
 
 	public function __construct( $code, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"API Error: " . $code . " (" . $text . ")"
 		);
 	}
@@ -38,13 +38,13 @@ class PeachyError extends Exception {
 
 /**
  * Generic API Error
- * 
+ *
  * @package Exceptions
  */
 class APIError extends Exception {
 
 	public function __construct( $error ) {
-		parent::__construct( 
+		parent::__construct(
 			"API Error: " . $error['code'] . " (" . $error['text'] . $error['info'] . ")"
 		);
 	}
@@ -52,12 +52,12 @@ class APIError extends Exception {
 
 /**
  * Error with user permissions
- * 
+ *
  * @package Exceptions
  */
 class PermissionsError extends Exception {
 	public function __construct( $error ) {
-		parent::__construct( 
+		parent::__construct(
 			"Permissions Error: " . $error
 		);
 	}
@@ -65,25 +65,30 @@ class PermissionsError extends Exception {
 
 /**
  * Generic cURL Error
- * 
+ *
  * @package Exceptions
  */
 class CURLError extends Exception {
 	private $errno;
 	private $error;
-	
+
+	/**
+	 * @param integer $errno
+	 * @param string $error
+	 */
 	public function __construct( $errno, $error ) {
 		$this->errno = $errno;
 		$this->error = $error;
-		
-		parent::__construct( 
+
+		parent::__construct(
 			"cURL Error (" . $this->errno . "): " . $this->error
 		);
 	}
-	
+
 	public function get_errno() {
 		return $this->errno;
 	}
+
 	public function get_error() {
 		return $this->error;
 	}
@@ -92,21 +97,21 @@ class CURLError extends Exception {
 
 /**
  * Invalid Title Error
- * 
+ *
  * @package Exceptions
  */
 class BadTitle extends Exception {
-	
+
 	private $title;
-	
+
 	public function __construct( $title ) {
 		$this->title = $title;
-		parent::__construct( 
+		parent::__construct(
 			"Invalid title: $title"
 		);
- 
+
 	}
-	
+
 	public function getTitle() {
 		return $this->title;
 	}
@@ -114,69 +119,69 @@ class BadTitle extends Exception {
 
 /**
  * No Title Error
- * 
+ *
  * @package Exceptions
  */
 class NoTitle extends Exception {
 
 	public function __construct() {
-		parent::__construct( 
+		parent::__construct(
 			"No title or pageid stated when instantiating Page class"
 		);
- 
+
 	}
 }
 
 /**
  * No User Error
- * 
+ *
  * @package Exceptions
  */
 class NoUser extends Exception {
 
 	public function __construct( $title ) {
-		parent::__construct( 
+		parent::__construct(
 			"Non-existant user: $title"
 		);
- 
+
 	}
 }
 
 /**
  * Blocked User Error
- * 
+ *
  * @package Exceptions
  */
 class UserBlocked extends Exception {
 
 	public function __construct( $username = "User" ) {
-		parent::__construct( 
+		parent::__construct(
 			$username . " is currently blocked."
 		);
- 
+
 	}
 
 }
 
 /**
  * Logged Out Error
- * 
+ *
  * @package Exceptions
  */
 class LoggedOut extends Exception {
 
 	public function __construct() {
-		parent::__construct( 
+		parent::__construct(
 			"User is not logged in."
 		);
- 
+
 	}
 
 }
 
 /**
  * Missing DependencyError Error
- * 
+ *
  * @package Exceptions
  */
 class DependencyError extends Exception {
@@ -184,17 +189,17 @@ class DependencyError extends Exception {
 	public function __construct( $software, $url = false ) {
 		$message = "Missing dependency: \`" . $software . "\`. ";
 		if( $url ) $message .= "Download from <$url>";
-		parent::__construct( 
+		parent::__construct(
 			$message
 		);
- 
+
 	}
 
 }
 
 /**
  * Misspelling of "dependency", used for backwards compatibility
- * 
+ *
  * @package Exceptions
  * @deprecated since 31 Jan 2014
  */
@@ -206,12 +211,16 @@ class DependancyError extends DependencyError {
 
 /**
  * Login Error
- * 
+ *
  * @package Exceptions
  */
 class LoginError extends Exception {
+
+	/**
+	 * @param string[] $error
+	 */
 	public function __construct( $error ) {
-		parent::__construct( 
+		parent::__construct(
 			"Login Error: " . $error[0] . " (" . $error[1] . ")"
 		);
 	}
@@ -219,27 +228,31 @@ class LoginError extends Exception {
 
 /**
  * Peachy Hook Error
- * 
+ *
  * @package Exceptions
  * @package Peachy_Hooks
  */
 class HookError extends Exception {
 	public function __construct( $error ) {
-		parent::__construct( 
-			"Hook Error: " . $error 
+		parent::__construct(
+			"Hook Error: " . $error
 		);
 	}
 }
 
 /**
  * Generic Database Error
- * 
+ *
  * @package Exceptions
  * @package Peachy_Database
  */
 class DBError extends Exception {
+
+	/**
+	 * @param string $sql
+	 */
 	public function __construct( $error, $errno, $sql = null ) {
-		parent::__construct( 
+		parent::__construct(
 			"Database Error: " . $error . " (code $errno) " . $sql
 		);
 	}
@@ -247,12 +260,17 @@ class DBError extends Exception {
 
 /**
  * Generic Edit Error
- * 
+ *
  * @package Exceptions
  */
 class EditError extends Exception {
+
+	/**
+	 * @param string $error
+	 * @param string $text
+	 */
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Edit Error: " . $error . " ($text)"
 		);
 	}
@@ -260,12 +278,12 @@ class EditError extends Exception {
 
 /**
  * Generic Move Error
- * 
+ *
  * @package Exceptions
  */
 class MoveError extends Exception {
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Move Error: " . $error . " ($text)"
 		);
 	}
@@ -273,12 +291,12 @@ class MoveError extends Exception {
 
 /**
  * Generic Delete Error
- * 
+ *
  * @package Exceptions
  */
 class DeleteError extends Exception {
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Delete Error: " . $error . " ($text)"
 		);
 	}
@@ -286,12 +304,12 @@ class DeleteError extends Exception {
 
 /**
  * Generic Undelete Error
- * 
+ *
  * @package Exceptions
  */
 class UndeleteError extends Exception {
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Undelete Error: " . $error . " ($text)"
 		);
 	}
@@ -299,12 +317,12 @@ class UndeleteError extends Exception {
 
 /**
  * Generic Protect Error
- * 
+ *
  * @package Exceptions
  */
 class ProtectError extends Exception {
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Protect Error: " . $error . " ($text)"
 		);
 	}
@@ -312,12 +330,12 @@ class ProtectError extends Exception {
 
 /**
  * Generic Email Error
- * 
+ *
  * @package Exceptions
  */
 class EmailError extends Exception {
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Email Error: " . $error . " ($text)"
 		);
 	}
@@ -325,25 +343,29 @@ class EmailError extends Exception {
 
 /**
  * Generic Image Error
- * 
+ *
  * @package Exceptions
  */
 class ImageError extends Exception {
 	public function __construct( $error ) {
-		parent::__construct( 
-			"Image Error: " . $error 
+		parent::__construct(
+			"Image Error: " . $error
 		);
 	}
 }
 
 /**
  * Error for wrong parameters in a function
- * 
+ *
  * @package Exceptions
  */
 class BadEntryError extends Exception {
+
+	/**
+	 * @param string $error
+	 */
 	public function __construct( $error, $text ) {
-		parent::__construct( 
+		parent::__construct(
 			"Bad Entry Error: " . $error . " ($text)"
 		);
 	}
@@ -351,13 +373,13 @@ class BadEntryError extends Exception {
 
 /**
  * Generic XML Error
- * 
+ *
  * @package Exceptions
  * @package XML
  */
 class XMLError extends Exception {
 	public function __construct( $error ) {
-		parent::__construct( 
+		parent::__construct(
 			"XML Error: " . $error
 		);
 	}

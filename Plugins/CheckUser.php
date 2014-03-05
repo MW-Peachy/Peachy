@@ -1,5 +1,7 @@
 <?php
 
+//For now, this is an example of how a plugin would work with more than one function to a class.
+
 /*
 This file is part of Peachy MediaWiki Bot API
 
@@ -17,10 +19,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * DatabaseMySQLi class, specifies the MySQLi-specific functions
- * @package Database
- */
-class DatabaseMySQLi extends DatabaseMySQL {
+class CheckUser {
 
+	function __construct( Wiki &$wikiclass = null ) {
+
+		$extensions = $wikiClass->get_extensions();
+		if( !array_key_exists( 'CheckUser', $extensions ) ) {
+			throw new DependencyError( "CheckUser", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
+		} elseif( $extensions['CheckUser'] < 3 ) {
+			throw new DependencyError( "CheckUser version 3.0 or up", "http://www.mediawiki.org/wiki/Extension:CheckUser" );
+		}
+	}
 }
