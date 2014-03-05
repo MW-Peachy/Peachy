@@ -249,8 +249,8 @@ class Page {
 		if( !is_string( $title ) && !is_null( $title ) ) {
 			throw new InvalidArgumentException( '$title must be a string or null' );
 		}
-		if( !is_int( $pageid ) && !is_null( $pageid ) ) {
-			throw new InvalidArgumentException( '$pageid must be a int or null' );
+		if( !is_int( $pageid ) && !is_null( $pageid ) && !is_string( $pageid ) ) {
+			throw new InvalidArgumentException( '$pageid must be a int, string, or null' );
 		}
 		if( !is_bool( $followRedir ) ) {
 			throw new InvalidArgumentException( '$followRedir must be a bool' );
