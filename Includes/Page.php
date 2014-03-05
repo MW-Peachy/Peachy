@@ -818,12 +818,11 @@ class Page {
 	 */
 	public function get_protection( $force = false ) {
 
-		if( !$force && $this->protection === null ) {
+		if( !$force && $this->protection !== null ) {
 			return $this->protection;
 		}
 
 		$this->protection = array();
-		if( !$this->exists ) return array();
 
 		$tArray = array(
 			'action' => 'query',
