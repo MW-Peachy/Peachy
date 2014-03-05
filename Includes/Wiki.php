@@ -1215,7 +1215,7 @@ class Wiki {
 	 *
 	 * @access public
 	 * @link http://www.mediawiki.org/wiki/API:Query_-_Lists#logevents_.2F_le
-	 * @param bool|array $type Type of log to retrieve from the wiki (default: false)
+	 * @param bool|string $type Type of log to retrieve from the wiki (default: false)
 	 * @param bool|string $user Restrict the log to a certain user (default: false)
 	 * @param bool|string $title Restrict the log to a certain page (default: false)
 	 * @param bool|string $start Timestamp for the start of the log (default: false)
@@ -1227,7 +1227,7 @@ class Wiki {
 	 * @return array Log entries
 	 */
 	public function logs( $type = false, $user = false, $title = false, $start = false, $end = false, $dir = 'older', $tag = false, $prop = array(
-		'ids', 'title', 'type', 'user', 'timestamp', 'comment', 'details'
+		'ids', 'title', 'type', 'user', 'userid', 'timestamp', 'comment', 'parsedcomment', 'details', 'tags'
 	), $limit = 50 ) {
 
 		$leArray = array(
@@ -1238,7 +1238,7 @@ class Wiki {
 			'_limit' => $limit
 		);
 
-		if( is_array( $type ) ) $leArray['letype'] = implode( '|', $type );
+		if( $type ) $leArray['letype'] = $type;
 		if( $start ) $leArray['lestart'] = $start;
 		if( $end ) $leArray['leend'] = $end;
 		if( $user ) $leArray['leuser'] = $user;
