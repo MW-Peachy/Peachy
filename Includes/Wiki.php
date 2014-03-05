@@ -531,7 +531,7 @@ class Wiki {
 		$arrayParams['requestid'] = $requestid;
 		$assert = false;
 
-		if( !file_exists( $pgIP . 'Includes/Communication_Logs' ) ) mkdir( $pgIP . 'Includes/Communication_Logs', 2775 );
+		if( !file_exists( $pgIP . 'Includes/Communication_Logs' ) ) mkdir( $pgIP . 'Includes/Communication_Logs', 02775 );
 		if( $post && $this->isFlagged && isset( $arrayParams['assert'] ) && $arrayParams['assert'] == 'user' ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
