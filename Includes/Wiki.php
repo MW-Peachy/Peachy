@@ -1733,18 +1733,19 @@ class Wiki {
 	 */
 	public function parse( $text = null, $title = null, $summary = null, $pst = false, $onlypst = false, $prop = null, $uselang = 'en', $page = null, $oldid = null, $pageid = null, $redirects = false, $section = null, $disablepp = false, $generatexml = false, $contentformat = null, $contentmodel = null, $mobileformat = null, $noimages = false, $mainpage = false ) {
 
-		if( $generatexml ) {
-			if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
-			$apiArray['generatexml'] = 'yes';
-		}
-
-		if( $prop !== null ){
+		if( $prop === null ){
 			$prop = array(
 				'text', 'langlinks', 'categories', 'categorieshtml', 'languageshtml', 'links', 'templates', 'images',
 				'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext',
 				'properties'
 			);
 		};
+        
+        if( $generatexml ) {
+            if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
+            $apiArray['generatexml'] = 'yes';
+        }
+        
 		$apiArray = array(
 			'action'  => 'parse',
 			'uselang' => $uselang,
@@ -1963,7 +1964,7 @@ class Wiki {
 	public function get_tokens( $force = false ) {
 		Hooks::runHook( 'GetTokens', array( &$this->tokens ) );
 
-		if( $force ) return $this->tokens;
+		if( !$force && !empty( $this->tokens ) ) return $this->tokens;
 
 		$tokens = $this->apiQuery(
 			array(
@@ -1977,6 +1978,22 @@ class Wiki {
 				$this->tokens[str_replace( 'token', '', $y )] = $z;
 			}
 		}
+        
+        $token = $this->apiQuery(
+            array(
+                'action'  => 'query',
+                'list'    => 'users',
+                'ususers' => $this->username,
+                'ustoken' => 'userrights'
+            )
+        );
+        
+        if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
+            $this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
+        } else {
+            pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
+            return false;
+        }
 
 		return $this->tokens;
 
@@ -2231,51 +2248,7 @@ class Wiki {
 		);
 
 		$OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );
-		return $this->parsexml( $OSres );
-	}
-
-	/**
-	 * Parse an XML string into an array.  For more features, use the XML plugins.
-	 *
-	 * @access public
-	 * @param string|object $xml The XML blob to be parsed.
-	 * @param bool $recurse Part of the parsing parameters.  Leave false.
-	 * @param int $level Part of the parsing parameters.  Leave set to 1.
-	 * @return array
-	 */
-	public function parsexml( $xml, $recurse = false, $level = 1 ) {
-		if( !$recurse ) {
-			$parser = xml_parser_create();
-			xml_parse_into_struct( $parser, $xml, $values );
-			xml_parser_free( $parser );
-		} else {
-			$values = $xml;
-		}
-		$endarray = array();
-		foreach( $values as $id => $value ){
-			if( $value['type'] == 'open' ) {
-				unset( $values[$id] );
-				if( $value['level'] == $level ) {
-					if( !isset( $endarray[$value['tag']] ) ) {
-						$endarray[$value['tag']] = $this->parsexml( $values, true, $value['level'] + 1 );
-					} else {
-						if( is_array( $endarray[$value['tag']] ) ) {
-							$endarray[$value['tag']][] = $this->parsexml( $values, true, $value['level'] + 1 );
-						} else {
-							$endarray[$value['tag']] = array( $endarray[$value['tag']] );
-							$endarray[$value['tag']][] = $this->parsexml( $values, true, $value['level'] + 1 );
-						}
-					}
-				}
-			} elseif( $value['type'] == 'complete' ) {
-				if( $level == $value['level'] ) $endarray[$value['tag']] = $value['value'];
-				unset( $values[$id] );
-			} else {
-				if( $value['level'] == $level - 1 ) return $endarray;
-				unset( $values[$id] );
-			}
-		}
-		return $endarray;
+		return XMLParse::load( $OSres );
 	}
 
 	/**

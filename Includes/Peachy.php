@@ -46,7 +46,7 @@ class Peachy {
 			$config_params['nologin'] = true;
 		}
 
-		list( $version, $extensions ) = Peachy::wikiChecks( $config_params['baseurl'] );
+		list( $version, $extensions ) = self::wikiChecks( $config_params['baseurl'] );
 
 		Hooks::runHook( 'StartLogin', array( &$config_params, &$extensions ) );
 

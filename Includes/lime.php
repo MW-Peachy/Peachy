@@ -294,7 +294,8 @@ class lime_test
    */
   public function cmp_ok($exp1, $op, $exp2, $message = '')
   {
-    $php = sprintf("\$result = \$exp1 $op \$exp2;");
+      $result = false;
+      $php = sprintf("\$result = \$exp1 $op \$exp2;");
     // under some unknown conditions the sprintf() call causes a segmentation fault
     // when placed directly in the eval() call
     eval($php);
@@ -1302,6 +1303,7 @@ EOF;
       $cov = isset($this->coverage[$file]) ? $this->coverage[$file] : array();
       $covered_lines = array();
       $missing_lines = array();
+      $output = null;
 
       foreach ($cov as $line => $flag)
       {

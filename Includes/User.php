@@ -219,7 +219,7 @@ class User {
 			return false;
 		}
 
-		$token = $this->apiQuery(
+		$token = $this->wiki->apiQuery(
 			array(
 				'action' => 'createaccount',
 				'name'   => $this->username
@@ -606,7 +606,7 @@ class User {
 				array(
 					'action'  => 'query',
 					'list'    => 'users',
-					'ususers' => $username,
+					'ususers' => $this->username,
 					'usprop'  => 'groups'
 				)
 			);
@@ -707,26 +707,11 @@ class User {
 		global $notag, $tag;
 		$token = $this->wiki->get_tokens();
 
-		$token = $this->wiki->apiQuery(
-			array(
-				'action'  => 'query',
-				'list'    => 'users',
-				'ususers' => $this->username,
-				'ustoken' => 'userrights'
-			)
-		);
-
-		if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
-			$token = $token['query']['users'][0]['userrightstoken'];
-		} else {
-			pecho( "Error retrieving token...\n\n", PECHO_FATAL );
-			return false;
-		}
 		if( !$notag ) $reason .= $tag;
 		$apiArr = array(
 			'action' => 'userrights',
 			'user'   => $this->username,
-			'token'  => $token,
+			'token'  => $token['userrights'],
 			'add'    => implode( '|', $add ),
 			'remove' => implode( '|', $remove ),
 			'reason' => $reason
