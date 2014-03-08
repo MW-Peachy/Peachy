@@ -481,65 +481,30 @@ class User {
 	 *
 	 * @access public
 	 * @param bool $force Whether or not to use the locally stored cache. Default false.
-	 * @param Database &$database Use an instance of the Database class to get a more accurate count
-	 * @param bool $liveonly Whether or not to only get the live edit count. Only works with $database. Defaulf false.
+	 * @param Database &$database Use an instance of the mysqli class to get a more accurate count
+	 * @param bool $liveonly Whether or not to only get the live edit count. Only works with $database. Default false.
 	 * @return int Edit count
 	 */
 	public function get_editcount( $force = false, &$database = null, $liveonly = false ) {
 		global $useLabs;
 		//First check if $database exists, because that returns a more accurate count
-		if( !is_null( $database ) && ( $database instanceOf Database || $database instanceOf DatabaseBase ) ) {
+		if( !is_null( $database ) && $database instanceOf mysqli ) {
 
 			pecho( "Getting edit count for {$this->username} using the Database class...\n\n", PECHO_NORMAL );
 
-			if( $useLabs ) {
-				$count = $database->select(
-					'archive_userindex',
-					'COUNT(*) as count',
-					array(
-						'ar_user_text' => $this->username
-					)
-				);
-			} else {
-				$count = $database->select(
-					'archive',
-					'COUNT(*) as count',
-					array(
-						'ar_user_text' => $this->username
-					)
-				);
-			}
-
-			if( isset( $count[0]['count'] ) && !$liveonly ) {
-				$del_count = $count[0]['count'];
-			} else {
-				$del_count = 0;
-			}
-
-			unset( $count );
-			if( $useLabs ) {
-				$count = $database->select(
-					'revision_userindex',
-					'COUNT(*) as count',
-					array(
-						'rev_user_text' => $this->username
-					)
-				);
-			} else {
-				$count = $database->select(
-					'revision',
-					'COUNT(*) as count',
-					array(
-						'rev_user_text' => $this->username
-					)
-				);
-			}
-
-			if( isset( $count[0]['count'] ) ) {
-				$live_count = $count[0]['count'];
-			} else {
-				$live_count = 0;
-			}
+			if( !$liveonly && $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $useLabs ? "archive_userindex" : "archive" ) . " WHERE `ar_user_text` = '{$this->username}';" ) ) {
+                $res = mysqli_fetch_assoc( $result );
+                $del_count = $res['count'];
+                mysqli_free_result( $result );
+                unset( $res );
+            } else $del_count = 0;
+            
+            if( $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $useLabs ? "revision_userindex" : "revision" ) . " WHERE `rev_user_text` = '{$this->username}';" ) ) {
+                $res = mysqli_fetch_assoc( $result );
+                $live_count = $res['count'];
+                mysqli_free_result( $result );
+                unset( $res );
+            } else $live_count = 0;          
 
 			$this->editcount = $del_count + $live_count;
 		} else {
