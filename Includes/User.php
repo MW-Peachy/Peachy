@@ -207,6 +207,7 @@ class User {
 	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string $language Language code to set as default for the user (optional, defaults to content language). Default null.
 	 * @param string $domain Domain for external authentication (optional). Default null.
+	 * @return bool True on success, false otherwise
 	 */
 	public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
 		global $notag, $tag;
@@ -305,7 +306,7 @@ class User {
 	 * get_blockinfo function.
 	 *
 	 * @access public
-	 * @return void
+	 * @return array
 	 */
 	public function get_blockinfo() {
 		return $this->blockinfo;
@@ -485,7 +486,7 @@ class User {
 	 * @param bool $liveonly Whether or not to only get the live edit count. Only works with $database. Default false.
 	 * @return int Edit count
 	 */
-	public function get_editcount( $force = false, &$database = null, $liveonly = false ) {
+	public function get_editcount( $force = false, Database &$database = null, $liveonly = false ) {
 		global $useLabs;
 		//First check if $database exists, because that returns a more accurate count
 		if( !is_null( $database ) && $database instanceOf mysqli ) {
@@ -618,10 +619,11 @@ class User {
 	 * @param string $text Text to send
 	 * @param string $subject Subject of email. Default 'Wikipedia Email'
 	 * @param bool $ccme Whether or not to send a copy of the email to "myself". Default false.
-	 * $return void
+	 * @throws EmailError
+	 * @return bool True on success, false otherwise.
 	 */
 	public function email( $text = null, $subject = "Wikipedia Email", $ccme = false ) {
-		global $notag, $tag;
+		global $notag;
 		if( !$this->has_email() ) {
 			pecho( "Cannot email {$this->username}, user has email disabled", PECHO_FATAL );
 			return false;
@@ -670,7 +672,6 @@ class User {
 
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
 		global $notag, $tag;
-		$token = $this->wiki->get_tokens();
 
 		if( !$notag ) $reason .= $tag;
 		$apiArr = array(
