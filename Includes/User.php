@@ -341,7 +341,7 @@ class User {
 			return false;
 		}
 
-		if( !$this->exists() ) {
+		if( !$this->exists() && !$this->is_ip() ) {
 			pecho( "User does not exist.\n\n", PECHO_FATAL );
 			return false;
 		}
