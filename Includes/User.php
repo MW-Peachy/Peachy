@@ -57,7 +57,7 @@ class User {
 	 * @var bool
 	 * @access protected
 	 */
-	protected $blocked = false;
+	protected $blocked;
 
 	/**
 	 * Array of block parameters
@@ -291,7 +291,7 @@ class User {
 	 */
 	public function is_blocked( $force = false ) {
 
-		if( $force ) {
+		if( !$force && $this->blocked !== null ) {
 			return $this->blocked;
 		}
 
