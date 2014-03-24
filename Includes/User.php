@@ -57,7 +57,7 @@ class User {
 	 * @var bool
 	 * @access protected
 	 */
-	protected $blocked = false;
+	protected $blocked;
 
 	/**
 	 * Array of block parameters
@@ -207,6 +207,7 @@ class User {
 	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string $language Language code to set as default for the user (optional, defaults to content language). Default null.
 	 * @param string $domain Domain for external authentication (optional). Default null.
+	 * @return bool True on success, false otherwise
 	 */
 	public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
 		global $notag, $tag;
@@ -290,7 +291,7 @@ class User {
 	 */
 	public function is_blocked( $force = false ) {
 
-		if( $force ) {
+		if( !$force && $this->blocked !== null ) {
 			return $this->blocked;
 		}
 
@@ -305,7 +306,7 @@ class User {
 	 * get_blockinfo function.
 	 *
 	 * @access public
-	 * @return void
+	 * @return array
 	 */
 	public function get_blockinfo() {
 		return $this->blockinfo;
@@ -340,7 +341,7 @@ class User {
 			return false;
 		}
 
-		if( !$this->exists() ) {
+		if( !$this->exists() && !$this->is_ip() ) {
 			pecho( "User does not exist.\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -618,10 +619,11 @@ class User {
 	 * @param string $text Text to send
 	 * @param string $subject Subject of email. Default 'Wikipedia Email'
 	 * @param bool $ccme Whether or not to send a copy of the email to "myself". Default false.
-	 * $return void
+	 * @throws EmailError
+	 * @return bool True on success, false otherwise.
 	 */
 	public function email( $text = null, $subject = "Wikipedia Email", $ccme = false ) {
-		global $notag, $tag;
+		global $notag;
 		if( !$this->has_email() ) {
 			pecho( "Cannot email {$this->username}, user has email disabled", PECHO_FATAL );
 			return false;
@@ -670,7 +672,6 @@ class User {
 
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
 		global $notag, $tag;
-		$token = $this->wiki->get_tokens();
 
 		if( !$notag ) $reason .= $tag;
 		$apiArr = array(
