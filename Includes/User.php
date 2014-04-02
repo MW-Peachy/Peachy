@@ -349,11 +349,13 @@ class User {
 		}
 
 		if( $range !== null ) {
+			// intval() returns 0 or 1 on failure
+			$range = intval( $range );
 			if( !$this->is_ip() ) {
 				pecho( "Can only combine a range with an IP address, not a username.\n\n", PECHO_WARN );
 			}
-			if( $range !== null && ( !is_integer( $range) || $range < 0 || $range > 32 ) ) {
-				pecho( "Range must be an integer between 0 and 32 (more restrictive limits may also apply).\n\n", PECHO_WARN );
+			if( $range !== null && ( $range < 2 || $range > 32 ) ) {
+				pecho( "Range must be an integer between 2 and 32 inclusive (more restrictive limits may also apply).\n\n", PECHO_WARN );
 			}
 			$target .= '/' . $range;
 		}
