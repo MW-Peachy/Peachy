@@ -330,11 +330,13 @@ class User {
 	 * @param string $expiry Expiry. Can be a date, {@link http://www.gnu.org/software/tar/manual/html_node/Date-input-formats.html GNU formatted date}, indefinite, or anything else that MediaWiki accepts. Default indefinite.
 	 * @param array $params Parameters to set. Options are anononly, nocreate, autoblock, noemail, hidename, noallowusertalk. Defdault array().
 	 * @param bool $watch Watch the user/IP's user and talk pages. Default false.
+	 * @param int $range The number of CIDR prefix bits to use for a rangeblock. Default null.
 	 * @return bool
 	 */
-	public function block( $reason = null, $expiry = 'indefinite', $params = array(), $watch = false ) {
+	public function block( $reason = null, $expiry = 'indefinite', $params = array(), $watch = false, $range = null ) {
 		global $notag, $tag;
 		$token = $this->wiki->get_tokens();
+		$target = $this->username;
 
 		if( !in_array( 'block', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to block users.\n\n", PECHO_FATAL );
@@ -346,11 +348,21 @@ class User {
 			return false;
 		}
 
+		if( $range !== null ) {
+			if( !$this->is_ip() ) {
+				pecho( "Can only combine a range with an IP address, not a username.\n\n", PECHO_WARN );
+			}
+			if( $range !== null && ( !is_integer( $range) || $range < 0 || $range > 32 ) ) {
+				pecho( "Range must be an integer between 0 and 32 (more restrictive limits may also apply).\n\n", PECHO_WARN );
+			}
+			$target .= '/' . $range;
+		}
+
 		if( !array_key_exists( 'block', $token ) ) return false;
 
 		$apiArr = array(
 			'action'        => 'block',
-			'user'          => $this->username,
+			'user'          => $target,
 			'token'         => $token['block'],
 			'expiry'        => $expiry,
 			'reblock'       => 'yes',
@@ -390,7 +402,7 @@ class User {
 
 		Hooks::runHook( 'StartBlock', array( &$apiArr ) );
 
-		pecho( "Blocking {$this->username}...\n\n", PECHO_NOTICE );
+		pecho( "Blocking $target...\n\n", PECHO_NOTICE );
 
 		try{
 			$this->preEditChecks( "Block" );
