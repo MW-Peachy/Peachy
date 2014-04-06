@@ -416,7 +416,7 @@ class User {
 		$result = $this->wiki->apiQuery( $apiArr, true );
 
 		if( isset( $result['block'] ) ) {
-			if( isset( $result['block']['user'] ) ) {
+			if( !isset( $result['error'] ) ) {
 				$this->__construct( $this->wiki, $this->username );
 				return true;
 			} else {
