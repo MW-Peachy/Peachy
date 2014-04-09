@@ -567,6 +567,12 @@ class Wiki {
 
 				$data = $data2;
 				unset( $data2 );
+                if( isset( $data['error'] ) && $data['error']['code'] == 'badtoken' ) {
+                    pecho( "API Error...\n\nBadtoken detected retrying with new tokens...\n\n", PECHO_WARN );
+                    $tokens = $this->get_tokens( true );
+                    $arrayParams['token'] = $tokens[$arrayParams['action']];
+                    continue;
+                }
 				if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 					pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
 					$tempSetting = $displayGetOutData;
