@@ -42,7 +42,7 @@ class Wiki {
 	 * @var Object
 	 * @access protected
 	 */
-	protected $SSH;
+	protected $SSH = false;
 
 	/**
 	 * Username for the user editing the wiki.
@@ -50,7 +50,7 @@ class Wiki {
 	 * @var string
 	 * @access protected
 	 */
-	protected $username;
+	protected $pgUsername;
 
 	/**
 	 * Edit of editing for the wiki in EPM.
@@ -81,14 +81,34 @@ class Wiki {
 	protected $apiQueryLimit = 49;
 
 	/**
-	 * Does the user have a bot flag.
+	 * Does the user have to have the bot flag to edit.
 	 *
 	 * (default value: false)
 	 *
 	 * @var bool
 	 * @access protected
 	 */
-	protected $isFlagged = false;
+	protected $requiresFlag = false;
+    
+    /**
+     * Can the user continue editing logged out.
+     *
+     * (default value: false)
+     *
+     * @var bool
+     * @access protected
+     */
+    protected $allowLoggedOutEditing = false;
+   
+    /**
+     * Does the user have a bot flag.
+     *
+     * (default value: false)
+     *
+     * @var bool
+     * @access protected
+     */
+    protected $isFlagged = false;    
 
 	/**
 	 * Array of extenstions on the Wiki in the form of name => version.
@@ -224,6 +244,14 @@ class Wiki {
 	 * @access public
 	 */
 	public $mwversion;
+    
+    /**
+    * Caches configuration information for logging back in with identical settings.
+    * 
+    * @var array
+    * @access protected
+    */
+    protected $cached_config;
 
 	/**
 	 * Contruct function for the wiki. Handles login and related functions.
@@ -237,9 +265,12 @@ class Wiki {
 	 * @throws LoginError
 	 */
 	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
-		global $pgProxy, $pgVerbose, $useSSH, $host, $port, $username, $prikey, $passphrase, $protocol, $timeout;
+		global $pgProxy, $pgVerbose, $pgUseSSH, $pgHost, $pgPort, $pgUsername, $pgPrikey, $pgPassphrase, $pgProtocol, $pgTimeout;
 
-		if( !array_key_exists( 'encodedparams', $configuration ) ) {
+		$this->cached_config['config'] = $configuration;
+        $this->cached_config['extensions'] = $extensions; 
+        
+        if( !array_key_exists( 'encodedparams', $configuration ) ) {
 			$configuration['encodedparams'] = rawurlencode( serialize( $configuration ) );
 		}
 
@@ -252,7 +283,9 @@ class Wiki {
 			'iwbacklinks', 'langbacklinks', 'links', 'oldreviewedpages', 'protectedtitles', 'querypage', 'random',
 			'recentchanges', 'search', 'templates', 'watchlist', 'watchlistraw'
 		);
-
+        
+        if( isset( $configuration['editwhileloggedout'] ) ) $this->allowLoggedOutEditing = true;
+        if( isset( $configuration['requirebotflag'] ) ) $this->requiresFlag = true;
 		if( isset( $configuration['editsperminute'] ) && $configuration['editsperminute'] != 0 ) {
 			$this->edit_rate = $configuration['editsperminute'];
 		}
@@ -276,8 +309,8 @@ class Wiki {
 		$http_echo = ( isset( $configuration['httpecho'] ) && $configuration['httpecho'] === "true" );
 		if( is_null( $this->http ) ) $this->http = HTTP::getDefaultInstance( $http_echo );
 
-		if( $useSSH ) {
-			$this->SSH = new SSH( $host, $port, $username, $passphrase, $prikey, $protocol, $timeout, $this->http );
+		if( $pgUseSSH ) {
+			if( !$this->SSH ) $this->SSH = new SSH( $pgHost, $pgPort, $pgUsername, $pgPassphrase, $pgPrikey, $pgProtocol, $pgTimeout, $this->http );
 			if( !$this->SSH->connected ) $this->SSH = null;
 		} else $this->SSH = null;
 
@@ -523,20 +556,24 @@ class Wiki {
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false ) {
 
-		global $pgIP, $maxattempts, $killonfailure, $displayGetOutData, $logCommunicationData, $logFailedCommunicationData, $logGetCommunicationData, $logPostCommunicationData, $logSuccessfulCommunicationData;
+		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData;
 		$requestid = mt_rand();
-		$attempts = $maxattempts;
+		$attempts = $pgMaxAttempts;
 		$arrayParams['format'] = 'php';
 		$arrayParams['servedby'] = '';
 		$arrayParams['requestid'] = $requestid;
 		$assert = false;
 
 		if( !file_exists( $pgIP . 'Includes/Communication_Logs' ) ) mkdir( $pgIP . 'Includes/Communication_Logs', 02775 );
-		if( $post && $this->isFlagged && isset( $arrayParams['assert'] ) && $arrayParams['assert'] == 'user' ) {
+		if( $post && $this->requiresFlag ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
 			Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
-		}
+		} elseif( $post && !$this->allowLoggedOutEditing ) {
+            $arrayParams['assert'] = 'user';
+            $assert = true;
+            Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
+        } elseif( isset( $arrayParams['assert'] ) ) unset( $arrayParams['assert'] );
 
 		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE );
 
@@ -556,14 +593,14 @@ class Wiki {
 				$data2 = unserialize( $data );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
 					$logdata .= "\nUNSERIALIZATION FAILED\n\n";
-					if( $logFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
+					if( $pgLogFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
 				} else {
 					$logdata .= "\nUNSERIALIZATION SUCCEEDED\n\n";
-					if( $logSuccessfulCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
+					if( $pgLogSuccessfulCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
 				}
 
-				if( $logPostCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Postdata.log', $logdata, FILE_APPEND );
-				if( $logCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
+				if( $pgLogPostCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Postdata.log', $logdata, FILE_APPEND );
+				if( $pgLogCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
 
 				$data = $data2;
 				unset( $data2 );
@@ -575,21 +612,40 @@ class Wiki {
                 }
 				if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 					pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
-					$tempSetting = $displayGetOutData;
-					$displayGetOutData = false;
+					$tempSetting = $pgDisplayGetOutData;
+					$pgDisplayGetOutData = false;
 					$histemp = $this->initPage( $arrayParams['title'] )->history( 1 );
 					if( $arrayParams['action'] == 'edit' && $histemp[0]['user'] == $this->get_username() && $histemp[0]['comment'] == $arrayParams['summary'] && strtotime( $histemp[0]['timestamp'] ) - time() < 120 ) {
 						pecho( ", however, the edit appears to have gone through.\n\n", PECHO_WARN );
-						$displayGetOutData = $tempSetting;
+						$pgDisplayGetOutData = $tempSetting;
 						unset( $tempSetting );
 						return array( 'edit' => array( 'result' => 'Success', 'newrevid' => $histemp[0]['revid'] ) );
 					} else {
 						pecho( ", retrying...\n\n", PECHO_WARN );
-						$displayGetOutData = $tempSetting;
+						$pgDisplayGetOutData = $tempSetting;
 						unset( $tempSetting );
 						continue;
 					}
 				}
+                
+                Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
+                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && $pgThrowExceptions ) throw new NotBotFlagged();
+                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && $pgThrowExceptions ) throw new LoggedOut();
+                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && !$pgThrowExceptions ) {
+                    if( $this->is_logged_in() ) {
+                        pecho( "Assertion Failure: This user does not have the bot flag.  Waiting for bot flag...\n\n", PECHO_FATAL );
+                        $this->isFlagged = false;
+                        return false;
+                    } else {
+                        $data['error']['code'] == 'assertuserfailed';   //If we are logged out, log back in.
+                    }
+                }
+                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && !$pgThrowExceptions ) {
+                    pecho( "Assertion Failure: This user has logged out.  Logging back in...\n\n", PECHO_FATAL );
+                    $this->logout();
+                    $this->__construct( $this->cached_config['config'], $this->cached_config['extensions'], 0, null );
+                    $this->get_tokens( true );
+                }
 
 				if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
 					pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
@@ -597,16 +653,16 @@ class Wiki {
 			}
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 				pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
-				$tempSetting = $displayGetOutData;
-				$displayGetOutData = false;
+				$tempSetting = $pgDisplayGetOutData;
+				$pgDisplayGetOutData = false;
 				$histemp = $this->initPage( $arrayParams['title'] )->history( 1 );
 				if( $arrayParams['action'] == 'edit' && $histemp['user'] == $this->get_username() && $histemp['comment'] == $arrayParams['summary'] && strtotime( $histemp['timestamp'] ) - time() < 120 ) {
 					pecho( ", however, the edit, finally, appears to have gone through.\n\n", PECHO_WARN );
-					$displayGetOutData = $tempSetting;
+					$pgDisplayGetOutData = $tempSetting;
 					return array( 'edit' => array( 'result' => 'Success', 'newrevid' => $histemp['revid'] ) );
 				} else {
-					$displayGetOutData = $tempSetting;
-					if( $killonfailure ) {
+					$pgDisplayGetOutData = $tempSetting;
+					if( $pgThrowExceptions ) {
 						pecho( ".  Terminating program.\n\n", PECHO_FATAL );
 						exit( 1 );
 					} else {
@@ -617,7 +673,7 @@ class Wiki {
 			}
 
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-				if( $killonfailure ) {
+				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
 					exit( 1 );
 				} else {
@@ -627,12 +683,6 @@ class Wiki {
 			}
 
 			Hooks::runHook( 'PostAPIPostQuery', array( &$data ) );
-
-			Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
-			if( $assert && $data['edit']['assert'] == 'Failure' && $errorcheck ) {
-				pecho( "Assertion has failed.\n\n" . print_r( $data['edit'], true ) . "\n\n", PECHO_FATAL );
-				return false;
-			}
 
 			Hooks::runHook( 'APIQueryCheckError', array( &$data['error'] ) );
 			if( isset( $data['error'] ) && $errorcheck ) {
@@ -670,14 +720,14 @@ class Wiki {
 				$data2 = unserialize( $data );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
 					$logdata .= "\nUNSERIALIZATION FAILED\n\n";
-					if( $logFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
+					if( $pgLogFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
 				} else {
 					$logdata .= "\nUNSERIALIZATION SUCCEEDED\n\n";
-					if( $logSuccessfulCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
+					if( $pgLogSuccessfulCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Succeededdata.log', $logdata, FILE_APPEND );
 				}
 
-				if( $logGetCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Getdata.log', $logdata, FILE_APPEND );
-				if( $logCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
+				if( $pgLogGetCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Getdata.log', $logdata, FILE_APPEND );
+				if( $pgLogCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Querydata.log', $logdata, FILE_APPEND );
 
 				$data = $data2;
 				unset( $data2 );
@@ -691,7 +741,7 @@ class Wiki {
 			}
 
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
-				if( $killonfailure ) {
+				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Terminating program.\n\n", PECHO_FATAL );
 					exit( 1 );
 				} else {
@@ -702,7 +752,7 @@ class Wiki {
 			}
 
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-				if( $killonfailure ) {
+				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
 					exit( 1 );
 				} else {
@@ -952,7 +1002,7 @@ class Wiki {
 	 * Returns the username.
 	 *
 	 * @access public
-	 * @see Wiki::$username
+	 * @see Wiki::$pgUsername
 	 * @return string Username
 	 */
 	public function get_username() {
@@ -1086,7 +1136,7 @@ class Wiki {
 	 *
 	 * @access public
 	 * @param integer|array|string $namespace Namespace(s) to check
-	 * @param string $tag Only list recent changes bearing this tag.
+	 * @param string $pgTag Only list recent changes bearing this tag.
 	 * @param int $start Only list changes after this timestamp.
 	 * @param int $end Only list changes before this timestamp.
 	 * @param string $user Only list changes by this user.
@@ -1101,7 +1151,7 @@ class Wiki {
 	 * @param int $limit A hard limit to impose on the number of results returned.
 	 * @return array Recent changes matching the description.
 	 */
-	public function recentchanges( $namespace = 0, $tag = null, $start = null, $end = null, $user = null, $excludeuser = null, $dir = 'older', $minor = null, $bot = null, $anon = null, $redirect = null, $patrolled = null, $prop = null, $limit = 50 ) {
+	public function recentchanges( $namespace = 0, $pgTag = null, $start = null, $end = null, $user = null, $excludeuser = null, $dir = 'older', $minor = null, $bot = null, $anon = null, $redirect = null, $patrolled = null, $prop = null, $limit = 50 ) {
 
 		if( is_array( $namespace ) ) {
 			$namespace = implode( '|', $namespace );
@@ -1122,7 +1172,7 @@ class Wiki {
 			'_limit'      => $limit
 		);
 
-		if( !is_null( $tag ) ) $rcArray['rctag'] = $tag;
+		if( !is_null( $pgTag ) ) $rcArray['rctag'] = $pgTag;
 		if( !is_null( $start ) ) $rcArray['rcstart'] = $start;
 		if( !is_null( $end ) ) $rcArray['rcend'] = $end;
 		if( !is_null( $user ) ) $rcArray['rcuser'] = $user;
@@ -1227,12 +1277,12 @@ class Wiki {
 	 * @param bool|string $start Timestamp for the start of the log (default: false)
 	 * @param bool|string $end Timestamp for the end of the log (default: false)
 	 * @param string $dir Direction for retieving log entries (default: 'older')
-	 * @param bool $tag Restrict the log to entries with a certain tag (default: false)
+	 * @param bool $pgTag Restrict the log to entries with a certain tag (default: false)
 	 * @param array $prop Information to retieve from the log (default: array( 'ids', 'title', 'type', 'user', 'timestamp', 'comment', 'details' ))
 	 * @param int $limit How many results to retrieve (default: null i.e. all).
 	 * @return array Log entries
 	 */
-	public function logs( $type = false, $user = false, $title = false, $start = false, $end = false, $dir = 'older', $tag = false, $prop = array(
+	public function logs( $type = false, $user = false, $title = false, $start = false, $end = false, $dir = 'older', $pgTag = false, $prop = array(
 		'ids', 'title', 'type', 'user', 'userid', 'timestamp', 'comment', 'parsedcomment', 'details', 'tags'
 	), $limit = 50 ) {
 
@@ -1249,7 +1299,7 @@ class Wiki {
 		if( $end ) $leArray['leend'] = $end;
 		if( $user ) $leArray['leuser'] = $user;
 		if( $title ) $leArray['letitle'] = $title;
-		if( $tag ) $leArray['letag'] = $tag;
+		if( $pgTag ) $leArray['letag'] = $pgTag;
 
 		Hooks::runHook( 'PreQueryLog', array( &$leArray ) );
 
@@ -1558,18 +1608,18 @@ class Wiki {
 	 *
 	 * @access public
 	 * @param string $url The url to search for links to, without a protocol. * can be used as a wildcard.
-	 * @param string $protocol The protocol to accompany the URL. Only certain values are allowed, depending on how $wgUrlProtocols is set on the wiki; by default the allowed values are 'http://', 'https://', 'ftp://', 'irc://', 'gopher://', 'telnet://', 'nntp://', 'worldwind://', 'mailto:' and 'news:'. Default 'http://'.
+	 * @param string $pgProtocol The protocol to accompany the URL. Only certain values are allowed, depending on how $wgUrlProtocols is set on the wiki; by default the allowed values are 'http://', 'https://', 'ftp://', 'irc://', 'gopher://', 'telnet://', 'nntp://', 'worldwind://', 'mailto:' and 'news:'. Default 'http://'.
 	 * @param array $prop Properties to return in array form; the options are 'ids', 'title' and 'url'. Default null (all).
 	 * @param string $namespace A pipe '|' separated list of namespace numbers to check. Default null (all).
 	 * @param int $limit A hard limit on the number of transclusions to fetch. Default null (all).
 	 * @return array Details about the usage of that external link on the wiki.
 	 */
-	public function exturlusage( $url, $protocol = 'http', $prop = array( 'title' ), $namespace = null, $limit = 50 ) {
+	public function exturlusage( $url, $pgProtocol = 'http', $prop = array( 'title' ), $namespace = null, $limit = 50 ) {
 		$tArray = array(
 			'list'       => 'exturlusage',
 			'_code'      => 'eu',
 			'euquery'    => $url,
-			'euprotocol' => $protocol,
+			'euprotocol' => $pgProtocol,
 			'_limit'     => $limit,
 			'euprop'     => implode( '|', $prop )
 		);
@@ -2130,15 +2180,15 @@ class Wiki {
 	}
 
 	/**
-	 * Returns an instance of the User class as specified by $username
+	 * Returns an instance of the User class as specified by $pgUsername
 	 *
 	 * @access public
-	 * @param mixed $username Username
+	 * @param mixed $pgUsername Username
 	 * @return User
 	 * @package initFunctions
 	 */
-	public function &initUser( $username ) {
-		$user = new User( $this, $username );
+	public function &initUser( $pgUsername ) {
+		$user = new User( $this, $pgUsername );
 		return $user;
 	}
 
@@ -2314,8 +2364,8 @@ class Wiki {
      * @return void
      */
     public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
-        global $disablechecks, $masterrunpage;
-        if( $disablechecks ) return;
+        global $pgDisablechecks, $pgMasterrunpage;
+        if( $pgDisablechecks ) return;
         $preeditinfo = array(
             'action' => 'query',
             'meta'   => 'userinfo',
@@ -2362,7 +2412,7 @@ class Wiki {
             throw new EditError( "Nobots", "The page has a nobots template" );
         }
 
-        if( !is_null( $masterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->initPage( $masterrunpage )->get_text() ) ) {
+        if( !is_null( $pgMasterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->initPage( $pgMasterrunpage )->get_text() ) ) {
             throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
         }
 

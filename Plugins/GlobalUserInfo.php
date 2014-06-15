@@ -33,7 +33,7 @@ class GlobalUserInfo {
 	 * @var string
 	 * @access private
 	 */
-	private $username;
+	private $pgUsername;
 
 	/**
 	 * Global groups member is a part of
@@ -88,23 +88,23 @@ class GlobalUserInfo {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $username Username
+	 * @param mixed $pgUsername Username
 	 * @return void
 	 */
-	function __construct( Wiki &$wikiClass, $username ) {
+	function __construct( Wiki &$wikiClass, $pgUsername ) {
 
 		if( !array_key_exists( 'Central Auth', $wikiClass->get_extensions() ) ) {
 			throw new DependencyError( "CentralAuth", "http://www.mediawiki.org/wiki/Extension:CentralAuth" );
 		}
 
-		$this->username = ucfirst( $username );
+		$this->username = ucfirst( $pgUsername );
 		$this->wiki = $wikiClass;
 
 		$guiRes = $this->wiki->apiQuery(
 			array(
 				'action'  => 'query',
 				'meta'    => 'globaluserinfo',
-				'guiuser' => ucfirst( $username ),
+				'guiuser' => ucfirst( $pgUsername ),
 				'guiprop' => 'groups|merged|unattached',
 			), false, false
 		);

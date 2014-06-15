@@ -33,7 +33,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $host;
+	private $pgHost;
 
 	/**
 	 * Username of authenticated session
@@ -41,7 +41,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $username;
+	private $pgUsername;
 
 	/**
 	 * File path to the private key file
@@ -49,7 +49,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $prikey;
+	private $pgPrikey;
 
 	/**
 	 * SSH protocol being used
@@ -57,7 +57,7 @@ class SSH {
 	 * @var int
 	 * @access private
 	 */
-	private $protocol;
+	private $pgProtocol;
 
 	/**
 	 * Whether or not the connection was successful.
@@ -104,11 +104,11 @@ class SSH {
 	 * Construction method for the SSH class
 	 *
 	 * @access public
-	 * @param string $host Address of remote host.  Default
+	 * @param string $pgHost Address of remote host.  Default
 	 *
 	 * @return void
 	 */
-	public function __construct( $host, $port = 22, $username = null, $passphrase = null, $prikey = null, $protocol = 2, $timeout = 10, $http ) {
+	public function __construct( $pgHost, $pgPort = 22, $pgUsername = null, $pgPassphrase = null, $pgPrikey = null, $pgProtocol = 2, $pgTimeout = 10, $http ) {
 		pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
 		global $pgIP;
 		$this->http = $http;
@@ -126,7 +126,7 @@ class SSH {
 		require_once( 'Net/SCP.php' );
 		require_once( 'Crypt/RSA.php' );
 		require_once( 'Net/SFTP.php' );
-		switch( $protocol ){
+		switch( $pgProtocol ){
 			case 1:
 				require_once( 'Net/SSH1.php' );
 				break;
@@ -138,20 +138,20 @@ class SSH {
 				break;
 		}
 
-		//Determine which SSH class to use. We could just use $protocol as a variable to define the class, but this method error handles better.
-		$this->protocol = $protocol;
-		$this->host = $host;
-		$this->username = $username;
-		$this->prikey = $prikey;
-		if( !$this->connect( $host, $port, $protocol, $timeout ) ) {
+		//Determine which SSH class to use. We could just use $pgProtocol as a variable to define the class, but this method error handles better.
+		$this->protocol = $pgProtocol;
+		$this->host = $pgHost;
+		$this->username = $pgUsername;
+		$this->prikey = $pgPrikey;
+		if( !$this->connect( $pgHost, $pgPort, $pgProtocol, $pgTimeout ) ) {
 			pecho( "Cannot connect, aborting SSH initialization...\n\n", PECHO_FATAL );
 			$this->__destruct();
 			return;
 		}
-		pecho( "Successfully connected to $host.\n\n", PECHO_NORMAL );
+		pecho( "Successfully connected to $pgHost.\n\n", PECHO_NORMAL );
 
 		//Now authenticate
-		if( !( $this->authenticate( $username, $passphrase, $prikey ) ) ) {
+		if( !( $this->authenticate( $pgUsername, $pgPassphrase, $pgPrikey ) ) ) {
 			$this->__destruct();
 			return;
 		}
@@ -170,65 +170,65 @@ class SSH {
 	 * Establishes a connection to the remote server.
 	 *
 	 * @access protected
-	 * @param string $host Host of server to connect to.
-	 * @param int $port Port of server.
-	 * @param int $protocol Which SSH protocol to use.
+	 * @param string $pgHost Host of server to connect to.
+	 * @param int $pgPort Port of server.
+	 * @param int $pgProtocol Which SSH protocol to use.
 	 * @return bool
 	 */
-	protected function connect( $host, $port = 22, $protocol, $timeout = 10 ) {
-		pecho( "Connecting to $host:$port...\n\n", PECHO_NORMAL );
-		switch( $protocol ){
+	protected function connect( $pgHost, $pgPort = 22, $pgProtocol, $pgTimeout = 10 ) {
+		pecho( "Connecting to $pgHost:$pgPort...\n\n", PECHO_NORMAL );
+		switch( $pgProtocol ){
 			case 1:
-				$this->sshobject = new Net_SSH1( $host, $port, $timeout );
+				$this->sshobject = new Net_SSH1( $pgHost, $pgPort, $pgTimeout );
 				break;
 			case 2:
-				$this->sshobject = new Net_SSH2( $host, $port, $timeout );
+				$this->sshobject = new Net_SSH2( $pgHost, $pgPort, $pgTimeout );
 				break;
 			default:
-				$this->sshobject = new Net_SSH2( $host, $port, $timeout );
+				$this->sshobject = new Net_SSH2( $pgHost, $pgPort, $pgTimeout );
 				break;
 		}
-		return $this->sftpobject = new Net_SFTP( $host, $port, $timeout );
+		return $this->sftpobject = new Net_SFTP( $pgHost, $pgPort, $pgTimeout );
 	}
 
 	/**
 	 * Authenticates to the remote server.
 	 *
 	 * @access protected
-	 * @param string $username Username
-	 * @param string $passphrase Password or passphrase of key file
-	 * @param string $prikey File path of key file.
+	 * @param string $pgUsername Username
+	 * @param string $pgPassphrase Password or passphrase of key file
+	 * @param string $pgPrikey File path of key file.
 	 * @return bool
 	 */
-	protected function authenticate( $username, $passphrase, $prikey ) {
+	protected function authenticate( $pgUsername, $pgPassphrase, $pgPrikey ) {
 		//Determine the type of authentication to use.
-		if( is_null( $username ) ) {
+		if( is_null( $pgUsername ) ) {
 			pecho( "A username must at least be specified to authenticate to the server,\neven if there is authentication is none.\n\n", PECHO_FATAL );
 			return false;
 		}
 		$fails = 0;
-		if( !is_null( $username ) && !is_null( $prikey ) && $this->protocol == 2 ) {
+		if( !is_null( $pgUsername ) && !is_null( $pgPrikey ) && $this->protocol == 2 ) {
 			pecho( "Authenticating with Private Key Authentication...\n\n", PECHO_NORMAL );
 			$key = new Crypt_RSA();
-			if( !is_null( $passphrase ) ) $key->setPassword( $passphrase );
-			$key->loadKey( file_get_contents( $prikey ) );
-			if( $this->sshobject->login( $username, $key ) && $this->sftpobject->login( $username, $key ) ) {
+			if( !is_null( $pgPassphrase ) ) $key->setPassword( $pgPassphrase );
+			$key->loadKey( file_get_contents( $pgPrikey ) );
+			if( $this->sshobject->login( $pgUsername, $key ) && $this->sftpobject->login( $pgUsername, $key ) ) {
 				pecho( "Successfully authenticated using Private Key Authentication.\n\n", PECHO_NORMAL );
 				return true;
 			}
 			$fails++;
 		} else $fails += 5;
-		if( !is_null( $username ) && !is_null( $passphrase ) ) {
+		if( !is_null( $pgUsername ) && !is_null( $pgPassphrase ) ) {
 			pecho( "Authenticating with Password Authentication...\n\n", PECHO_NORMAL );
-			if( $this->sshobject->login( $username, $passphrase ) && $this->sftpobject->login( $username, $passphrase ) ) {
+			if( $this->sshobject->login( $pgUsername, $pgPassphrase ) && $this->sftpobject->login( $pgUsername, $pgPassphrase ) ) {
 				pecho( "Successfully authenticated using Password Authentication\n\n", PECHO_NORMAL );
 				return true;
 			}
 			$fails++;
 		} else $fails += 5;
-		if( !is_null( $username ) ) {
+		if( !is_null( $pgUsername ) ) {
 			pecho( "Authenticating with No Authentication...\n\n", PECHO_NORMAL );
-			if( $this->sshobject->login( $username ) && $this->sftpobject->login( $username ) ) {
+			if( $this->sshobject->login( $pgUsername ) && $this->sftpobject->login( $pgUsername ) ) {
 				pecho( "Successfully authenticated with No Authentication\n\n", PECHO_NORMAL );
 				return true;
 			}
@@ -248,14 +248,14 @@ class SSH {
 	 * Establishes a mysql connection over a remote SSH tunnel.  This function requires further development.
 	 *
 	 * @access public
-	 * @param string $host Host of DB server location
-	 * @param string $username Username to access DB server with
+	 * @param string $pgHost Host of DB server location
+	 * @param string $pgUsername Username to access DB server with
 	 * @param string $passwd Password to authenticate with
 	 * @param string $dbname DB name to use
-	 * @param int $port Port of DB server
+	 * @param int $pgPort Port of DB server
 	 * @return null
 	 */
-	public function mysqli_connect( $host = null, $username = null, $passwd = null, $dbname = "", $port = null ) {
+	public function mysqli_connect( $pgHost = null, $pgUsername = null, $passwd = null, $dbname = "", $pgPort = null ) {
 		pecho( "This function requires further development of the SSH class.\n\n", PECHO_WARN );
 		return null;
 	}

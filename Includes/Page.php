@@ -1156,10 +1156,7 @@ class Page {
 
 		if( !$notag ) $summary .= $tag;
 
-		if( $tokens['edit'] == '+\\' ) {
-			pecho( "User has logged out.\n\n", PECHO_FATAL );
-			return false;
-		} elseif( $tokens['edit'] == '' ) {
+		if( $tokens['edit'] == '' ) {
 			pecho( "User is not allowed to edit {$this->title}\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -1177,8 +1174,7 @@ class Page {
 			'token'         => $tokens['edit'],
 			'basetimestamp' => $this->lastedit,
 			'md5'           => md5( $text ),
-			'text'          => $text,
-			'assert'        => 'user',
+			'text'          => $text
 		);
 		if( !is_null( $this->starttimestamp ) ) $editarray['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $section ) ) {
@@ -1349,8 +1345,7 @@ class Page {
 			'token'         => $tokens['edit'],
 			'basetimestamp' => $this->lastedit,
 			'undo'          => $oldrev,
-			'undoafter'     => $newrev,
-			'assert'        => 'user',
+			'undoafter'     => $newrev
 		);
 		if( !is_null( $this->starttimestamp ) ) $params['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $summary ) ) {

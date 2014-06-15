@@ -157,12 +157,12 @@ class Xml {
 	 * Shortcut to make a specific element with a class attribute
 	 * @param string $text content of the element, will be escaped
 	 * @param string $class class name of the span element
-	 * @param string $tag element name
+	 * @param string $pgTag element name
 	 * @param array $attribs other attributes
 	 * @return string
 	 */
-	public static function wrapClass( $text, $class, $tag = 'span', $attribs = array() ) {
-		return self::tags( $tag, array( 'class' => $class ) + $attribs, $text );
+	public static function wrapClass( $text, $class, $pgTag = 'span', $attribs = array() ) {
+		return self::tags( $pgTag, array( 'class' => $class ) + $attribs, $text );
 	}
 
 	/**

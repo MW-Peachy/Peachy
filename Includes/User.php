@@ -41,7 +41,7 @@ class User {
 	 * @var string
 	 * @access protected
 	 */
-	protected $username;
+	protected $pgUsername;
 
 	/**
 	 * Whether or not user exists
@@ -114,30 +114,30 @@ class User {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $username Username
+	 * @param mixed $pgUsername Username
 	 * @param Wiki $wikiClass
 	 * @return null|false
 	 */
-	function __construct( Wiki &$wikiClass, $username ) {
+	function __construct( Wiki &$wikiClass, $pgUsername ) {
 
 		$this->wiki = & $wikiClass;
 
-		pecho( "Getting user information for $username...\n\n", PECHO_NORMAL );
+		pecho( "Getting user information for $pgUsername...\n\n", PECHO_NORMAL );
 
 		$uiRes = $this->wiki->apiQuery(
 			array(
 				'action'  => 'query',
 				'list'    => 'users|logevents',
-				'ususers' => $username,
+				'ususers' => $pgUsername,
 				'letype'  => 'block',
-				'letitle' => "User:" . $username,
+				'letitle' => "User:" . $pgUsername,
 				'lelimit' => 1,
 				'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
 			)
 		);
 
 		if( !$uiRes ) {
-			$this->username = $username;
+			$this->username = $pgUsername;
 			$this->exists = false;
 		} else {
 			$this->exists = true;
@@ -210,7 +210,7 @@ class User {
 	 * @return bool True on success, false otherwise
 	 */
 	public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		pecho( "Creating user account " . $this->username . "...\n\n", PECHO_NOTICE );
 
 		try{
@@ -240,7 +240,7 @@ class User {
 		if( !$realname == null ) $apiArray['realname'] = $realname;
 		if( !$domain == null ) $apiArray['domain'] = $domain;
 		if( !$reason == null ) {
-			if( !$notag ) $reason .= $tag;
+			if( !$pgNotag ) $reason .= $pgTag;
 			$apiArray['reason'] = $reason;
 		}
 		if( !$language == null ) $apiArray['language'] = $language;
@@ -334,7 +334,7 @@ class User {
 	 * @return bool
 	 */
 	public function block( $reason = null, $expiry = 'indefinite', $params = array(), $watch = false, $range = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		$token = $this->wiki->get_tokens();
 		$target = $this->username;
 
@@ -372,7 +372,7 @@ class User {
 		);
 
 		if( !is_null( $reason ) ) {
-			if( !$notag ) $reason .= $tag;
+			if( !$pgNotag ) $reason .= $pgTag;
 			$apiArr['reason'] = $reason;
 		}
 
@@ -439,7 +439,7 @@ class User {
 	 * @return bool
 	 */
 	public function unblock( $reason = null, $id = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		if( !in_array( 'block', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to unblock users", PECHO_FATAL );
 			return false;
@@ -460,7 +460,7 @@ class User {
 			unset( $apiArr['user'] );
 		}
 		if( !is_null( $reason ) ) {
-			if( !$notag ) $reason .= $tag;
+			if( !$pgNotag ) $reason .= $pgTag;
 			$apiArr['reason'] = $reason;
 		}
 
@@ -501,20 +501,20 @@ class User {
 	 * @return int Edit count
 	 */
 	public function get_editcount( $force = false, &$database = null, $liveonly = false ) {
-		global $useLabs;
+		global $pgUseLabs;
 		//First check if $database exists, because that returns a more accurate count
 		if( !is_null( $database ) && $database instanceOf mysqli ) {
 
 			pecho( "Getting edit count for {$this->username} using the Database class...\n\n", PECHO_NORMAL );
 
-			if( !$liveonly && $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $useLabs ? "archive_userindex" : "archive" ) . " WHERE `ar_user_text` = '{$this->username}';" ) ) {
+			if( !$liveonly && $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $pgUseLabs ? "archive_userindex" : "archive" ) . " WHERE `ar_user_text` = '{$this->username}';" ) ) {
                 $res = mysqli_fetch_assoc( $result );
                 $del_count = $res['count'];
                 mysqli_free_result( $result );
                 unset( $res );
             } else $del_count = 0;
             
-            if( $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $useLabs ? "revision_userindex" : "revision" ) . " WHERE `rev_user_text` = '{$this->username}';" ) ) {
+            if( $result = mysqli_query( $database, "SELECT COUNT(*) AS count FROM " . ( $pgUseLabs ? "revision_userindex" : "revision" ) . " WHERE `rev_user_text` = '{$this->username}';" ) ) {
                 $res = mysqli_fetch_assoc( $result );
                 $live_count = $res['count'];
                 mysqli_free_result( $result );
@@ -637,14 +637,14 @@ class User {
 	 * @return bool True on success, false otherwise.
 	 */
 	public function email( $text = null, $subject = "Wikipedia Email", $ccme = false ) {
-		global $notag;
+		global $pgNotag;
 		if( !$this->has_email() ) {
 			pecho( "Cannot email {$this->username}, user has email disabled", PECHO_FATAL );
 			return false;
 		}
 
 		$tokens = $this->wiki->get_tokens();
-		if( !$notag ) $text .= "\n\nPowered by Peachy " . PEACHYVERSION;
+		if( !$pgNotag ) $text .= "\n\nPowered by Peachy " . PEACHYVERSION;
 		$editarray = array(
 			'action'  => 'emailuser',
 			'target'  => $this->username,
@@ -685,9 +685,9 @@ class User {
 	}
 
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 
-		if( !$notag ) $reason .= $tag;
+		if( !$pgNotag ) $reason .= $pgTag;
 		$apiArr = array(
 			'action' => 'userrights',
 			'user'   => $this->username,

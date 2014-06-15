@@ -29,12 +29,12 @@ Peachy is not responsible for any damage caused to the system running it.
 /**
  * The version that Peachy is running
  */
-define( 'PEACHYVERSION', '2.0 (alpha 7)' );
+define( 'PEACHYVERSION', '2.0 (alpha 8)' );
 
 /**
  * Minimum MediaWiki version that is required for Peachy
  */
-define( 'MINMW', '1.21' );
+define( 'MINMW', '1.23' );
 
 /**
  * Minimum PHP version that is required for Peachy
@@ -95,12 +95,12 @@ require_once( $pgIP . 'config.inc.php' );
 require_once( $pgIP . 'Includes/SSH.php' );
 
 $pgVerbose = array();
-if( $displayPechoVerbose ) $pgVerbose[] = -1;
-if( $displayPechoNormal ) $pgVerbose[] = 0;
-if( $displayPechoNotice ) $pgVerbose[] = 1;
-if( $displayPechoWarn ) $pgVerbose[] = 2;
-if( $displayPechoError ) $pgVerbose[] = 3;
-if( $displayPechoFatal ) $pgVerbose[] = 4;
+if( $pgDisplayPechoVerbose ) $pgVerbose[] = -1;
+if( $pgDisplayPechoNormal ) $pgVerbose[] = 0;
+if( $pgDisplayPechoNotice ) $pgVerbose[] = 1;
+if( $pgDisplayPechoWarn ) $pgVerbose[] = 2;
+if( $pgDisplayPechoError ) $pgVerbose[] = 3;
+if( $pgDisplayPechoFatal ) $pgVerbose[] = 4;
 
 $pgIRCTrigger = array( '!', '.' );
 
@@ -115,7 +115,7 @@ if( function_exists( 'mb_internal_encoding' ) ) {
 date_default_timezone_set( @date_default_timezone_get() );
 
 //Check for updates before loading Peachy.
-if( !$disableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
+if( !$pgDisableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
 	//the below MUST have its own Http object or else things will break
 	$updater = new AutoUpdate( new Http() );
 	$Uptodate = $updater->Checkforupdate();
