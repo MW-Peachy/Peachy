@@ -417,7 +417,7 @@ class Wiki {
 				pecho( "Logging in to {$this->base_url}...\n\n", PECHO_NOTICE );
 			}
 
-			$loginRes = $this->apiQuery( $lgarray, true );
+			$loginRes = $this->apiQuery( $lgarray, true, true, false, false );
 
 			Hooks::runHook( 'PostLogin', array( &$loginRes ) );
 		}
@@ -554,7 +554,7 @@ class Wiki {
 	 * @throws LoggedOut
 	 * @return array Returns an array with the API result
 	 */
-	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false ) {
+	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true ) {
 
 		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData;
 		$requestid = mt_rand();
@@ -565,11 +565,11 @@ class Wiki {
 		$assert = false;
 
 		if( !file_exists( $pgIP . 'Includes/Communication_Logs' ) ) mkdir( $pgIP . 'Includes/Communication_Logs', 02775 );
-		if( $post && $this->requiresFlag ) {
+		if( $post && $this->requiresFlag && $assertcheck ) {
 			$arrayParams['assert'] = 'bot';
 			$assert = true;
 			Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
-		} elseif( $post && !$this->allowLoggedOutEditing ) {
+		} elseif( $post && !$this->allowLoggedOutEditing && $assertcheck ) {
             $arrayParams['assert'] = 'user';
             $assert = true;
             Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
@@ -629,8 +629,8 @@ class Wiki {
 				}
                 
                 Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
-                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && $pgThrowExceptions ) throw new NotBotFlagged();
-                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && $pgThrowExceptions ) throw new LoggedOut();
+                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && $pgThrowExceptions ) throw new AssertFailure( 'bot' );
+                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && $pgThrowExceptions ) throw new AssertFailure( 'user' );
                 if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && !$pgThrowExceptions ) {
                     if( $this->is_logged_in() ) {
                         pecho( "Assertion Failure: This user does not have the bot flag.  Waiting for bot flag...\n\n", PECHO_FATAL );
