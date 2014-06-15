@@ -94,8 +94,8 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 	 * @dataProvider provide_checkExclusion
 	 * @covers ::checkExclusion
 	 */
-	public function test_checkExclusion( $expected, $text, $username = null, $optout = null ) {
-		$this->assertSame( $expected, checkExclusion( $this->getMockWiki(), $text, $username, $optout ) );
+	public function test_checkExclusion( $expected, $text, $pgUsername = null, $optout = null ) {
+		$this->assertSame( $expected, checkExclusion( $this->getMockWiki(), $text, $pgUsername, $optout ) );
 	}
 
 	/**

@@ -23,7 +23,7 @@
  */
 class RFA {
 
-	protected $username = false;
+	protected $pgUsername = false;
 	protected $enddate = false;
 	protected $support = array();
 	protected $oppose = array();

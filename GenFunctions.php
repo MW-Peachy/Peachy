@@ -107,11 +107,11 @@ function rglob( $pattern = '*', $flags = 0, $path = '' ) {
  * @access public
  * @param Wiki $wiki Wiki class
  * @param string $text Text of the page to check (default: '')
- * @param string $username Username to search for in the template (default: null)
+ * @param string $pgUsername Username to search for in the template (default: null)
  * @param string $optout Text to search for in the optout= parameter. (default: null)
  * @return bool True on match of an appropriate nobots template
  */
-function checkExclusion( Wiki $wiki, $text = '', $username = null, $optout = null ) {
+function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = null ) {
 	if( !$wiki->get_nobots() ) return false;
 
 	if( in_string( "{{nobots}}", $text ) ) return true;
@@ -121,7 +121,7 @@ function checkExclusion( Wiki $wiki, $text = '', $username = null, $optout = nul
 		if( $allow[1] == "all" ) return false;
 		if( $allow[1] == "none" ) return true;
 		$allow = array_map( 'trim', explode( ',', $allow[1] ) );
-		if( !is_null( $username ) && in_array( trim( $username ), $allow ) ) {
+		if( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) {
 			return false;
 		}
 		return true;
@@ -131,7 +131,7 @@ function checkExclusion( Wiki $wiki, $text = '', $username = null, $optout = nul
 		if( $deny[2] == "all" ) return true;
 		if( $deny[2] == "none" ) return false;
 		$allow = array_map( 'trim', explode( ',', $deny[2] ) );
-		if( !is_null( $username ) && in_array( trim( $username ), $allow ) ) {
+		if( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) {
 			return true;
 		}
 		return false;
@@ -180,8 +180,8 @@ function outputText( $text, $cat = 0, $func = 'echo' ) {
  * @return void
  */
 function pecho( $text, $cat = 0, $func = 'echo' ) {
-	global $webOutput;
-	if( $webOutput ) $text = str_replace( "\n", "<br>", $text );
+	global $pgWebOutput;
+	if( $pgWebOutput ) $text = str_replace( "\n", "<br>", $text );
 	outputText( $text, $cat, $func );
 }
 
@@ -287,17 +287,17 @@ function &initPage( $title = null, $pageid = null, $followRedir = true, $normali
 }
 
 /**
- * Returns an instance of the User class as specified by $username
+ * Returns an instance of the User class as specified by $pgUsername
  *
- * @param mixed $username Username
+ * @param mixed $pgUsername Username
  * @return User
  * @package initFunctions
  */
-function &initUser( $username ) {
+function &initUser( $pgUsername ) {
 	$wiki = getSiteObject();
 	if( !$wiki ) return false;
 
-	$user = new User( $wiki, $username );
+	$user = new User( $wiki, $pgUsername );
 	return $user;
 }
 

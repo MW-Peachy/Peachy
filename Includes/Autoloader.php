@@ -5,6 +5,7 @@ $pgAutoloader = array(
 	'User'                            => 'Includes/User.php',
 	'Page'                            => 'Includes/Page.php',
 	'Image'                           => 'Includes/Image.php',
+    'XMLParse'                        => 'Includes/XMLParse.php',
 	'Script'                          => 'Script.php',
 	'UtfNormal'                       => 'Plugins/normalize/UtfNormal.php',
 

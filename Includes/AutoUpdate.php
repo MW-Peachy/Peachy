@@ -31,10 +31,10 @@ Class AutoUpdate {
 	protected $commits;
 
 	function __construct( $http ) {
-		global $pgIP, $experimentalupdates;
+		global $pgIP, $pgExperimentalupdates;
 		$this->http = $http;
-		$this->repository = ( $experimentalupdates ? 'master' : 'stable' );
-		$this->logfile = ( $experimentalupdates ? 'Update.log' : 'StableUpdate.log' );
+		$this->repository = ( $pgExperimentalupdates ? 'master' : 'stable' );
+		$this->logfile = ( $pgExperimentalupdates ? 'Update.log' : 'StableUpdate.log' );
 		$this->lastused = ( file_exists( $pgIP . 'Includes/updateversion' ) ? unserialize( file_get_contents( $pgIP . 'Includes/updateversion' ) ) : 'Unknown' );
 	}
 
@@ -45,9 +45,9 @@ Class AutoUpdate {
 	 * @return bool
 	 */
 	public function Checkforupdate() {
-		global $pgIP, $experimentalupdates;
+		global $pgIP, $pgExperimentalupdates;
 		pecho( "Checking for updates...\n\n", PECHO_NORMAL );
-		if( $experimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
+		if( $pgExperimentalupdates ) pecho( "Warning: You have experimental updates switched on.\nExperimental updates are not fully tested and can cause problems,\nsuch as, bot misbehaviors up to complete crashes.\nUse at your own risk.\nPeachy will not revert back to a stable release until switched off.\n\n", PECHO_NOTICE );
 		$data = json_decode( $this->http->get( 'https://api.github.com/repos/MW-Peachy/Peachy/branches/' . $this->repository, null, array(), false ), true );
 		$this->commits = $data;
 		/*if( strstr( $this->http->getLastHeader(), 'Status: 304 Not Modified') ) {
@@ -60,7 +60,7 @@ Class AutoUpdate {
 		}
 		$this->cacheLastGithubETag();
 		if( $this->lastused !== $this->repository ) {
-			pecho( "Changing Peachy version to run using " . ( $experimentalupdates ? "experimental" : "stable" ) . " updates.\n\n", PECHO_NOTICE );
+			pecho( "Changing Peachy version to run using " . ( $pgExperimentalupdates ? "experimental" : "stable" ) . " updates.\n\n", PECHO_NOTICE );
 			return false;
 		}
 		if( file_exists( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . $this->logfile ) ) {
@@ -112,7 +112,7 @@ Class AutoUpdate {
 	 * @return boolean|null
 	 */
 	public function updatePeachy() {
-		global $pgIP, $experimentalupdates;
+		global $pgIP, $pgExperimentalupdates;
 		$gitZip = $pgIP . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'gitUpdate.zip';
 		if( file_exists( $gitZip ) ) {
 			unlink( $gitZip );
@@ -131,7 +131,7 @@ Class AutoUpdate {
 
 			$this->copyOverGitFiles( $gitFolder . DIRECTORY_SEPARATOR . 'Peachy-' . $this->repository );
 
-			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . 'updateversion', serialize( ( $experimentalupdates ? 'master' : 'stable' ) ) );
+			file_put_contents( $pgIP . 'Includes' . DIRECTORY_SEPARATOR . 'updateversion', serialize( ( $pgExperimentalupdates ? 'master' : 'stable' ) ) );
 
 			pecho( "Peachy Updated!  Changes will go into effect on the next run.\n\n", PECHO_NOTICE );
 

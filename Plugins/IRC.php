@@ -41,19 +41,19 @@ class IRC {
 	 * @param string $Nick Nick to use
 	 * @param string $Pass Password to send
 	 * @param string $Server Server to connect to
-	 * @param string $Port Port to use
+	 * @param string $pgPort Port to use
 	 * @param string $Gecos AKA Real Name, Information field, etc.
 	 * @param string|array Channel (s) to connect to
 	 * @return void
 	 */
-	function __construct( $User, $Nick, $Pass, $Server, $Port, $Gecos, $Channel ) {
-		$this->f = fsockopen( $Server, $Port, $errno, $errstr, 30 );
+	function __construct( $User, $Nick, $Pass, $Server, $pgPort, $Gecos, $Channel ) {
+		$this->f = fsockopen( $Server, $pgPort, $errno, $errstr, 30 );
 
 		if( !$this->f ) {
 			die( $errstr . ' (' . $errno . ")\n" );
 		}
 
-		pecho( "Logging into IRC as $User into $Server:$Port\n\n", PECHO_NOTICE );
+		pecho( "Logging into IRC as $User into $Server:$pgPort\n\n", PECHO_NOTICE );
 
 		$this->sendToIrc( 'USER ' . $User . ' "' . $Server . '" "localhost" :' . $Gecos . "\n" );
 		$this->sendToIrc( 'PASS ' . $Pass . "\n" );
@@ -305,19 +305,19 @@ class IRC {
 class SimpleIRC {
 
 	private $server;
-	private $port;
+	private $pgPort;
 	private $user;
 	private $pass;
 	private $nick;
 	private $channel;
 	private $callback;
 
-	function __construct( $server, $port = 6667, $user, $pass, $nick, $channel, $callback = null ) {
+	function __construct( $server, $pgPort = 6667, $user, $pass, $nick, $channel, $callback = null ) {
 		global $pgIRCTrigger, $pgHooks;
 
 		if( func_num_args() > 6 ) {
 			$this->server = $server;
-			$this->port = $port;
+			$this->port = $pgPort;
 			$this->user = $user;
 			$this->pass = $pass;
 			$this->nick = $nick;
@@ -326,7 +326,7 @@ class SimpleIRC {
 		} else {
 			$this->server = $server;
 			$this->port = 6667;
-			$this->user = $port;
+			$this->user = $pgPort;
 			$this->pass = $user;
 			$this->nick = $pass;
 			$this->channel = $nick;

@@ -26,13 +26,13 @@ class Xml {
 	 * Strings are assumed to not contain XML-illegal characters; special
 	 * characters (<, >, &) are escaped but illegals are not touched.
 	 *
-	 * @param string $element element name
+	 * @param string|null $element element name
 	 * @param array $attribs Name=>value pairs. Values will be escaped.
 	 * @param string $contents NULL to make an open tag only; '' for a contentless closed tag (default)
 	 * @param bool $allowShortTag whether '' in $contents will result in a contentless closed tag
 	 * @return string
 	 */
-	public static function element( $element, $attribs = null, $contents = '', $allowShortTag = true ) {
+	public static function element( $element = null, $attribs = null, $contents = '', $allowShortTag = true ) {
 		$out = '<' . $element;
 		if( !is_null( $attribs ) ) {
 			$out .= self::expandAttributes( $attribs );
@@ -71,11 +71,11 @@ class Xml {
 	 * to set the XML attributes : attributename="value".
 	 * The values are passed to self::encodeAttribute.
 	 * Return null if no attributes given.
-	 * @param array $attribs of attributes for an XML element
+	 * @param array|null $attribs of attributes for an XML element
 	 * @throws Exception
 	 * @return null|string
 	 */
-	public static function expandAttributes( $attribs ) {
+	public static function expandAttributes( $attribs = null ) {
 		$out = '';
 		if( is_null( $attribs ) ) {
 			return null;
@@ -113,7 +113,7 @@ class Xml {
 	 * This opens an XML element
 	 *
 	 * @param string $element name of the element
-	 * @param array $attribs of attributes, see Xml::expandAttributes()
+	 * @param array $attribs of attributes, see self::expandAttributes()
 	 * @return string
 	 */
 	public static function openElement( $element, $attribs = null ) {
@@ -130,7 +130,7 @@ class Xml {
 	}
 
 	/**
-	 * Same as Xml::element(), but does not escape contents. Handy when the
+	 * Same as self::element(), but does not escape contents. Handy when the
 	 * content you have is already valid xml.
 	 *
 	 * @param string $element element name
@@ -157,12 +157,12 @@ class Xml {
 	 * Shortcut to make a specific element with a class attribute
 	 * @param string $text content of the element, will be escaped
 	 * @param string $class class name of the span element
-	 * @param string $tag element name
+	 * @param string $pgTag element name
 	 * @param array $attribs other attributes
 	 * @return string
 	 */
-	public static function wrapClass( $text, $class, $tag = 'span', $attribs = array() ) {
-		return self::tags( $tag, array( 'class' => $class ) + $attribs, $text );
+	public static function wrapClass( $text, $class, $pgTag = 'span', $attribs = array() ) {
+		return self::tags( $pgTag, array( 'class' => $class ) + $attribs, $text );
 	}
 
 	/**
@@ -290,7 +290,7 @@ class Xml {
 	}
 
 	/**
-	 * Same as Xml::inputLabel() but return input and label in an array
+	 * Same as self::inputLabel() but return input and label in an array
 	 *
 	 * @param $label String
 	 * @param $name String
@@ -303,7 +303,7 @@ class Xml {
 	 */
 	public static function inputLabelSep( $label, $name, $id, $size = false, $value = false, $attribs = array() ) {
 		return array(
-			Xml::label( $label, $id, $attribs ),
+			self::label( $label, $id, $attribs ),
 			self::input( $name, $size, $value, array( 'id' => $id ) + $attribs )
 		);
 	}
@@ -433,11 +433,11 @@ class Xml {
 			$attribs['tabindex'] = $tabindex;
 		}
 
-		return Xml::openElement( 'select', $attribs )
+		return self::openElement( 'select', $attribs )
 			   . "\n"
 			   . $options
 			   . "\n"
-			   . Xml::closeElement( 'select' );
+			   . self::closeElement( 'select' );
 	}
 
 	/**
@@ -450,15 +450,15 @@ class Xml {
 	 * @return string
 	 */
 	public static function fieldset( $legend = false, $content = false, $attribs = array() ) {
-		$s = Xml::openElement( 'fieldset', $attribs ) . "\n";
+		$s = self::openElement( 'fieldset', $attribs ) . "\n";
 
 		if( $legend ) {
-			$s .= Xml::element( 'legend', null, $legend ) . "\n";
+			$s .= self::element( 'legend', null, $legend ) . "\n";
 		}
 
 		if( $content !== false ) {
 			$s .= $content . "\n";
-			$s .= Xml::closeElement( 'fieldset' ) . "\n";
+			$s .= self::closeElement( 'fieldset' ) . "\n";
 		}
 
 		return $s;
@@ -567,7 +567,7 @@ class Xml {
 
 	/**
 	 * Create a call to a JavaScript function. The supplied arguments will be
-	 * encoded using Xml::encodeJsVar().
+	 * encoded using self::encodeJsVar().
 	 *
 	 * @since 1.17
 	 * @param string $name The name of the function to call, or a JavaScript expression
@@ -578,7 +578,7 @@ class Xml {
 	 */
 	public static function encodeJsCall( $name, $args, $pretty = false ) {
 		foreach( $args as &$arg ){
-			$arg = Xml::encodeJsVar( $arg, $pretty );
+			$arg = self::encodeJsVar( $arg, $pretty );
 			if( $arg === false ) {
 				return false;
 			}
@@ -634,7 +634,7 @@ class Xml {
 			$text .
 			'</html>';
 
-		return Xml::isWellFormed( $html );
+		return self::isWellFormed( $html );
 	}
 
 	static function hackDocType() {
@@ -923,10 +923,10 @@ class Xml {
 	 * @return string
 	 */
 	public static function buildTable( $rows, $attribs = array(), $headers = null ) {
-		$s = Xml::openElement( 'table', $attribs );
+		$s = self::openElement( 'table', $attribs );
 
 		if( is_array( $headers ) ) {
-			$s .= Xml::openElement( 'thead', $attribs );
+			$s .= self::openElement( 'thead', $attribs );
 
 			foreach( $headers as $id => $header ){
 				$attribs = array();
@@ -935,9 +935,9 @@ class Xml {
 					$attribs['id'] = $id;
 				}
 
-				$s .= Xml::element( 'th', $attribs, $header );
+				$s .= self::element( 'th', $attribs, $header );
 			}
-			$s .= Xml::closeElement( 'thead' );
+			$s .= self::closeElement( 'thead' );
 		}
 
 		foreach( $rows as $id => $row ){
@@ -947,10 +947,10 @@ class Xml {
 				$attribs['id'] = $id;
 			}
 
-			$s .= Xml::buildTableRow( $attribs, $row );
+			$s .= self::buildTableRow( $attribs, $row );
 		}
 
-		$s .= Xml::closeElement( 'table' );
+		$s .= self::closeElement( 'table' );
 
 		return $s;
 	}
@@ -962,7 +962,7 @@ class Xml {
 	 * @return string
 	 */
 	public static function buildTableRow( $attribs, $cells ) {
-		$s = Xml::openElement( 'tr', $attribs );
+		$s = self::openElement( 'tr', $attribs );
 
 		foreach( $cells as $id => $cell ){
 			$attribs = array();
@@ -971,10 +971,10 @@ class Xml {
 				$attribs['id'] = $id;
 			}
 
-			$s .= Xml::element( 'td', $attribs, $cell );
+			$s .= self::element( 'td', $attribs, $cell );
 		}
 
-		$s .= Xml::closeElement( 'tr' );
+		$s .= self::closeElement( 'tr' );
 
 		return $s;
 	}
@@ -1063,9 +1063,9 @@ class XmlSelect {
 		foreach( $options as $label => $value ){
 			if( is_array( $value ) ) {
 				$contents = self::formatOptions( $value, $default );
-				$data .= Xml::tags( 'optgroup', array( 'label' => $label ), $contents ) . "\n";
+				$data .= self::tags( 'optgroup', array( 'label' => $label ), $contents ) . "\n";
 			} else {
-				$data .= Xml::option( $label, $value, $value === $default ) . "\n";
+				$data .= self::option( $label, $value, $value === $default ) . "\n";
 			}
 		}
 
@@ -1082,6 +1082,6 @@ class XmlSelect {
 			$contents .= self::formatOptions( $options, $this->default );
 		}
 
-		return Xml::tags( 'select', $this->attributes, rtrim( $contents ) );
+		return self::tags( 'select', $this->attributes, rtrim( $contents ) );
 	}
 }

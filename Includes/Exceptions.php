@@ -37,6 +37,20 @@ class PeachyError extends Exception {
 }
 
 /**
+ * Assertation error bot
+ * 
+ * @package Exceptions
+ */
+class AssertFailure extends Exception {
+    
+    public function __contstruct( $type ) {
+        parent::__construct(
+            "Assert Failure: ".( $type == "bot" ? "Bot is no longer flagged as a bot" : "User is logged out" )
+        );   
+    }
+}
+
+/**
  * Generic API Error
  *
  * @package Exceptions
@@ -154,9 +168,9 @@ class NoUser extends Exception {
  */
 class UserBlocked extends Exception {
 
-	public function __construct( $username = "User" ) {
+	public function __construct( $pgUsername = "User" ) {
 		parent::__construct(
-			$username . " is currently blocked."
+			$pgUsername . " is currently blocked."
 		);
 
 	}
