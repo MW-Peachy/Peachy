@@ -403,10 +403,10 @@ class Image {
 	 * @return boolean
 	 */
 	public function revert( $comment = '', $revertto = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		$tokens = $this->wiki->get_tokens();
 
-		if( !$notag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $tag;
 		$apiArray = array(
 			'action'   => 'filerevert',
 			'token'    => $tokens['edit'],
@@ -499,9 +499,9 @@ class Image {
 	 * @return boolean
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
-		global $pgIP, $notag, $tag;
+		global $pgIP, $pgNotag, $tag;
 
-		if( !$notag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $tag;
 		if( !is_array( $file ) ) {
 			if( !preg_match( '@((http(s)?:\/\/)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@', $file ) ) {
 				if( !is_file( $file ) ) {
@@ -706,7 +706,7 @@ class Image {
 	 * @return boolean|null
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
-		global $pgIP, $notag, $tag;
+		global $pgIP, $pgNotag, $tag;
 
 		try{
 			$this->preEditChecks( "Resize" );
@@ -715,7 +715,7 @@ class Image {
 			return false;
 		}
 
-		if( !$notag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $tag;
 		if( !function_exists( 'ImageCreateTrueColor' ) ) {
 			throw new DependencyError( "GD", "http://us2.php.net/manual/en/book.image.php" );
 		}
