@@ -33,7 +33,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $pgHost;
+	private $host;
 
 	/**
 	 * Username of authenticated session
@@ -41,7 +41,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $pgUsername;
+	private $username;
 
 	/**
 	 * File path to the private key file
@@ -49,7 +49,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $pgPrikey;
+	private $prikey;
 
 	/**
 	 * SSH protocol being used
@@ -57,7 +57,7 @@ class SSH {
 	 * @var int
 	 * @access private
 	 */
-	private $pgProtocol;
+	private $protocol;
 
 	/**
 	 * Whether or not the connection was successful.
@@ -242,22 +242,6 @@ class SSH {
 			pecho( "Peachy was unable to authenticate with any method of authentication.\nPlease check your connection settings and try again.\n\n", PECHO_FATAL );
 			return false;
 		}
-	}
-
-	/**
-	 * Establishes a mysql connection over a remote SSH tunnel.  This function requires further development.
-	 *
-	 * @access public
-	 * @param string $pgHost Host of DB server location
-	 * @param string $pgUsername Username to access DB server with
-	 * @param string $passwd Password to authenticate with
-	 * @param string $dbname DB name to use
-	 * @param int $pgPort Port of DB server
-	 * @return null
-	 */
-	public function mysqli_connect( $pgHost = null, $pgUsername = null, $passwd = null, $dbname = "", $pgPort = null ) {
-		pecho( "This function requires further development of the SSH class.\n\n", PECHO_WARN );
-		return null;
 	}
 
 	/**
