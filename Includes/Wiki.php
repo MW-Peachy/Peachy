@@ -50,7 +50,7 @@ class Wiki {
 	 * @var string
 	 * @access protected
 	 */
-	protected $pgUsername;
+	protected $username;
 
 	/**
 	 * Edit of editing for the wiki in EPM.
@@ -264,7 +264,7 @@ class Wiki {
 	 * @param mixed $token Token if the wiki needs a token. Used internally, don't use (default: null)
 	 * @throws LoginError
 	 */
-	function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
+	public function __construct( $configuration, $extensions = array(), $recursed = 0, $token = null ) {
 		global $pgProxy, $pgVerbose, $pgUseSSH, $pgHost, $pgPort, $pgUsername, $pgPrikey, $pgPassphrase, $pgProtocol, $pgTimeout;
 
 		$this->cached_config['config'] = $configuration;
@@ -425,26 +425,19 @@ class Wiki {
 		if( isset( $loginRes['login']['result'] ) ) {
 			switch( $loginRes['login']['result'] ){
 				case 'NoName':
-					throw new LoginError( array( 'NoName', 'Username not specified' ) );
-					break;
+					throw new LoginError( array( 'NoName', 'Username not specified' ) ); 
 				case 'Illegal':
-					throw new LoginError( array( 'Illegal', 'Username with illegal characters specified' ) );
-					break;
+					throw new LoginError( array( 'Illegal', 'Username with illegal characters specified' ) );   
 				case 'NotExists':
-					throw new LoginError( array( 'NotExists', 'Username specified does not exist' ) );
-					break;
+					throw new LoginError( array( 'NotExists', 'Username specified does not exist' ) );      
 				case 'EmptyPass':
-					throw new LoginError( array( 'EmptyPass', 'Password not specified' ) );
-					break;
+					throw new LoginError( array( 'EmptyPass', 'Password not specified' ) );                
 				case 'WrongPass':
-					throw new LoginError( array( 'WrongPass', 'Incorrect password specified' ) );
-					break;
+					throw new LoginError( array( 'WrongPass', 'Incorrect password specified' ) );         
 				case 'WrongPluginPass':
-					throw new LoginError( array( 'WrongPluginPass', 'Incorrect password specified' ) );
-					break;
+					throw new LoginError( array( 'WrongPluginPass', 'Incorrect password specified' ) );  
 				case 'CreateBlocked':
-					throw new LoginError( array( 'CreateBlocked', 'IP address has been blocked' ) );
-					break;
+					throw new LoginError( array( 'CreateBlocked', 'IP address has been blocked' ) );     
 				case 'Throttled':
 					if( $recursed > 2 ) {
 						throw new LoginError( array(
@@ -457,19 +450,16 @@ class Wiki {
 					sleep( $wait );
 
 					$recres = $this->__construct( $configuration, $this->extensions, $recursed + 1 );
-					return $recres;
-					break;
+					return $recres;               
 				case 'Blocked':
-					throw new LoginError( array( 'Blocked', 'User specified has been blocked' ) );
-					break;
+					throw new LoginError( array( 'Blocked', 'User specified has been blocked' ) );  
 				case 'NeedToken':
 					if( $recursed > 2 ) throw new LoginError( array( 'NeedToken', 'Token was not specified' ) );
 
 					$token = $loginRes['login']['token'];
 
 					$recres = $this->__construct( $configuration, $this->extensions, $recursed + 1, $token );
-					return $recres;
-					break;
+					return $recres;        
 				case 'Success':
 					pecho( "Successfully logged in to {$this->base_url} as {$this->username}\n\n", PECHO_NORMAL );
 
@@ -590,7 +580,7 @@ class Wiki {
 					$arrayParams
 				);
 				$logdata .= $data;
-				$data2 = unserialize( $data );
+				$data2 = ( $data === false || is_null( $data ) ? false : unserialize( $data ) );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
 					$logdata .= "\nUNSERIALIZATION FAILED\n\n";
 					if( $pgLogFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
@@ -664,7 +654,7 @@ class Wiki {
 					$pgDisplayGetOutData = $tempSetting;
 					if( $pgThrowExceptions ) {
 						pecho( ".  Terminating program.\n\n", PECHO_FATAL );
-						exit( 1 );
+						throw new MWAPIError( array( 'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable') );
 					} else {
 						pecho( ".  Aborting attempts.", PECHO_FATAL );
 						return false;
@@ -675,7 +665,7 @@ class Wiki {
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
 				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
-					exit( 1 );
+					throw new MWAPIError( array( 'code' => 'noresponse', 'info' => 'API is unresponsive' ) );
 				} else {
 					pecho( "API Error: API is not responding.  Aborting attempts.\n\n", PECHO_FATAL );
 					return false;
@@ -717,7 +707,7 @@ class Wiki {
 					$arrayParams
 				);
 				$logdata .= $data;
-				$data2 = unserialize( $data );
+				$data2 = ( $data === false || is_null( $data ) ? false : unserialize( $data ) );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
 					$logdata .= "\nUNSERIALIZATION FAILED\n\n";
 					if( $pgLogFailedCommunicationData ) file_put_contents( $pgIP . 'Includes/Communication_Logs/Faileddata.log', $logdata, FILE_APPEND );
@@ -743,7 +733,7 @@ class Wiki {
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Terminating program.\n\n", PECHO_FATAL );
-					exit( 1 );
+					throw new MWAPIError( array( 'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable') );
 				} else {
 					pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Aborting attempts.\n\n", PECHO_FATAL );
 					return false;
@@ -754,7 +744,7 @@ class Wiki {
 			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
 				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API is not responding.  Terminating program.\n\n", PECHO_FATAL );
-					exit( 1 );
+					throw new MWAPIError( array( 'code' => 'noresponse', 'info' => 'API is unresponsive' ) );
 				} else {
 					pecho( "API Error: API is not responding.  Aborting attempts.\n\n", PECHO_FATAL );
 					return false;
@@ -1797,16 +1787,16 @@ class Wiki {
 			);
 		};
         
-        if( $generatexml ) {
-            if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
-            $apiArray['generatexml'] = 'yes';
-        }
-        
 		$apiArray = array(
 			'action'  => 'parse',
 			'uselang' => $uselang,
 			'prop'    => implode( '|', $prop ),
 		);
+        
+        if( $generatexml ) {
+            if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
+            $apiArray['generatexml'] = 'yes';
+        }
 
 		if( !is_null( $text ) ) $apiArray['text'] = $text;
 		if( !is_null( $title ) ) $apiArray['title'] = $title;
@@ -2048,7 +2038,7 @@ class Wiki {
             $this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
         } else {
             pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
-            return false;
+            return array();
         }
 
 		return $this->tokens;
@@ -2202,11 +2192,8 @@ class Wiki {
 	 * @return Image
 	 * @package initFunctions
 	 */
-	public function &initImage( $filename = null, $pageid = null, $prop = array(
-		'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename',
-		'bitdepth'
-	) ) {
-		$image = new Image( $this, $filename, $pageid, $prop );
+	public function &initImage( $filename = null, $pageid = null ) {
+		$image = new Image( $this, $filename, $pageid );
 		return $image;
 	}
 
@@ -2287,7 +2274,7 @@ class Wiki {
 		if( $suggest ) $apiArray['suggest'] = 'yes';
 
 		$OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );
-		return json_decode( $OSres, true );
+		return ( $OSres === false || is_null( $OSres ) ? false : json_decode( $OSres, true ) );
 
 	}
 
@@ -2304,7 +2291,7 @@ class Wiki {
 		);
 
 		$OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );
-		return XMLParse::load( $OSres );
+		return ( $OSres === false || is_null( $OSres ) ? false : XMLParse::load($OSres ) );
 	}
 
 	/**

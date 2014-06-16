@@ -55,7 +55,7 @@ class AssertFailure extends Exception {
  *
  * @package Exceptions
  */
-class APIError extends Exception {
+class MWAPIError extends Exception {
 
 	public function __construct( $error ) {
 		parent::__construct(

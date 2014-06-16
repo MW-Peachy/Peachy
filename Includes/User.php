@@ -41,7 +41,7 @@ class User {
 	 * @var string
 	 * @access protected
 	 */
-	protected $pgUsername;
+	protected $username;
 
 	/**
 	 * Whether or not user exists
@@ -118,7 +118,7 @@ class User {
 	 * @param Wiki $wikiClass
 	 * @return null|false
 	 */
-	function __construct( Wiki &$wikiClass, $pgUsername ) {
+	public function __construct( Wiki &$wikiClass, $pgUsername ) {
 
 		$this->wiki = & $wikiClass;
 
@@ -209,7 +209,7 @@ class User {
 	 * @param string $domain Domain for external authentication (optional). Default null.
 	 * @return bool True on success, false otherwise
 	 */
-	public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $tboverride = false, $language = null, $domain = null ) {
+	public function create( $password = null, $email = null, $mailpassword = false, $reason = null, $realname = null, $language = null, $domain = null ) {
 		global $pgNotag, $pgTag;
 		pecho( "Creating user account " . $this->username . "...\n\n", PECHO_NOTICE );
 
@@ -687,11 +687,13 @@ class User {
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
 		global $pgNotag, $pgTag;
 
+        $tokens = $this->wiki->get_tokens();
+        
 		if( !$pgNotag ) $reason .= $pgTag;
 		$apiArr = array(
 			'action' => 'userrights',
 			'user'   => $this->username,
-			'token'  => $token['userrights'],
+			'token'  => $tokens['userrights'],
 			'add'    => implode( '|', $add ),
 			'remove' => implode( '|', $remove ),
 			'reason' => $reason

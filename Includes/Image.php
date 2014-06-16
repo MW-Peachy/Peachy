@@ -172,7 +172,7 @@ class Image {
 	 * @param string $title
 	 * @return void
 	 */
-	public function __construct( Wiki &$wikiClass, $title = null ) {
+	public function __construct( Wiki &$wikiClass, $title = null, $pageid = null ) {
 
 		$this->wiki = & $wikiClass;
 
@@ -191,7 +191,7 @@ class Image {
 			$this->rawtitle = $this->wiki->removeNamespace( $x['title'] );
 			$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
 
-			$this->page = & $this->wiki->initPage( $this->title );
+			$this->page = & $this->wiki->initPage( $this->title, $pageid );
 
 			if( $x['imagerepository'] == "shared" ) $this->local = false;
 			if( isset( $x['imageinfo'] ) ) {
@@ -226,8 +226,9 @@ class Image {
 	 * @return unknown
 	 */
 	public function get_stashinfo( $limit = 50, $prop = array(
-		'timestamp', 'url', 'size', 'dimensions', 'sha1', 'mime', 'thumbmime', 'metadata', 'bitdepth'
-	) ) {
+        'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename',
+        'bitdepth'
+    ) ) {
 
 		$stasharray = array(
 			'prop'     => 'stashimageinfo',
@@ -406,7 +407,7 @@ class Image {
 		global $pgNotag, $pgTag;
 		$tokens = $this->wiki->get_tokens();
 
-		if( !$pgNotag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $pgTag;
 		$apiArray = array(
 			'action'   => 'filerevert',
 			'token'    => $tokens['edit'],
@@ -499,9 +500,9 @@ class Image {
 	 * @return boolean
 	 */
 	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
-		global $pgIP, $pgNotag, $tag;
+		global $pgIP, $pgNotag, $pgTag;
 
-		if( !$pgNotag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $pgTag;
 		if( !is_array( $file ) ) {
 			if( !preg_match( '@((http(s)?:\/\/)?([-\w]+\.[-\w\.]+)+\w(:\d+)?(/([-\w/_\.]*(\?\S+)?)?)*)@', $file ) ) {
 				if( !is_file( $file ) ) {
@@ -706,7 +707,7 @@ class Image {
 	 * @return boolean|null
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
-		global $pgIP, $pgNotag, $tag;
+		global $pgIP, $pgNotag, $pgTag;
 
 		try{
 			$this->preEditChecks( "Resize" );
@@ -715,7 +716,7 @@ class Image {
 			return false;
 		}
 
-		if( !$pgNotag ) $comment .= $tag;
+		if( !$pgNotag ) $comment .= $pgTag;
 		if( !function_exists( 'ImageCreateTrueColor' ) ) {
 			throw new DependencyError( "GD", "http://us2.php.net/manual/en/book.image.php" );
 		}
