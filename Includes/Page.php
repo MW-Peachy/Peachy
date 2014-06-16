@@ -1150,11 +1150,11 @@ class Page {
 		$sectiontitle = null,
 		$watch = null
 	) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 
 		$tokens = $this->wiki->get_tokens();
 
-		if( !$notag ) $summary .= $tag;
+		if( !$pgNotag ) $summary .= $pgTag;
 
 		if( $tokens['edit'] == '' ) {
 			pecho( "User is not allowed to edit {$this->title}\n\n", PECHO_FATAL );
@@ -1324,7 +1324,7 @@ class Page {
 	 * @return int The new revision id of the page edited.
 	 */
 	public function undo( $summary = null, $revisions = 1, $force = false, $watch = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		$info = $this->history( $revisions );
 		$oldrev = $info[( count( $info ) - 1 )]['revid'];
 		$newrev = $info[0]['revid'];
@@ -1353,7 +1353,7 @@ class Page {
 				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
 				return false;
 			}
-			if( !$notag ) $summary .= $tag;
+			if( !$pgNotag ) $summary .= $pgTag;
 
 			$params['summary'] = $summary;
 		}
@@ -1452,7 +1452,7 @@ class Page {
 	 * @return bool True on success
 	 */
 	public function move( $newTitle, $reason = '', $movetalk = true, $movesubpages = true, $noredirect = false, $watch = null, $nowarnings = false ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		$tokens = $this->wiki->get_tokens();
 
 		if( $tokens['move'] == '+\\' ) {
@@ -1498,7 +1498,7 @@ class Page {
 		}
 
 		if( $nowarnings ) $editarray['ignorewarnings'] = 'yes';
-		if( !$notag ) $reason .= $tag;
+		if( !$pgNotag ) $reason .= $pgTag;
 		if( !empty( $reason ) ) $editarray['reason'] = $reason;
 
 		if( $movetalk ) $editarray['movetalk'] = 'yes';
@@ -1539,7 +1539,7 @@ class Page {
 	 * @return bool True on success
 	 */
 	public function protect( $levels = null, $reason = null, $expiry = 'indefinite', $cascade = false, $watch = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		if( !in_array( 'protect', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to protect pages", PECHO_FATAL );
 			return false;
@@ -1550,7 +1550,7 @@ class Page {
 		}
 
 		$tokens = $this->wiki->get_tokens();
-		if( !$notag ) $reason .= $tag;
+		if( !$pgNotag ) $reason .= $pgTag;
 		$editarray = array(
 			'action'      => 'protect',
 			'title'       => $this->title,
@@ -1628,7 +1628,7 @@ class Page {
 	 * @return bool True on success
 	 */
 	public function delete( $reason = null, $watch = null, $oldimage = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 
 		if( !in_array( 'delete', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to delete pages", PECHO_FATAL );
@@ -1636,7 +1636,7 @@ class Page {
 		}
 
 		$tokens = $this->wiki->get_tokens();
-		if( !$notag ) $reason .= $tag;
+		if( !$pgNotag ) $reason .= $pgTag;
 		$editarray = array(
 			'action' => 'delete',
 			'title'  => $this->title,
@@ -1694,14 +1694,14 @@ class Page {
 	 * @return bool
 	 */
 	public function undelete( $reason = null, $timestamps = null, $watch = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		if( !in_array( 'undelete', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to undelete pages", PECHO_FATAL );
 			return false;
 		}
 
 		$tokens = $this->wiki->get_tokens();
-		if( !$notag ) $reason .= $tag;
+		if( !$pgNotag ) $reason .= $pgTag;
 		$undelArray = array(
 			'action' => 'undelete',
 			'title'  => $this->title,
@@ -2090,7 +2090,7 @@ class Page {
 	 * @return array Details of the rollback perform. ['revid']: The revision ID of the rollback. ['old_revid']: The revision ID of the first (most recent) revision that was rolled back. ['last_revid']: The revision ID of the last (oldest) revision that was rolled back.
 	 */
 	public function rollback( $force = false, $summary = null, $markbot = false, $watch = null ) {
-		global $notag, $tag;
+		global $pgNotag, $pgTag;
 		if( !in_array( 'rollback', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to rollback edits", PECHO_FATAL );
 			return false;
@@ -2119,7 +2119,7 @@ class Page {
 				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
 				return false;
 			}
-			if( !$notag ) $summary .= $tag;
+			if( !$pgNotag ) $summary .= $pgTag;
 
 			$params['summary'] = $summary;
 		}
