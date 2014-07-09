@@ -327,7 +327,7 @@ class Wiki {
 			$this->http->setCookieJar( $configuration['cookiejar'] );
 		} else {
 
-			$this->http->setCookieJar( sys_get_temp_dir() . 'PeachyCookieSite' . sha1( $configuration['encodedparams'] ) );
+			$this->http->setCookieJar( sys_get_temp_dir() . '/PeachyCookieSite' . sha1( $configuration['encodedparams'] ) );
 
 			if( $this->is_logged_in() ) $use_cookie_login = true;
 		}
