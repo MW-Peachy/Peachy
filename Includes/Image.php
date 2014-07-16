@@ -178,42 +178,49 @@ class Image {
 		$this->title = $title;
 
 		if( $this->wiki->removeNamespace( $title ) == $title ) {
+			// Add File: prefix if omitted
 			$namespaces = $this->wiki->get_namespaces();
 			$this->title = $namespaces[6] . ':' . $title;
 		}
 
+		// First, run a quick API call to normalize the title
+		$titleInfoArray = array(
+			'prop'              => 'imageinfo',
+			'_code'             => 'ii',
+			'_limit'            => 0,
+			'iiprop'            => "",
+			'titles'            => $this->title
+		);
+		$titleInfo = $this->wiki->listHandler( $titleInfoArray );
+
+		$this->title = $titleInfo[0]['title'];
+		$this->rawtitle = $this->wiki->removeNamespace( $this->title );
+		$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
+		$this->page = & $this->wiki->initPage( $this->title, $pageid );
+
 		$ii = $this->imageinfo();
 
-		foreach( $ii as $x ){
+		if( $ii[0]['imagerepository'] == "shared" ) $this->local = false;
+		if( isset( $ii[0]['imageinfo'] ) ) {
 
-			$this->title = $x['title'];
-			$this->rawtitle = $this->wiki->removeNamespace( $x['title'] );
-			$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
+			$this->mime = $ii[0]['imageinfo'][0]['mime'];
+			$this->bitdepth = $ii[0]['imageinfo'][0]['bitdepth'];
+			$this->hash = $ii[0]['imageinfo'][0]['sha1'];
+			$this->size = $ii[0]['imageinfo'][0]['size'];
+			$this->width = $ii[0]['imageinfo'][0]['width'];
+			$this->height = $ii[0]['imageinfo'][0]['height'];
+			$this->url = $ii[0]['imageinfo'][0]['url'];
+			$this->timestamp = $ii[0]['imageinfo'][0]['timestamp'];
+			$this->user = $ii[0]['imageinfo'][0]['user'];
 
-			$this->page = & $this->wiki->initPage( $this->title, $pageid );
-
-			if( $x['imagerepository'] == "shared" ) $this->local = false;
-			if( isset( $x['imageinfo'] ) ) {
-
-				$this->mime = $x['imageinfo'][0]['mime'];
-				$this->bitdepth = $x['imageinfo'][0]['bitdepth'];
-				$this->hash = $x['imageinfo'][0]['sha1'];
-				$this->size = $x['imageinfo'][0]['size'];
-				$this->width = $x['imageinfo'][0]['width'];
-				$this->height = $x['imageinfo'][0]['height'];
-				$this->url = $x['imageinfo'][0]['url'];
-				$this->timestamp = $x['imageinfo'][0]['timestamp'];
-				$this->user = $x['imageinfo'][0]['user'];
-
-				if( is_array( $x['imageinfo'][0]['metadata'] ) ) {
-					foreach( $x['imageinfo'][0]['metadata'] as $metadata ){
-						$this->metadata[$metadata['name']] = $metadata['value'];
-					}
+			if( is_array( $ii[0]['imageinfo'][0]['metadata'] ) ) {
+				foreach( $ii[0]['imageinfo'][0]['metadata'] as $metadata ){
+					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
-
-			} else {
-				$this->exists = false;
 			}
+
+		} else {
+			$this->exists = false;
 		}
 
 	}
@@ -260,7 +267,7 @@ class Image {
 	 * @return array
 	 */
 	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array(
-		'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
+		'title', 'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
 		'thumbmime', 'mediatype', 'metadata', 'archivename', 'bitdepth'
 	), $version = 'latest', $urlparam = null, $localonly = false ) {
 
