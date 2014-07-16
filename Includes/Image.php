@@ -99,15 +99,6 @@ class Image {
 	protected $height;
 
 	/**
-	 * Whether or not the image is hosted locally
-	 * This is not whether or not the page exists, use Image::get_exists() for that
-	 *
-	 * @var bool
-	 * @access protected
-	 */
-	protected $local = true;
-
-	/**
 	 * Sanitized name for local storage (namespace, colons, etc all removed)
 	 *
 	 * @var string
@@ -199,8 +190,6 @@ class Image {
 			$this->url = $ii[0]['url'];
 			$this->timestamp = $ii[0]['timestamp'];
 			$this->user = $ii[0]['user'];
-
-			if( $ii[0]['imagerepository'] == "shared" ) $this->local = false;
 
 			if( is_array( $ii[0]['metadata'] ) ) {
 				foreach( $ii[0]['metadata'] as $metadata ){
@@ -671,10 +660,6 @@ class Image {
 	public function download( $localname = null, $width = -1, $height = -1 ) {
 		global $pgIP;
 
-		if( !$this->local ) {
-			pecho( "Attempted to download a file on a shared respository instead of a local one", PECHO_NOTICE );
-		}
-
 		if( !$this->get_exists() ) {
 			pecho( "Attempted to download a non-existant file.", PECHO_NOTICE );
 		}
@@ -841,15 +826,6 @@ class Image {
 	 */
 	public function get_localname() {
 		return $this->localname;
-	}
-
-	/**
-	 * Whether or not the image is on a shared repository. A true result means that it is stored locally.
-	 *
-	 * @return bool
-	 */
-	public function is_local() {
-		return $this->local;
 	}
 
 	/**
