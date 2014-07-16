@@ -184,31 +184,27 @@ class Image {
 
 		$ii = $this->imageinfo();
 
-		foreach( $ii as $x ){
+		if( is_array( $ii ) ) {
 
-			$this->title = $x['title'];
-			$this->rawtitle = $this->wiki->removeNamespace( $x['title'] );
+			$this->title = $ii[0]['canonicaltitle'];
+			$this->rawtitle = $this->wiki->removeNamespace( $this->title );
 			$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
-
 			$this->page = & $this->wiki->initPage( $this->title, $pageid );
+			$this->mime = $ii[0]['mime'];
+			$this->bitdepth = $ii[0]['bitdepth'];
+			$this->hash = $ii[0]['sha1'];
+			$this->size = $ii[0]['size'];
+			$this->width = $ii[0]['width'];
+			$this->height = $ii[0]['height'];
+			$this->url = $ii[0]['url'];
+			$this->timestamp = $ii[0]['timestamp'];
+			$this->user = $ii[0]['user'];
 
-			if( $x['imagerepository'] == "shared" ) $this->local = false;
-			if( isset( $x['imageinfo'] ) ) {
+			if( $ii[0]['imagerepository'] == "shared" ) $this->local = false;
 
-				$this->mime = $x['imageinfo'][0]['mime'];
-				$this->bitdepth = $x['imageinfo'][0]['bitdepth'];
-				$this->hash = $x['imageinfo'][0]['sha1'];
-				$this->size = $x['imageinfo'][0]['size'];
-				$this->width = $x['imageinfo'][0]['width'];
-				$this->height = $x['imageinfo'][0]['height'];
-				$this->url = $x['imageinfo'][0]['url'];
-				$this->timestamp = $x['imageinfo'][0]['timestamp'];
-				$this->user = $x['imageinfo'][0]['user'];
-
-				if( is_array( $x['imageinfo'][0]['metadata'] ) ) {
-					foreach( $x['imageinfo'][0]['metadata'] as $metadata ){
-						$this->metadata[$metadata['name']] = $metadata['value'];
-					}
+			if( is_array( $ii[0]['metadata'] ) ) {
+				foreach( $ii[0]['metadata'] as $metadata ){
+					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
 
 			} else {
@@ -224,7 +220,7 @@ class Image {
 	 * @link https://www.mediawiki.org/wiki/API:Properties#imageinfo_.2F_ii
 	 * @param int $limit Number of results to limit to. Default 50.
 	 * @param array $prop What image information to get.  Default all values.
-	 * @return array
+	 * @return array|bool False if not found, otherwise array of info indexed by revision
 	 */
 	public function get_stashinfo( $limit = 50, $prop = array(
         'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename',
@@ -240,8 +236,12 @@ class Image {
 			'_lhtitle' => 'stashimageinfo'
 		);
 
-		return $this->wiki->listHandler( $stasharray );
-
+		$stashinfo = $this->wiki->listHandler( $stasharray );
+		if( is_array( $stashinfo ) ) {
+			return $stashinfo[0];
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -257,10 +257,10 @@ class Image {
 	 * @param string $version Version of metadata to use. Default 'latest'
 	 * @param string $urlparam A handler specific parameter string. Default null
 	 * @param bool $localonly Look only for files in the local repository. Default false
-	 * @return array
+	 * @return array|bool False if file does not exist, otherwise array of info indexed by revision
 	 */
 	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array(
-		'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
+		'canonicaltitle', 'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
 		'thumbmime', 'mediatype', 'metadata', 'archivename', 'bitdepth'
 	), $version = 'latest', $urlparam = null, $localonly = false ) {
 
@@ -283,7 +283,13 @@ class Image {
 
 		pecho( "Getting image info for {$this->title}...\n\n", PECHO_NORMAL );
 
-		return $this->wiki->listHandler( $imageInfoArray );
+		$imageInfo = $this->wiki->listHandler( $imageInfoArray );
+		if( count( $imageInfo ) > 0 ) {
+			return $imageInfo[0];
+		} else {
+			// Does not exist
+			return false;
+		}
 	}
 
 	/**
@@ -426,9 +432,7 @@ class Image {
 			pecho( "Reverting to $revertto" . "...\n\n", PECHO_NOTICE );
 		} else {
 			$ii = $this->imageinfo( 2, -1, -1, null, null, array( 'archivename' ) );
-			foreach( $ii as $x ){
-				if( isset( $x['imageinfo'] ) ) $apiArray['archivename'] = $x['imageinfo'][1]['archivename'];
-			}
+			if( is_array( $ii ) ) $apiArray['archivename'] = $ii[1]['archivename'];
 			pecho( "Reverting to prior upload...\n\n", PECHO_NOTICE );
 		}
 
@@ -677,8 +681,8 @@ class Image {
 
 		$ii = $this->imageinfo( 1, $width, $height );
 
-		if( isset( $ii[$this->page->get_id()]['imageinfo'] ) ) {
-			$ii = $ii[$this->page->get_id()]['imageinfo'][0];
+		if( is_array( $ii ) ) {
+			$ii = $ii[0];
 
 			if( $width != -1 ) {
 				$url = $ii['thumburl'];
