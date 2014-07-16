@@ -168,14 +168,13 @@ class Image {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param Wiki $wikiClass
-	 * @param string $title
-	 * @return void
+	 * @param string $title The title of the image
+	 * @param int $pageid The ID of the image page (optional)
+	 * @return Image
 	 */
 	public function __construct( Wiki &$wikiClass, $title = null, $pageid = null ) {
 
 		$this->wiki = & $wikiClass;
-
 		$this->title = $title;
 
 		if( $this->wiki->removeNamespace( $title ) == $title ) {
@@ -212,7 +211,9 @@ class Image {
 					}
 				}
 
-			} else $this->exists = false;
+			} else {
+				$this->exists = false;
+			}
 		}
 
 	}
@@ -221,9 +222,9 @@ class Image {
 	 *
 	 * @access public
 	 * @link https://www.mediawiki.org/wiki/API:Properties#imageinfo_.2F_ii
-	 * @param $limit Number of results to limit to. Default 50.
-	 * @param $prop What image information to get.  Default all values.
-	 * @return unknown
+	 * @param int $limit Number of results to limit to. Default 50.
+	 * @param array $prop What image information to get.  Default all values.
+	 * @return array
 	 */
 	public function get_stashinfo( $limit = 50, $prop = array(
         'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename',
@@ -291,11 +292,13 @@ class Image {
 	 * @access public
 	 * @param string $dir Which direction to go. Default 'older'
 	 * @param int $limit Number of revisions to get. Default null (all revisions)
-	 * @return void
+	 * @param bool $force Force generation of the cache. Default false (use cache).
+	 * @return array Upload history.
 	 */
-	public function get_history( $dir = 'older', $limit = null ) {
-
-		$this->history = $this->page->history( $limit, $dir );
+	public function get_history( $dir = 'older', $limit = null, $force = false ) {
+		if( !count( $this->history ) || $force ) {
+			$this->history = $this->page->history( $limit, $dir );
+		}
 		return $this->history;
 	}
 
@@ -306,6 +309,8 @@ class Image {
 	 * @param string|array $namespace Namespaces to look in. If set as a string, must be set in the syntax "0|1|2|...". If an array, simply the namespace IDs to look in. Default null.
 	 * @param string $redirects How to filter for redirects. Options are "all", "redirects", or "nonredirects". Default "all".
 	 * @param bool $followRedir If linking page is a redirect, find all pages that link to that redirect as well. Default false.
+	 * @param int|null $limit
+	 * @param bool $force Force regeneration of the cache. Default false (use cache).
 	 * @return array
 	 */
 	public function get_usage( $namespace = null, $redirects = "all", $followRedir = false, $limit = null, $force = false ) {
@@ -345,6 +350,7 @@ class Image {
 	 * Returns an array of all files with identical sha1 hashes
 	 *
 	 * @param int $limit Number of duplicates to get. Default null (all)
+	 * @param bool $force Force regeneration of the cache. Default false (use cache).
 	 * @return array Duplicate files
 	 */
 	public function get_duplicates( $limit = null, $force = false ) {
@@ -492,14 +498,16 @@ class Image {
 	 * Upload an image to the wiki
 	 *
 	 * @access public
+	 * @param string $file Identifier of a file. Flexible format (local path, URL)
 	 * @param string $text Text on the image file page (default: '')
 	 * @param string $comment Comment for inthe upload in logs (default: '')
 	 * @param bool $watch Should the upload be added to the watchlist (default: false)
 	 * @param bool $ignorewarnings Ignore warnings about the upload (default: true)
 	 * @param bool $async Make potentially large file operations asynchronous when possible.  Default false.
+	 * @throws BadEntryError
 	 * @return boolean
 	 */
-	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
+	public function upload( $file, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
 		global $pgIP, $pgNotag, $pgTag;
 
 		if( !$pgNotag ) $comment .= $pgTag;
@@ -699,12 +707,13 @@ class Image {
 	 * @param int $width Width of resized image. Default null
 	 * @param int $height Height of resized image. Default null.
 	 * @param bool $reupload Whether or not to automatically upload the image again. Default false
-	 * @param string $newname New filename when reuploading. If not null, upload over the old file. Default null.
 	 * @param string $text Text to use for the image name
 	 * @param string $comment Upload comment.
 	 * @param bool $watch Whether or not to watch the image on uploading
 	 * @param bool $ignorewarnings Whether or not to ignore upload warnings
-	 * @return boolean|null
+	 * @throws DependencyError Relies on GD PHP plugin
+	 * @throws BadEntryError
+	 * @return boolean|void False on failure
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
 		global $pgIP, $pgNotag, $pgTag;
