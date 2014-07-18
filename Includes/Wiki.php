@@ -89,26 +89,26 @@ class Wiki {
 	 * @access protected
 	 */
 	protected $requiresFlag = false;
-    
-    /**
-     * Can the user continue editing logged out.
-     *
-     * (default value: false)
-     *
-     * @var bool
-     * @access protected
-     */
-    protected $allowLoggedOutEditing = false;
-   
-    /**
-     * Does the user have a bot flag.
-     *
-     * (default value: false)
-     *
-     * @var bool
-     * @access protected
-     */
-    protected $isFlagged = false;    
+
+	/**
+	 * Can the user continue editing logged out.
+	 *
+	 * (default value: false)
+	 *
+	 * @var bool
+	 * @access protected
+	 */
+	protected $allowLoggedOutEditing = false;
+
+	/**
+	 * Does the user have a bot flag.
+	 *
+	 * (default value: false)
+	 *
+	 * @var bool
+	 * @access protected
+	 */
+	protected $isFlagged = false;
 
 	/**
 	 * Array of extenstions on the Wiki in the form of name => version.
@@ -244,14 +244,14 @@ class Wiki {
 	 * @access public
 	 */
 	public $mwversion;
-    
-    /**
-    * Caches configuration information for logging back in with identical settings.
-    * 
-    * @var array
-    * @access protected
-    */
-    protected $cached_config;
+
+	/**
+	 * Caches configuration information for logging back in with identical settings.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $cached_config;
 
 	/**
 	 * Contruct function for the wiki. Handles login and related functions.
@@ -268,9 +268,9 @@ class Wiki {
 		global $pgProxy, $pgVerbose, $pgUseSSH, $pgHost, $pgPort, $pgUsername, $pgPrikey, $pgPassphrase, $pgProtocol, $pgTimeout;
 
 		$this->cached_config['config'] = $configuration;
-        $this->cached_config['extensions'] = $extensions; 
-        
-        if( !array_key_exists( 'encodedparams', $configuration ) ) {
+		$this->cached_config['extensions'] = $extensions;
+
+		if( !array_key_exists( 'encodedparams', $configuration ) ) {
 			$configuration['encodedparams'] = rawurlencode( serialize( $configuration ) );
 		}
 
@@ -283,9 +283,9 @@ class Wiki {
 			'iwbacklinks', 'langbacklinks', 'links', 'oldreviewedpages', 'protectedtitles', 'querypage', 'random',
 			'recentchanges', 'search', 'templates', 'watchlist', 'watchlistraw'
 		);
-        
-        if( isset( $configuration['editwhileloggedout'] ) ) $this->allowLoggedOutEditing = true;
-        if( isset( $configuration['requirebotflag'] ) ) $this->requiresFlag = true;
+
+		if( isset( $configuration['editwhileloggedout'] ) ) $this->allowLoggedOutEditing = true;
+		if( isset( $configuration['requirebotflag'] ) ) $this->requiresFlag = true;
 		if( isset( $configuration['editsperminute'] ) && $configuration['editsperminute'] != 0 ) {
 			$this->edit_rate = $configuration['editsperminute'];
 		}
@@ -425,19 +425,19 @@ class Wiki {
 		if( isset( $loginRes['login']['result'] ) ) {
 			switch( $loginRes['login']['result'] ){
 				case 'NoName':
-					throw new LoginError( array( 'NoName', 'Username not specified' ) ); 
+					throw new LoginError( array( 'NoName', 'Username not specified' ) );
 				case 'Illegal':
-					throw new LoginError( array( 'Illegal', 'Username with illegal characters specified' ) );   
+					throw new LoginError( array( 'Illegal', 'Username with illegal characters specified' ) );
 				case 'NotExists':
-					throw new LoginError( array( 'NotExists', 'Username specified does not exist' ) );      
+					throw new LoginError( array( 'NotExists', 'Username specified does not exist' ) );
 				case 'EmptyPass':
-					throw new LoginError( array( 'EmptyPass', 'Password not specified' ) );                
+					throw new LoginError( array( 'EmptyPass', 'Password not specified' ) );
 				case 'WrongPass':
-					throw new LoginError( array( 'WrongPass', 'Incorrect password specified' ) );         
+					throw new LoginError( array( 'WrongPass', 'Incorrect password specified' ) );
 				case 'WrongPluginPass':
-					throw new LoginError( array( 'WrongPluginPass', 'Incorrect password specified' ) );  
+					throw new LoginError( array( 'WrongPluginPass', 'Incorrect password specified' ) );
 				case 'CreateBlocked':
-					throw new LoginError( array( 'CreateBlocked', 'IP address has been blocked' ) );     
+					throw new LoginError( array( 'CreateBlocked', 'IP address has been blocked' ) );
 				case 'Throttled':
 					if( $recursed > 2 ) {
 						throw new LoginError( array(
@@ -450,16 +450,16 @@ class Wiki {
 					sleep( $wait );
 
 					$recres = $this->__construct( $configuration, $this->extensions, $recursed + 1 );
-					return $recres;               
+					return $recres;
 				case 'Blocked':
-					throw new LoginError( array( 'Blocked', 'User specified has been blocked' ) );  
+					throw new LoginError( array( 'Blocked', 'User specified has been blocked' ) );
 				case 'NeedToken':
 					if( $recursed > 2 ) throw new LoginError( array( 'NeedToken', 'Token was not specified' ) );
 
 					$token = $loginRes['login']['token'];
 
 					$recres = $this->__construct( $configuration, $this->extensions, $recursed + 1, $token );
-					return $recres;        
+					return $recres;
 				case 'Success':
 					pecho( "Successfully logged in to {$this->base_url} as {$this->username}\n\n", PECHO_NORMAL );
 
@@ -541,7 +541,10 @@ class Wiki {
 	 * @param bool $post Should it be a POST reqeust? (default: false)
 	 * @param bool $errorcheck
 	 * @param bool $recursed Is this a recursed reqest (default: false)
+	 * @param bool $assertcheck Use MediaWiki's assert feature to prevent unwanted edits (default: true)
 	 * @throws LoggedOut
+	 * @throws AssertFailure (see $assertcheck)
+	 * @throws MWAPIError (API unavailable)
 	 * @return array Returns an array with the API result
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true ) {
@@ -560,10 +563,10 @@ class Wiki {
 			$assert = true;
 			Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		} elseif( $post && !$this->allowLoggedOutEditing && $assertcheck ) {
-            $arrayParams['assert'] = 'user';
-            $assert = true;
-            Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
-        } elseif( isset( $arrayParams['assert'] ) ) unset( $arrayParams['assert'] );
+			$arrayParams['assert'] = 'user';
+			$assert = true;
+			Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
+		} elseif( isset( $arrayParams['assert'] ) ) unset( $arrayParams['assert'] );
 
 		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE );
 
@@ -594,12 +597,12 @@ class Wiki {
 
 				$data = $data2;
 				unset( $data2 );
-                if( isset( $data['error'] ) && $data['error']['code'] == 'badtoken' ) {
-                    pecho( "API Error...\n\nBadtoken detected retrying with new tokens...\n\n", PECHO_WARN );
-                    $tokens = $this->get_tokens( true );
-                    $arrayParams['token'] = $tokens[$arrayParams['action']];
-                    continue;
-                }
+				if( isset( $data['error'] ) && $data['error']['code'] == 'badtoken' ) {
+					pecho( "API Error...\n\nBadtoken detected retrying with new tokens...\n\n", PECHO_WARN );
+					$tokens = $this->get_tokens( true );
+					$arrayParams['token'] = $tokens[$arrayParams['action']];
+					continue;
+				}
 				if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 					pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
 					$tempSetting = $pgDisplayGetOutData;
@@ -617,20 +620,22 @@ class Wiki {
 						continue;
 					}
 				}
-                
-                Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
-				if( isset( $data['error'] ) && isset( $data['error']['code'] ) && $assert  && $errorcheck ) {
-					if( $data['error']['code'] == 'assertbotfailed' && $pgThrowExceptions )
+
+				Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
+				if( isset( $data['error'] ) && isset( $data['error']['code'] ) && $assert && $errorcheck ) {
+					if( $data['error']['code'] == 'assertbotfailed' && $pgThrowExceptions ) {
 						throw new AssertFailure( 'bot' );
-					if( $data['error']['code'] == 'assertuserfailed' && $pgThrowExceptions )
+					}
+					if( $data['error']['code'] == 'assertuserfailed' && $pgThrowExceptions ) {
 						throw new AssertFailure( 'user' );
+					}
 					if( $data['error']['code'] == 'assertbotfailed' && !$pgThrowExceptions ) {
 						if( $this->is_logged_in() ) {
 							pecho( "Assertion Failure: This user does not have the bot flag.  Waiting for bot flag...\n\n", PECHO_FATAL );
 							$this->isFlagged = false;
 							return false;
 						} else {
-							$data['error']['code'] = 'assertuserfailed';   //If we are logged out, log back in.
+							$data['error']['code'] = 'assertuserfailed'; //If we are logged out, log back in.
 						}
 					}
 					if( $data['error']['code'] == 'assertuserfailed' && !$pgThrowExceptions ) {
@@ -657,7 +662,9 @@ class Wiki {
 					$pgDisplayGetOutData = $tempSetting;
 					if( $pgThrowExceptions ) {
 						pecho( ".  Terminating program.\n\n", PECHO_FATAL );
-						throw new MWAPIError( array( 'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable') );
+						throw new MWAPIError( array(
+							'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable'
+						) );
 					} else {
 						pecho( ".  Aborting attempts.", PECHO_FATAL );
 						return false;
@@ -736,7 +743,9 @@ class Wiki {
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 				if( $pgThrowExceptions ) {
 					pecho( "Fatal Error: API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Terminating program.\n\n", PECHO_FATAL );
-					throw new MWAPIError( array( 'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable') );
+					throw new MWAPIError( array(
+						'code' => 'error503', 'info' => 'nThe webserver\'s service is currently unavailable'
+					) );
 				} else {
 					pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is still not available.  Aborting attempts.\n\n", PECHO_FATAL );
 					return false;
@@ -1150,7 +1159,7 @@ class Wiki {
 			$namespace = implode( '|', $namespace );
 		}
 
-		if( is_null( $prop ) ){
+		if( is_null( $prop ) ) {
 			$prop = array(
 				'user', 'comment', 'flags', 'timestamp', 'title', 'ids', 'sizes', 'tags'
 			);
@@ -1782,24 +1791,24 @@ class Wiki {
 	 */
 	public function parse( $text = null, $title = null, $summary = null, $pst = false, $onlypst = false, $prop = null, $uselang = 'en', $page = null, $oldid = null, $pageid = null, $redirects = false, $section = null, $disablepp = false, $generatexml = false, $contentformat = null, $contentmodel = null, $mobileformat = null, $noimages = false, $mainpage = false ) {
 
-		if( $prop === null ){
+		if( $prop === null ) {
 			$prop = array(
 				'text', 'langlinks', 'categories', 'categorieshtml', 'languageshtml', 'links', 'templates', 'images',
 				'externallinks', 'sections', 'revid', 'displaytitle', 'headitems', 'headhtml', 'iwlinks', 'wikitext',
 				'properties'
 			);
 		};
-        
+
 		$apiArray = array(
 			'action'  => 'parse',
 			'uselang' => $uselang,
 			'prop'    => implode( '|', $prop ),
 		);
-        
-        if( $generatexml ) {
-            if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
-            $apiArray['generatexml'] = 'yes';
-        }
+
+		if( $generatexml ) {
+			if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
+			$apiArray['generatexml'] = 'yes';
+		}
 
 		if( !is_null( $text ) ) $apiArray['text'] = $text;
 		if( !is_null( $title ) ) $apiArray['title'] = $title;
@@ -2027,22 +2036,22 @@ class Wiki {
 				$this->tokens[str_replace( 'token', '', $y )] = $z;
 			}
 		}
-        
-        $token = $this->apiQuery(
-            array(
-                'action'  => 'query',
-                'list'    => 'users',
-                'ususers' => $this->username,
-                'ustoken' => 'userrights'
-            )
-        );
-        
-        if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
-            $this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
-        } else {
-            pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
-            return array();
-        }
+
+		$token = $this->apiQuery(
+			array(
+				'action'  => 'query',
+				'list'    => 'users',
+				'ususers' => $this->username,
+				'ustoken' => 'userrights'
+			)
+		);
+
+		if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
+			$this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
+		} else {
+			pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
+			return array();
+		}
 
 		return $this->tokens;
 
@@ -2294,7 +2303,7 @@ class Wiki {
 		);
 
 		$OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );
-		return ( $OSres === false || is_null( $OSres ) ? false : XMLParse::load($OSres ) );
+		return ( $OSres === false || is_null( $OSres ) ? false : XMLParse::load( $OSres ) );
 	}
 
 	/**
@@ -2344,78 +2353,78 @@ class Wiki {
 	public function getSSH() {
 		return $this->SSH;
 	}
-    
-    /**
-     * Performs nobots checking, new message checking, etc
-     * 
-     * @var string $action Name of action.
-     * @var string $title Name of page to check for nobots
-     * @access public
-     * @return void
-     */
-    public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
-        global $pgDisablechecks, $pgMasterrunpage;
-        if( $pgDisablechecks ) return;
-        $preeditinfo = array(
-            'action' => 'query',
-            'meta'   => 'userinfo',
-            'uiprop' => 'hasmsg|blockinfo',
-            'prop'   => 'revisions',
-            'rvprop' => 'content'
-        );
 
-        if( !is_null( $this->get_runpage() ) ) {
-            $preeditinfo['titles'] = $this->get_runpage();
-        }
-        if( !is_null( $title ) ) {
-            $preeditinfo['titles'] .= ( !is_null( $this->get_runpage() ) ? "|" : "" ) . $title;
-        }
+	/**
+	 * Performs nobots checking, new message checking, etc
+	 *
+	 * @var string $action Name of action.
+	 * @var string $title Name of page to check for nobots
+	 * @access public
+	 * @return void
+	 */
+	public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
+		global $pgDisablechecks, $pgMasterrunpage;
+		if( $pgDisablechecks ) return;
+		$preeditinfo = array(
+			'action' => 'query',
+			'meta'   => 'userinfo',
+			'uiprop' => 'hasmsg|blockinfo',
+			'prop'   => 'revisions',
+			'rvprop' => 'content'
+		);
 
-        $preeditinfo = $this->apiQuery( $preeditinfo );
+		if( !is_null( $this->get_runpage() ) ) {
+			$preeditinfo['titles'] = $this->get_runpage();
+		}
+		if( !is_null( $title ) ) {
+			$preeditinfo['titles'] .= ( !is_null( $this->get_runpage() ) ? "|" : "" ) . $title;
+		}
 
-        $messages = false;
-        $blocked = false;
-        $oldtext = '';
-        $runtext = 'enable';
-        if( isset( $preeditinfo['query']['pages'] ) ) {
-            //$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
-            foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
-                if( $pageid == $pageidp ) {
-                    $oldtext = $page['revisions'][0]['*'];
-                } elseif( $pageid == "-1" ) {
-                    if( $page['title'] == $this->get_runpage() ) {
-                        pecho( "$action failed, enable page does not exist.\n\n", PECHO_WARN );
-                        throw new EditError( "Enablepage", "Enable  page does not exist." );
-                    } else {
-                        $oldtext = '';
-                    }
-                } else {
-                    $runtext = $page['revisions'][0]['*'];
-                }
-            }
-            if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
-            if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
-        }
+		$preeditinfo = $this->apiQuery( $preeditinfo );
 
-        //Perform nobots checks, login checks, /Run checks
-        if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout() ) && $this->get_nobots() ) {
-            throw new EditError( "Nobots", "The page has a nobots template" );
-        }
+		$messages = false;
+		$blocked = false;
+		$oldtext = '';
+		$runtext = 'enable';
+		if( isset( $preeditinfo['query']['pages'] ) ) {
+			//$oldtext = $preeditinfo['query']['pages'][$this->pageid]['revisions'][0]['*'];
+			foreach( $preeditinfo['query']['pages'] as $pageid => $page ){
+				if( $pageid == $pageidp ) {
+					$oldtext = $page['revisions'][0]['*'];
+				} elseif( $pageid == "-1" ) {
+					if( $page['title'] == $this->get_runpage() ) {
+						pecho( "$action failed, enable page does not exist.\n\n", PECHO_WARN );
+						throw new EditError( "Enablepage", "Enable  page does not exist." );
+					} else {
+						$oldtext = '';
+					}
+				} else {
+					$runtext = $page['revisions'][0]['*'];
+				}
+			}
+			if( isset( $preeditinfo['query']['userinfo']['messages'] ) ) $messages = true;
+			if( isset( $preeditinfo['query']['userinfo']['blockedby'] ) ) $blocked = true;
+		}
 
-        if( !is_null( $pgMasterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->initPage( $pgMasterrunpage )->get_text() ) ) {
-            throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
-        }
+		//Perform nobots checks, login checks, /Run checks
+		if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout() ) && $this->get_nobots() ) {
+			throw new EditError( "Nobots", "The page has a nobots template" );
+		}
 
-        if( !is_null( $this->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
-            throw new EditError( "Enablepage", "Script was disabled by Run page" );
-        }
+		if( !is_null( $pgMasterrunpage ) && !preg_match( '/enable|yes|run|go|true/i', $this->initPage( $pgMasterrunpage )->get_text() ) ) {
+			throw new EditError( "Enablepage", "Script was disabled by Master Run page" );
+		}
 
-        if( $messages && $this->get_stoponnewmessages() ) {
-            throw new EditError( "NewMessages", "User has new messages" );
-        }
+		if( !is_null( $this->get_runpage() ) && !preg_match( '/enable|yes|run|go|true/i', $runtext ) ) {
+			throw new EditError( "Enablepage", "Script was disabled by Run page" );
+		}
 
-        if( $blocked ) {
-            throw new EditError( "Blocked", "User has been blocked" );
-        }
-    }
+		if( $messages && $this->get_stoponnewmessages() ) {
+			throw new EditError( "NewMessages", "User has new messages" );
+		}
+
+		if( $blocked ) {
+			throw new EditError( "Blocked", "User has been blocked" );
+		}
+	}
 }
