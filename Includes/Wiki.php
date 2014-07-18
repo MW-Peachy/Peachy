@@ -619,28 +619,31 @@ class Wiki {
 				}
                 
                 Hooks::runHook( 'APIQueryCheckAssertion', array( &$assert, &$data['edit']['assert'] ) );
-                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && $pgThrowExceptions ) throw new AssertFailure( 'bot' );
-                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && $pgThrowExceptions ) throw new AssertFailure( 'user' );
-                if( $assert && $data['error']['code'] == 'assertbotfailed' && $errorcheck && !$pgThrowExceptions ) {
-                    if( $this->is_logged_in() ) {
-                        pecho( "Assertion Failure: This user does not have the bot flag.  Waiting for bot flag...\n\n", PECHO_FATAL );
-                        $this->isFlagged = false;
-                        return false;
-                    } else {
-                        $data['error']['code'] == 'assertuserfailed';   //If we are logged out, log back in.
-                    }
-                }
-                if( $assert && $data['error']['code'] == 'assertuserfailed' && $errorcheck && !$pgThrowExceptions ) {
-                    pecho( "Assertion Failure: This user has logged out.  Logging back in...\n\n", PECHO_FATAL );
-                    $this->logout();
-                    $this->__construct( $this->cached_config['config'], $this->cached_config['extensions'], 0, null );
-                    $this->get_tokens( true );
-                }
-
-				if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-					pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
-				} else break;
+				if( isset( $data['error'] ) && isset( $data['error']['code'] ) && $assert  && $errorcheck ) {
+					if( $data['error']['code'] == 'assertbotfailed' && $pgThrowExceptions )
+						throw new AssertFailure( 'bot' );
+					if( $data['error']['code'] == 'assertuserfailed' && $pgThrowExceptions )
+						throw new AssertFailure( 'user' );
+					if( $data['error']['code'] == 'assertbotfailed' && !$pgThrowExceptions ) {
+						if( $this->is_logged_in() ) {
+							pecho( "Assertion Failure: This user does not have the bot flag.  Waiting for bot flag...\n\n", PECHO_FATAL );
+							$this->isFlagged = false;
+							return false;
+						} else {
+							$data['error']['code'] = 'assertuserfailed';   //If we are logged out, log back in.
+						}
+					}
+					if( $data['error']['code'] == 'assertuserfailed' && !$pgThrowExceptions ) {
+						pecho( "Assertion Failure: This user has logged out.  Logging back in...\n\n", PECHO_FATAL );
+						$this->logout();
+						$this->__construct( $this->cached_config['config'], $this->cached_config['extensions'], 0, null );
+						$this->get_tokens( true );
+					}
+				}
 			}
+			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
+				pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+			} else return true;
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 				pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
 				$tempSetting = $pgDisplayGetOutData;
