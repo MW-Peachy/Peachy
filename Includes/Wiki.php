@@ -645,10 +645,10 @@ class Wiki {
 						$this->get_tokens( true );
 					}
 				}
+				if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
+					pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
+				} else break;
 			}
-			if( !isset( $data['servedby'] ) && !isset( $data['requestid'] ) ) {
-				pecho( "Warning: API is not responding, retrying...\n\n", PECHO_WARN );
-			} else return true;
 			if( $this->get_http()->get_HTTP_code() == 503 && $errorcheck ) {
 				pecho( "API Error...\n\nCode: error503\nText: HTTP Error 503\nThe webserver's service is currently unavailable", PECHO_WARN );
 				$tempSetting = $pgDisplayGetOutData;
@@ -2377,7 +2377,7 @@ class Wiki {
 			$preeditinfo['titles'] = $this->get_runpage();
 		}
 		if( !is_null( $title ) ) {
-			$preeditinfo['titles'] .= ( !is_null( $this->get_runpage() ) ? "|" : "" ) . $title;
+			$preeditinfo['titles'] = ( !is_null( $this->get_runpage() ) ? $preeditinfo['titles'] . "|" : "" ) . $title;
 		}
 
 		$preeditinfo = $this->apiQuery( $preeditinfo );
