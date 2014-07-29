@@ -99,15 +99,6 @@ class Image {
 	protected $height;
 
 	/**
-	 * Whether or not the image is hosted locally
-	 * This is not whether or not the page exists, use Image::get_exists() for that
-	 *
-	 * @var bool
-	 * @access protected
-	 */
-	protected $local = true;
-
-	/**
 	 * Sanitized name for local storage (namespace, colons, etc all removed)
 	 *
 	 * @var string
@@ -168,14 +159,13 @@ class Image {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param Wiki $wikiClass
-	 * @param string $title
-	 * @return void
+	 * @param string $title The title of the image
+	 * @param int $pageid The ID of the image page (optional)
+	 * @return Image
 	 */
 	public function __construct( Wiki &$wikiClass, $title = null, $pageid = null ) {
 
 		$this->wiki = & $wikiClass;
-
 		$this->title = $title;
 
 		if( $this->wiki->removeNamespace( $title ) == $title ) {
@@ -185,34 +175,30 @@ class Image {
 
 		$ii = $this->imageinfo();
 
-		foreach( $ii as $x ){
+		if( is_array( $ii ) ) {
 
-			$this->title = $x['title'];
-			$this->rawtitle = $this->wiki->removeNamespace( $x['title'] );
+			$this->title = $ii[0]['canonicaltitle'];
+			$this->rawtitle = $this->wiki->removeNamespace( $this->title );
 			$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
-
 			$this->page = & $this->wiki->initPage( $this->title, $pageid );
+			$this->mime = $ii[0]['mime'];
+			$this->bitdepth = $ii[0]['bitdepth'];
+			$this->hash = $ii[0]['sha1'];
+			$this->size = $ii[0]['size'];
+			$this->width = $ii[0]['width'];
+			$this->height = $ii[0]['height'];
+			$this->url = $ii[0]['url'];
+			$this->timestamp = $ii[0]['timestamp'];
+			$this->user = $ii[0]['user'];
 
-			if( $x['imagerepository'] == "shared" ) $this->local = false;
-			if( isset( $x['imageinfo'] ) ) {
-
-				$this->mime = $x['imageinfo'][0]['mime'];
-				$this->bitdepth = $x['imageinfo'][0]['bitdepth'];
-				$this->hash = $x['imageinfo'][0]['sha1'];
-				$this->size = $x['imageinfo'][0]['size'];
-				$this->width = $x['imageinfo'][0]['width'];
-				$this->height = $x['imageinfo'][0]['height'];
-				$this->url = $x['imageinfo'][0]['url'];
-				$this->timestamp = $x['imageinfo'][0]['timestamp'];
-				$this->user = $x['imageinfo'][0]['user'];
-
-				if( is_array( $x['imageinfo'][0]['metadata'] ) ) {
-					foreach( $x['imageinfo'][0]['metadata'] as $metadata ){
-						$this->metadata[$metadata['name']] = $metadata['value'];
-					}
+			if( is_array( $ii[0]['metadata'] ) ) {
+				foreach( $ii[0]['metadata'] as $metadata ){
+					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
 
-			} else $this->exists = false;
+			} else {
+				$this->exists = false;
+			}
 		}
 
 	}
@@ -221,9 +207,9 @@ class Image {
 	 *
 	 * @access public
 	 * @link https://www.mediawiki.org/wiki/API:Properties#imageinfo_.2F_ii
-	 * @param $limit Number of results to limit to. Default 50.
-	 * @param $prop What image information to get.  Default all values.
-	 * @return unknown
+	 * @param int $limit Number of results to limit to. Default 50.
+	 * @param array $prop What image information to get.  Default all values.
+	 * @return array|bool False if not found, otherwise array of info indexed by revision
 	 */
 	public function get_stashinfo( $limit = 50, $prop = array(
         'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename',
@@ -239,8 +225,12 @@ class Image {
 			'_lhtitle' => 'stashimageinfo'
 		);
 
-		return $this->wiki->listHandler( $stasharray );
-
+		$stashinfo = $this->wiki->listHandler( $stasharray );
+		if( is_array( $stashinfo ) ) {
+			return $stashinfo[0];
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -256,10 +246,10 @@ class Image {
 	 * @param string $version Version of metadata to use. Default 'latest'
 	 * @param string $urlparam A handler specific parameter string. Default null
 	 * @param bool $localonly Look only for files in the local repository. Default false
-	 * @return array
+	 * @return array|bool False if file does not exist, otherwise array of info indexed by revision
 	 */
 	public function imageinfo( $limit = 1, $width = -1, $height = -1, $start = null, $end = null, $prop = array(
-		'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
+		'canonicaltitle', 'timestamp', 'userid', 'user', 'comment', 'parsedcomment', 'url', 'size', 'dimensions', 'sha1', 'mime',
 		'thumbmime', 'mediatype', 'metadata', 'archivename', 'bitdepth'
 	), $version = 'latest', $urlparam = null, $localonly = false ) {
 
@@ -282,7 +272,13 @@ class Image {
 
 		pecho( "Getting image info for {$this->title}...\n\n", PECHO_NORMAL );
 
-		return $this->wiki->listHandler( $imageInfoArray );
+		$imageInfo = $this->wiki->listHandler( $imageInfoArray );
+		if( count( $imageInfo ) > 0 ) {
+			return $imageInfo[0];
+		} else {
+			// Does not exist
+			return false;
+		}
 	}
 
 	/**
@@ -291,11 +287,13 @@ class Image {
 	 * @access public
 	 * @param string $dir Which direction to go. Default 'older'
 	 * @param int $limit Number of revisions to get. Default null (all revisions)
-	 * @return void
+	 * @param bool $force Force generation of the cache. Default false (use cache).
+	 * @return array Upload history.
 	 */
-	public function get_history( $dir = 'older', $limit = null ) {
-
-		$this->history = $this->page->history( $limit, $dir );
+	public function get_history( $dir = 'older', $limit = null, $force = false ) {
+		if( !count( $this->history ) || $force ) {
+			$this->history = $this->page->history( $limit, $dir );
+		}
 		return $this->history;
 	}
 
@@ -306,6 +304,8 @@ class Image {
 	 * @param string|array $namespace Namespaces to look in. If set as a string, must be set in the syntax "0|1|2|...". If an array, simply the namespace IDs to look in. Default null.
 	 * @param string $redirects How to filter for redirects. Options are "all", "redirects", or "nonredirects". Default "all".
 	 * @param bool $followRedir If linking page is a redirect, find all pages that link to that redirect as well. Default false.
+	 * @param int|null $limit
+	 * @param bool $force Force regeneration of the cache. Default false (use cache).
 	 * @return array
 	 */
 	public function get_usage( $namespace = null, $redirects = "all", $followRedir = false, $limit = null, $force = false ) {
@@ -345,6 +345,7 @@ class Image {
 	 * Returns an array of all files with identical sha1 hashes
 	 *
 	 * @param int $limit Number of duplicates to get. Default null (all)
+	 * @param bool $force Force regeneration of the cache. Default false (use cache).
 	 * @return array Duplicate files
 	 */
 	public function get_duplicates( $limit = null, $force = false ) {
@@ -420,9 +421,7 @@ class Image {
 			pecho( "Reverting to $revertto" . "...\n\n", PECHO_NOTICE );
 		} else {
 			$ii = $this->imageinfo( 2, -1, -1, null, null, array( 'archivename' ) );
-			foreach( $ii as $x ){
-				if( isset( $x['imageinfo'] ) ) $apiArray['archivename'] = $x['imageinfo'][1]['archivename'];
-			}
+			if( is_array( $ii ) ) $apiArray['archivename'] = $ii[1]['archivename'];
 			pecho( "Reverting to prior upload...\n\n", PECHO_NOTICE );
 		}
 
@@ -492,14 +491,16 @@ class Image {
 	 * Upload an image to the wiki
 	 *
 	 * @access public
+	 * @param string $file Identifier of a file. Flexible format (local path, URL)
 	 * @param string $text Text on the image file page (default: '')
 	 * @param string $comment Comment for inthe upload in logs (default: '')
 	 * @param bool $watch Should the upload be added to the watchlist (default: false)
 	 * @param bool $ignorewarnings Ignore warnings about the upload (default: true)
 	 * @param bool $async Make potentially large file operations asynchronous when possible.  Default false.
+	 * @throws BadEntryError
 	 * @return boolean
 	 */
-	public function upload( $file = null, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
+	public function upload( $file, $text = '', $comment = '', $watch = null, $ignorewarnings = true, $async = false ) {
 		global $pgIP, $pgNotag, $pgTag;
 
 		if( !$pgNotag ) $comment .= $pgTag;
@@ -659,18 +660,14 @@ class Image {
 	public function download( $localname = null, $width = -1, $height = -1 ) {
 		global $pgIP;
 
-		if( !$this->local ) {
-			pecho( "Attempted to download a file on a shared respository instead of a local one", PECHO_NOTICE );
-		}
-
 		if( !$this->get_exists() ) {
 			pecho( "Attempted to download a non-existant file.", PECHO_NOTICE );
 		}
 
 		$ii = $this->imageinfo( 1, $width, $height );
 
-		if( isset( $ii[$this->page->get_id()]['imageinfo'] ) ) {
-			$ii = $ii[$this->page->get_id()]['imageinfo'][0];
+		if( is_array( $ii ) ) {
+			$ii = $ii[0];
 
 			if( $width != -1 ) {
 				$url = $ii['thumburl'];
@@ -699,12 +696,13 @@ class Image {
 	 * @param int $width Width of resized image. Default null
 	 * @param int $height Height of resized image. Default null.
 	 * @param bool $reupload Whether or not to automatically upload the image again. Default false
-	 * @param string $newname New filename when reuploading. If not null, upload over the old file. Default null.
 	 * @param string $text Text to use for the image name
 	 * @param string $comment Upload comment.
 	 * @param bool $watch Whether or not to watch the image on uploading
 	 * @param bool $ignorewarnings Whether or not to ignore upload warnings
-	 * @return boolean|null
+	 * @throws DependencyError Relies on GD PHP plugin
+	 * @throws BadEntryError
+	 * @return boolean|void False on failure
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
 		global $pgIP, $pgNotag, $pgTag;
@@ -828,15 +826,6 @@ class Image {
 	 */
 	public function get_localname() {
 		return $this->localname;
-	}
-
-	/**
-	 * Whether or not the image is on a shared repository. A true result means that it is stored locally.
-	 *
-	 * @return bool
-	 */
-	public function is_local() {
-		return $this->local;
 	}
 
 	/**
