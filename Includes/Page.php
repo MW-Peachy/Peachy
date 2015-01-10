@@ -2013,7 +2013,7 @@ class Page {
 			if( $this->pageid > 0 ) {
 				$this->exists = true;
 				$this->lastedit = $info['touched'];
-				$this->hits = $info['counter'];
+				$this->hits = isset( $info['counter'] ) ? $info['counter'] : '';
 				$this->length = $info['length'];
 			} else {
 				$this->pageid = 0;
