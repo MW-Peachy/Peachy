@@ -1169,7 +1169,7 @@ class Page {
 		pecho( "Making edit to {$this->title}...\n\n", PECHO_NORMAL );
 
 		$editarray = array(
-			'title'         => $this->title,
+			'pageid'         => $this->pageid,
 			'action'        => 'edit',
 			'token'         => $tokens['edit'],
 			'basetimestamp' => $this->lastedit,
