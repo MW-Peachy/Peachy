@@ -195,10 +195,9 @@ class Image {
 				foreach( $ii[0]['metadata'] as $metadata ){
 					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
-
-			} else {
-				$this->exists = false;
 			}
+		} else {
+			$this->exists = false;
 		}
 
 	}
