@@ -838,6 +838,7 @@ class Wiki {
 
 		$tArray['action'] = 'query';
 		$tArray[$code . 'limit'] = 'max';
+        $tArray['rawcontinue'] = 1;
 
 		if( isset( $limit ) && !is_null( $limit ) ) {
 			if( !is_numeric( $limit ) ) {
