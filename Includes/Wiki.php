@@ -812,10 +812,11 @@ class Wiki {
 	 * @access public
 	 * @link http://wiki.peachy.compwhizii.net/wiki/Manual/Wiki::listHandler
 	 * @param array $tArray Parameters given to query with (default: array()). In addition to those recognised by the API, ['_code'] should be set to the first two characters of all the parameters in a list=XXX API call - for example, with allpages, the parameters start with 'ap', with recentchanges, the parameters start with 'rc' -  and is required; ['_limit'] imposes a hard limit on the number of results returned (optional) and ['_lhtitle'] simplifies a multidimensional result into a unidimensional result - lhtitle is the key of the sub-array to return. (optional)
-	 * @throws BadEntryError
+	 * @param array $resume Parameter passed back at the end of a list-handler operation.  Pass parameter back through to resume listhandler operation. (optional)
+     * @throws BadEntryError
 	 * @return array Returns an array with the API result
 	 */
-	public function listHandler( $tArray = array() ) {
+	public function listHandler( $tArray = array(), &$resume = null ) {
 
 		if( isset( $tArray['_code'] ) ) {
 			$code = $tArray['_code'];
@@ -835,6 +836,11 @@ class Wiki {
 		} else {
 			$lhtitle = null;
 		}
+        if( !is_null( $resume ) ) {
+            $tArray = array_merge( $tArray, $resume );
+        } else {
+            $resume = array();
+        }
 
 		$tArray['action'] = 'query';
 		$tArray[$code . 'limit'] = 'max';
@@ -887,37 +893,39 @@ class Wiki {
 					if( !is_null( $lhtitle ) ) {
 						if( isset( $y[$lhtitle] ) ) {
 							$y = $y[$lhtitle];
-						} else {
+                            $endArray = array_merge( $endArray, $y );
+						    continue;
+                        } else {
 							continue;
 						}
 					}
-
-					$endArray[] = $y;
-				}
-			}
-
-			if( !is_null( $limit ) && $limit != 'max' ) {
-				if( count( $endArray ) >= $limit ) {
-					$endArray = array_slice( $endArray, 0, $limit );
-					break;
+                    $endArray[] = $y;
 				}
 			}
 
 			if( isset( $tRes['query-continue'] ) ) {
 				foreach( $tRes['query-continue'] as $z ){
 					if( isset( $z[$code . 'continue'] ) ) {
-						$continue = $z[$code . 'continue'];
+						$continue = $resume[$code . 'continue'] = $z[$code . 'continue'];
 					} elseif( isset( $z[$code . 'offset'] ) ) {
-						$offset = $z[$code . 'offset'];
+						$offset = $resume[$code . 'offset'] = $z[$code . 'offset'];
 					} elseif( isset( $z[$code . 'start'] ) ) {
-						$start = $z[$code . 'start'];
+						$start = $resume[$code . 'start'] = $z[$code . 'start'];
 					} elseif( isset( $z[$code . 'from'] ) ) {
-						$from = $z[$code . 'from'];
+						$from = $resume[$code . 'from'] = $z[$code . 'from'];
 					}
 				}
 			} else {
+                $resume = array();
 				break;
 			}
+            
+            if( !is_null( $limit ) && $limit != 'max' ) {
+                if( count( $endArray ) >= $limit ) {
+                    $endArray = array_slice( $endArray, 0, $limit );
+                    break;
+                }
+            }
 
 		}
 
