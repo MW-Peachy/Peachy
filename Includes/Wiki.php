@@ -893,7 +893,8 @@ class Wiki {
 					if( !is_null( $lhtitle ) ) {
 						if( isset( $y[$lhtitle] ) ) {
 							$y = $y[$lhtitle];
-                            $endArray = array_merge( $endArray, $y );
+                            if( is_array( $y ) ) $endArray = array_merge( $endArray, $y );
+                            else $endArray[] = $y;
 						    continue;
                         } else {
 							continue;
