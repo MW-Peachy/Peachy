@@ -167,6 +167,16 @@ class Wiki {
 	 * @access protected
 	 */
 	protected $nobots = true;
+    
+    /**
+     * Nobots task name if nobots is enables.  Perfect for multiple doing the same task.
+     *
+     * (default value: null)
+     *
+     * @var string
+     * @access protected
+     */
+    protected $nobotsTaskname = null;
 
 	/**
 	 * Text to search for in the optout= field of the {{nobots}} template
@@ -532,6 +542,17 @@ class Wiki {
 	public function set_runpage( $page = null ) {
 		$this->runpage = $page;
 	}
+    
+    /**
+     * Sets a specific taskname to comply with the nobots template.
+     *
+     * @param string $taskname Name of bot task. Default null.
+     * @access public
+     * @return void
+     */
+    public function set_taskname( $taskname = null ) {
+        $this->nobotsTaskname = $taskname;
+    }
 
 	/**
 	 * Queries the API.
@@ -2417,7 +2438,7 @@ class Wiki {
 		}
 
 		//Perform nobots checks, login checks, /Run checks
-		if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout() ) && $this->get_nobots() ) {
+		if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout(), $this->nobotsTaskname ) && $this->get_nobots() ) {
 			throw new EditError( "Nobots", "The page has a nobots template" );
 		}
 

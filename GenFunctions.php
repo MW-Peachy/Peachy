@@ -111,7 +111,7 @@ function rglob( $pattern = '*', $flags = 0, $path = '' ) {
  * @param string $optout Text to search for in the optout= parameter. (default: null)
  * @return bool True on match of an appropriate nobots template
  */
-function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = null ) {
+function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = null, $taskname = null ) {
 	if( !$wiki->get_nobots() ) return false;
 
 	if( in_string( "{{nobots}}", $text ) ) return true;
@@ -131,7 +131,7 @@ function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = n
 		if( $deny[2] == "all" ) return true;
 		if( $deny[2] == "none" ) return false;
 		$allow = array_map( 'trim', explode( ',', $deny[2] ) );
-		if( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) {
+		if( ( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) || ( !is_null( $taskname ) && in_array( trim( $taskname ), $allow ) ) ) {
 			return true;
 		}
 		return false;
