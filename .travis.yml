@@ -7,10 +7,11 @@ php:
   - 5.3
 
 before_script:
- - chmod +x phpunit.xml
+ - composer install
+ - chmod +x Tests/phpunit.xml
 
 script:
-  - phpunit.xml
+  - phpunit --configuration Tests/phpunit.xml
 
 notifications:
   irc:
