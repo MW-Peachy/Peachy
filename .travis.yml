@@ -7,10 +7,10 @@ php:
   - 5.3
 
 before_script:
- - chmod +x /phpunit.xml
+ - chmod +x phpunit.xml
 
 script:
-  - ./phpunit.xml
+  - phpunit.xml
 
 notifications:
   irc:
