@@ -9,11 +9,10 @@
          stopOnFailure="false"
          stopOnIncomplete="false"
          stopOnSkipped="false"
-         strict="true"
          verbose="true">
     <testsuites>
         <testsuite name="PeachyUnitTests">
-            <directory suffix="Test.php">Tests</directory>
+            <directory>Tests</directory>
         </testsuite>
     </testsuites>
     <filter>
