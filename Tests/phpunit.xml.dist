@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!-- colors don't work on Windows! -->
-<phpunit bootstrap="Tests/bootstrap.php"
+<phpunit bootstrap="bootstrap.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -24,5 +22,8 @@
             <directory suffix=".php">Plugins</directory>
             <directory suffix=".php">Scripts</directory>
         </whitelist>
+        <blacklist>
+            <directory>vendor</directory>
+        </blacklist>
     </filter>
 </phpunit>

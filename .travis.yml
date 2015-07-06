@@ -8,10 +8,10 @@ php:
 
 before_script:
  - composer install
- - chmod +x Tests/phpunit.xml
+ - chmod +x Tests/phpunit.xml.dist
 
 script:
-  - phpunit --configuration Tests/phpunit.xml
+  - phpunit --configuration Tests/phpunit.xml.dist
 
 notifications:
   irc:
