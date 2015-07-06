@@ -36,6 +36,7 @@ function iin_array( $needle, $haystack, $strict = false ) {
 }
 
 /**
+ * @param $str
  * @return string
  */
 function strtoupper_safe( $str ) {

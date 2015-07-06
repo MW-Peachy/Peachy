@@ -4,7 +4,7 @@ namespace Tests;
 
 class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 
-	public function provide_iin_array() {
+	public function in_array() {
 		return array(
 			array( 'BOO', array( 'boo' ), true ),
 			array( 'BOO', array( 'BOO' ), true ),
@@ -16,17 +16,17 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 	}
 
     /**
-     * @dataProvider provide_iin_array
-     * @covers ::iin_array
+     * @dataProvider provide_in_array
+     * @covers ::in_array
      * @param $needle
      * @param $haystack
      * @param $expected
      */
-	public function test_iin_array( $needle, $haystack, $expected ) {
-		$this->assertEquals( $expected, iin_array( $needle, $haystack ) );
+	public function test_in_array( $needle, $haystack, $expected ) {
+		$this->assertEquals( $expected, in_array( $needle, $haystack ) );
 	}
 
-	public function provide_strtoupper_safe() {
+	protected function strtoupper_safe() {
 		return array(
 			array( 'foo', 'FOO' ),
 			array( 'FOO', 'FOO' ),
@@ -36,15 +36,20 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provide_strtoupper_safe
-	 * @covers ::strtoupper_safe
-	 */
+    /**
+     * @dataProvider strtoupper_safe
+     * @covers ::strtoupper_safe
+     * @param $input
+     * @param $expected
+     */
 	public function test_strtoupper_safe( $input, $expected ) {
 		$this->assertSame( $expected, strtoupper_safe( $input ) );
 	}
 
-	public function provide_in_string() {
+    /**
+     * @return array
+     */
+    protected function in_string() {
 		return array(
 			array( 'B', 'aBc', false, true ),
 			array( 'b', 'aBc', false, false ),
@@ -53,7 +58,7 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 	}
 
     /**
-     * @dataProvider provide_in_string
+     * @dataProvider in_string
      * @covers ::in_string
      * @param $needle
      * @param $haystack
@@ -64,7 +69,7 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals( $expected, in_string( $needle, $haystack, $insensitive ) );
 	}
 
-	public function provide_in_array_recursive() {
+	protected function in_array_recursive() {
 		return array(
 			array( 'BOO', array( 'boo' ), true, true ),
 			array( 'BOO', array( 'BOO' ), true, true ),
@@ -80,7 +85,7 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 	}
 
     /**
-     * @dataProvider provide_in_array_recursive
+     * @dataProvider in_array_recursive
      * @covers ::in_array_recursive
      * @param $needle
      * @param $haystack
@@ -91,7 +96,7 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals( $expected, in_array_recursive( $needle, $haystack, $insensitive ) );
 	}
 
-	public function provide_checkExclusion() {
+	protected function checkExclusion() {
 		return array(
 			array( false, '' ),
 			array( false, '{{bots}}' ),
@@ -102,7 +107,7 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 	}
 
     /**
-     * @dataProvider provide_checkExclusion
+     * @dataProvider checkExclusion
      * @covers ::checkExclusion
      * @param $expected
      * @param $text
