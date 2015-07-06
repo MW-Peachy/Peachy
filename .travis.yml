@@ -8,10 +8,10 @@ php:
 
 before_script:
  - composer install
- - chmod +x Tests/phpunit.xml.dist
+ - chmod +x ./Tests/phpunit.xml.dist
 
 script:
-  - phpunit --configuration Tests/phpunit.xml.dist
+  - phpunit --configuration ./Tests/phpunit.xml.dist
   - ./Tests/phplint.sh
   - phpunit --coverage-clover=coverage.clover
 
