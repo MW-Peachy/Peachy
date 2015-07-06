@@ -15,10 +15,13 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provide_iin_array
-	 * @covers ::iin_array
-	 */
+    /**
+     * @dataProvider provide_iin_array
+     * @covers ::iin_array
+     * @param $needle
+     * @param $haystack
+     * @param $expected
+     */
 	public function test_iin_array( $needle, $haystack, $expected ) {
 		$this->assertEquals( $expected, iin_array( $needle, $haystack ) );
 	}
@@ -49,10 +52,14 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provide_in_string
-	 * @covers ::in_string
-	 */
+    /**
+     * @dataProvider provide_in_string
+     * @covers ::in_string
+     * @param $needle
+     * @param $haystack
+     * @param $insensitive
+     * @param $expected
+     */
 	public function test_in_string( $needle, $haystack, $insensitive, $expected ) {
 		$this->assertEquals( $expected, in_string( $needle, $haystack, $insensitive ) );
 	}
@@ -72,10 +79,14 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provide_in_array_recursive
-	 * @covers ::in_array_recursive
-	 */
+    /**
+     * @dataProvider provide_in_array_recursive
+     * @covers ::in_array_recursive
+     * @param $needle
+     * @param $haystack
+     * @param $insensitive
+     * @param $expected
+     */
 	public function test_in_array_recursive( $needle, $haystack, $insensitive, $expected ) {
 		$this->assertEquals( $expected, in_array_recursive( $needle, $haystack, $insensitive ) );
 	}
@@ -90,10 +101,14 @@ class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provide_checkExclusion
-	 * @covers ::checkExclusion
-	 */
+    /**
+     * @dataProvider provide_checkExclusion
+     * @covers ::checkExclusion
+     * @param $expected
+     * @param $text
+     * @param null $pgUsername
+     * @param null $optout
+     */
 	public function test_checkExclusion( $expected, $text, $pgUsername = null, $optout = null ) {
 		$this->assertSame( $expected, checkExclusion( $this->getMockWiki(), $text, $pgUsername, $optout ) );
 	}

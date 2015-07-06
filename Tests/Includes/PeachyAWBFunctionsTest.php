@@ -40,10 +40,12 @@ class PeachyAWBFunctionsTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provideFixDateTags
-	 * @covers       PeachyAWBFunctions::fixDateTags
-	 */
+    /**
+     * @dataProvider provideFixDateTags
+     * @covers       PeachyAWBFunctions::fixDateTags
+     * @param $expected
+     * @param $inputTextArray
+     */
 	public function testFixDateTags( $expected, $inputTextArray ) {
 		foreach( $inputTextArray as $text ){
 			$this->assertEquals( $expected, PeachyAWBFunctions::fixDateTags( $text ) );

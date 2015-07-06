@@ -1796,12 +1796,17 @@ class Page {
 		return $this->wiki->listHandler( $drArray );
 	}
 
-	/**
-	 * Alias of embeddedin
-	 *
-	 * @see Page::embeddedin()
-	 * @deprecated since 18 June 2013
-	 */
+    /**
+     * Alias of embeddedin
+     *
+     * @see Page::embeddedin()
+     * @deprecated since 18 June 2013
+     *
+     * @param null $namespace
+     * @param null $limit
+     *
+     * @return array
+     */
 	public function get_transclusions( $namespace = null, $limit = null ) {
 		Peachy::deprecatedWarn( 'Page::get_transclusions()', 'Page::embeddedin()' );
 		return $this->embeddedin( $namespace, $limit );

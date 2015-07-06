@@ -7,10 +7,15 @@ use stdClass;
 
 class PageTest extends \PHPUnit_Framework_TestCase {
 
-	/**
-	 * @covers Page::__construct
-	 * @dataProvider provideValidConstruction
-	 */
+    /**
+     * @covers       Page::__construct
+     * @dataProvider provideValidConstruction
+     * @param $title
+     * @param null $pageid
+     * @param bool $followRedir
+     * @param bool $normalize
+     * @param null $timestamp
+     */
 	public function testValidConstruction( $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
 		if( is_int( $pageid ) ) {
 			$this->expectOutputString( "Getting page info for page ID {$pageid}..\n\n" );
@@ -45,10 +50,17 @@ class PageTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @covers Page::__construct
-	 * @dataProvider provideInvalidConstruction
-	 */
+    /**
+     * @covers       Page::__construct
+     * @dataProvider provideInvalidConstruction
+     * @param $expectedException
+     * @param $wiki
+     * @param $title
+     * @param null $pageid
+     * @param bool $followRedir
+     * @param bool $normalize
+     * @param null $timestamp
+     */
 	public function testInvalidConstruction( $expectedException, $wiki, $title , $pageid = null , $followRedir = true , $normalize= true, $timestamp = null ) {
 		$this->setExpectedException( $expectedException );
 		new Page( $wiki, $title, $pageid, $followRedir, $normalize, $timestamp );

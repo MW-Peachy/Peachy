@@ -3,8 +3,9 @@
 namespace Tests;
 
 use AutoUpdate;
+use PHPUnit_Framework_TestCase;
 
-class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
+class AutoUpdateTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * @var string this is used to cache the contents of the log when running tests and restore it after

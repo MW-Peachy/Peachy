@@ -262,9 +262,11 @@ class HookError extends Exception {
  */
 class DBError extends Exception {
 
-	/**
-	 * @param string $sql
-	 */
+    /**
+     * @param string $error     The Exception message to throw.
+     * @param int $errno        The Exception code.
+     * @param string $sql       [optional] Optional SQL Error Message
+     */
 	public function __construct( $error, $errno, $sql = null ) {
 		parent::__construct(
 			"Database Error: " . $error . " (code $errno) " . $sql

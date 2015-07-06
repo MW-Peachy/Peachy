@@ -19,14 +19,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class SiteMatrix {
 
-	/**
-	 * Loads list of all SiteMatrix wikis
-	 *
-	 * @static
-	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @return array List of all wikis
-	 */
+    /**
+     * Loads list of all SiteMatrix wikis
+     *
+     * @static
+     * @access public
+     * @param Wiki &$wikiClass The Wiki class object
+     * @return array List of all wikis
+     * @throws AssertFailure
+     * @throws DependencyError
+     * @throws LoggedOut
+     * @throws MWAPIError
+     */
 	public static function load( Wiki &$wikiClass ) {
 
 		if( !array_key_exists( 'SiteMatrix', $wikiClass->get_extensions() ) ) {

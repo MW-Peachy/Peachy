@@ -98,6 +98,8 @@ class Xml {
 	 * @param array $attribs Name=>value pairs. Values will be escaped.
 	 * @param string $contents NULL to make an open tag only; '' for a contentless closed tag (default)
 	 * @return string
+     *
+     * @todo    Missing WebRequest class (possibly from x-Tools/xtools)
 	 */
 	public static function elementClean( $element, $attribs = array(), $contents = '' ) {
 		if( $attribs ) {

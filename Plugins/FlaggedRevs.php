@@ -81,7 +81,7 @@ class FlaggedRevs {
 		}
 	}
 
-	public function stabilize( $title, $level = 'none', $reason = null, $autoreview = false, $watch = false ) {
+	public function stabilize( $title, $level = 'none', $reason = null, $watch = false ) {
 
 		if( !in_array( 'stablesettings', $this->wiki->get_userrights() ) ) {
 			pecho( "User is not allowed to change the stabilization settings", PECHO_FATAL );

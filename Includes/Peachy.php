@@ -106,16 +106,15 @@ class Peachy {
 		return array( $version, $extensions );
 	}
 
-	/**
-	 * Loads a specific plugin into memory
-	 *
-	 * @static
-	 * @access public
-	 * @param string|array $plugins Name of plugin(s) to load from Plugins directory, minus .php ending
-	 * @return void
-	 * @deprecated since 18 June 2013
-	 */
-	public static function loadPlugin( $plugins ) {
+    /**
+     * Loads a specific plugin into memory
+     *
+     * @static
+     * @access public
+     * @internal param array|string $plugins Name of plugin(s) to load from Plugins directory, minus .php ending
+     * @deprecated since 18 June 2013
+     */
+	public static function loadPlugin() {
 		self::deprecatedWarn( null, null, "Warning: Peachy::loadPlugin() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
 	}
 

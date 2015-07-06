@@ -87,6 +87,7 @@ $pgHooks = array();
 $pgProxy = array();
 $pgUA = 'Peachy MediaWiki Bot API Version ' . PEACHYVERSION;
 
+require_once( $pgIP . 'vendor/autoload.php');
 require_once( $pgIP . 'Includes/Hooks.php' );
 require_once( $pgIP . 'HTTP.php' );
 require_once( $pgIP . 'Includes/Autoloader.php' );

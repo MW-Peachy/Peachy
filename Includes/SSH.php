@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * @file
  * SSH object
  * Establishes and maintains a remote SSH connection
+ *
+ * @todo    Various Encryption methods are missing from file directory. Script may not work until then.
  */
 
 /**
@@ -100,14 +102,19 @@ class SSH {
 	protected $http;
 
 
-	/**
-	 * Construction method for the SSH class
-	 *
-	 * @access public
-	 * @param string $pgHost Address of remote host.  Default
-	 *
-	 * @return void
-	 */
+    /**
+     * Construction method for the SSH class
+     *
+     * @access public
+     * @param string    $pgHost         Address of remote host.  Default
+     * @param int       $pgPort         Port of remote host.
+     * @param null      $pgUsername
+     * @param null      $pgPassphrase
+     * @param null      $pgPrikey
+     * @param int       $pgProtocol
+     * @param int       $pgTimeout
+     * @param           $http
+     */
 	public function __construct( $pgHost, $pgPort = 22, $pgUsername = null, $pgPassphrase = null, $pgPrikey = null, $pgProtocol = 2, $pgTimeout = 10, $http ) {
 		pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
 		global $pgIP;
@@ -596,9 +603,10 @@ class SSH {
 		}
 	}
 
-	/**
-	 * @param string $fullUpdatePath
-	 */
+    /**
+     * @param   string      $fullUpdatePath
+     * @return  string
+     */
 	private function getLocalPath( $fullUpdatePath ) {
 		global $pgIP;
 		$xplodesAt = DIRECTORY_SEPARATOR . 'phpseclibupdate' . DIRECTORY_SEPARATOR . 'phpseclib-master' . DIRECTORY_SEPARATOR . 'phpseclib' . DIRECTORY_SEPARATOR;
@@ -622,4 +630,3 @@ class SSH {
 	}
 }
 
-?>

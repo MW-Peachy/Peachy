@@ -703,6 +703,8 @@ class Image {
 	 * @throws DependencyError Relies on GD PHP plugin
 	 * @throws BadEntryError
 	 * @return boolean|void False on failure
+     *
+     * @todo    Missing Return for all options
 	 */
 	public function resize( $width = null, $height = null, $reupload = false, $text = '', $comment = '', $watch = null, $ignorewarnings = true ) {
 		global $pgIP, $pgNotag, $pgTag;
