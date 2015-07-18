@@ -324,6 +324,7 @@ class Page {
 			'prop'   => 'revisions',
 			'titles' => $this->title,
 			'rvprop' => 'timestamp|ids|user|comment',
+            'rawcontinue' => 1,
 			'rvdir'  => $dir,
 
 		);
@@ -708,7 +709,7 @@ class Page {
 		$result = $this->wiki->listHandler( $tArray );
 
 		if( count( $result ) > 0 ) {
-			foreach( $result[0] as $extlink ){
+			foreach( $result as $extlink ){
 				$this->extlinks[] = $extlink['*'];
 			}
 		}
