@@ -81,6 +81,7 @@ class Autoloader {
 			require_once( $pgIP . 'Plugins/' . $class_name . '.php' );
 			return true;
 		}
+        return false;
 	}
 
 }

@@ -83,14 +83,17 @@ class GlobalUserInfo {
 	 */
 	private $id;
 
-	/**
-	 * Construction method for the GlobalUserInfo class
-	 *
-	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $pgUsername Username
-	 * @return void
-	 */
+    /**
+     * Construction method for the GlobalUserInfo class
+     *
+     * @access  public
+     * @param   Wiki &$wikiClass The Wiki class object
+     * @param   mixed $pgUsername Username
+     * @throws  AssertFailure
+     * @throws  DependencyError
+     * @throws  LoggedOut
+     * @throws  MWAPIError
+     */
 	function __construct( Wiki &$wikiClass, $pgUsername ) {
 
 		if( !array_key_exists( 'Central Auth', $wikiClass->get_extensions() ) ) {
@@ -112,9 +115,9 @@ class GlobalUserInfo {
 		if( !isset( $guiRes['query']['globaluserinfo'] ) ) {
 			$this->exists = false;
 			if( isset( $guiRes['error'] ) && $guiRes['error']['code'] != 'guinosuchuser' ) {
-				throw new APIError( $guiRes['error'] );
+				throw new MWAPIError( $guiRes['error'] );
 			} elseif( @$guiRes['error']['code'] != 'guinosuchuser' ) {
-				throw new APIError( array( 'code' => 'UnknownError', 'info' => 'Unknown API Error' ) );
+				throw new MWAPIError( array( 'code' => 'UnknownError', 'info' => 'Unknown API Error' ) );
 			}
 		} else {
 			$this->groups = $guiRes['query']['globaluserinfo']['groups'];

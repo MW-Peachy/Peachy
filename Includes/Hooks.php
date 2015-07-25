@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Hooks class
  * Stores and runs {@link http://wiki.peachy.compwhizii.net/wiki/Manual/Hooks hooks}
  *
+ * @todo    Missing return for all cases.
+ *
  */
 class Hooks {
 

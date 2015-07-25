@@ -3,8 +3,9 @@
 namespace Tests;
 
 use AutoUpdate;
+use PHPUnit_Framework_TestCase;
 
-class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
+class AutoUpdateTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * @var string this is used to cache the contents of the log when running tests and restore it after
@@ -29,7 +30,13 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		}
 	}
 
-	private function getUpdater( $http ) {
+    /**
+     * @param   $http
+     * @return  AutoUpdate
+     *
+     * @FIXME:  This Test fails under PHP 5.5.24 and PHPUNIT 4.7.6
+     */
+    private function getUpdater( $http ) {
 		return new AutoUpdate( $http );
 	}
 
@@ -70,17 +77,23 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provideCheckforupdate
-	 * @covers       AutoUpdate::Checkforupdate
-	 * @covers	AutoUpdate::cacheLastGithubETag
-	 * @covers	AutoUpdate::getTimeToNextLimitWindow
-	 * @covers	AutoUpdate::__construct
-	 * @covers	AutoUpdate::updatePeachy
-	 * @covers	AutoUpdate::getLocalPath
-	 * @covers	AutoUpdate::copyOverGitFiles
-	 * @covers	AutoUpdate::rrmdir
-	 */
+    /**
+     * @dataProvider      provideCheckforupdate
+     * @covers            AutoUpdate::Checkforupdate
+     * @covers            AutoUpdate::cacheLastGithubETag
+     * @covers            AutoUpdate::getTimeToNextLimitWindow
+     * @covers            AutoUpdate::__construct
+     * @covers            AutoUpdate::updatePeachy
+     * @covers            AutoUpdate::getLocalPath
+     * @covers            AutoUpdate::copyOverGitFiles
+     * @covers            AutoUpdate::rrmdir
+     * @param             $expected
+     * @param             $data
+     * @param string      $outputRegex
+     * @param null        $updatelog
+     * @param bool        $experimental
+     * @param bool        $wasexperimental
+     */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {

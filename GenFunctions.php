@@ -36,6 +36,7 @@ function iin_array( $needle, $haystack, $strict = false ) {
 }
 
 /**
+ * @param $str
  * @return string
  */
 function strtoupper_safe( $str ) {
@@ -90,7 +91,7 @@ function in_array_recursive( $needle, $haystack, $insensitive = false ) {
  * @param string $pattern . (default: '*')
  * @param int $flags . (default: 0)
  * @param string $path . (default: '')
- * @return void
+ * @return array
  */
 function rglob( $pattern = '*', $flags = 0, $path = '' ) {
 	$paths = glob( $path . '*', GLOB_MARK | GLOB_ONLYDIR | GLOB_NOSORT );
@@ -365,12 +366,13 @@ if( !function_exists( 'mb_substr' ) ) {
 		return $str;
 	}
 
-	/**
-	 * Continuing support for mb_substr. Do not use.
-	 * @link http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/GlobalFunctions.php
-	 * @package Fallback
-	 * @param integer $splitPos
-	 */
+    /**
+     * Continuing support for mb_substr. Do not use.
+     * @link http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/GlobalFunctions.php
+     * @package Fallback
+     * @param integer $splitPos
+     * @return int
+     */
 	function mb_substr_split_unicode( $str, $splitPos ) {
 		if( $splitPos == 0 ) {
 			return 0;
@@ -418,20 +420,20 @@ if( !function_exists( 'mb_substr' ) ) {
 }
 
 if( !function_exists( 'iconv' ) ) {
-	/**
-	 * Fallback iconv function.
-	 *
-	 * iconv support is not in the default configuration and so may not be present.
-	 * Assume will only ever use utf-8 and iso-8859-1.
-	 * This will *not* work in all circumstances.
-	 *
-	 * @access public
-	 * @param mixed $from
-	 * @param mixed $to
-	 * @param mixed $string
-	 * @return void
-	 * @package Fallback
-	 */
+    /**
+     * Fallback iconv function.
+     *
+     * iconv support is not in the default configuration and so may not be present.
+     * Assume will only ever use utf-8 and iso-8859-1.
+     * This will *not* work in all circumstances.
+     *
+     * @access public
+     * @param mixed $from
+     * @param mixed $to
+     * @param mixed $string
+     * @return mixed|string
+     * @package Fallback
+     */
 	function iconv( $from, $to, $string ) {
 		if( substr( $to, -8 ) == '//IGNORE' ) $to = substr( $to, 0, strlen( $to ) - 8 );
 		if( strcasecmp( $from, $to ) == 0 ) return $string;

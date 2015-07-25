@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
- * @file
+ * @ file
  * Wiki object
  */
 
@@ -1625,7 +1625,22 @@ class Wiki {
 		return $this->listHandler( $tgArray );
 	}
 
-	public function get_watchlist( $minor = null, $bot = null, $anon = null, $patrolled = null, $namespace = null, $user = null, $excludeuser = null, $start = null, $end = null, $prop = array(
+    /**
+     * @param null $minor
+     * @param null $bot
+     * @param null $anon
+     * @param null $patrolled
+     * @param null $namespace
+     * @param null $user
+     * @param null $excludeuser
+     * @param null $start
+     * @param null $end
+     * @param array $prop
+     * @param int $limit
+     *
+     * @todo    Implement Method
+     */
+    public function get_watchlist( $minor = null, $bot = null, $anon = null, $patrolled = null, $namespace = null, $user = null, $excludeuser = null, $start = null, $end = null, $prop = array(
 		'ids', 'title', 'flags', 'user', 'comment', 'parsedcomment', 'timestamp', 'patrol', 'sizes',
 		'notificationtimestamp'
 	), $limit = 50 ) {
@@ -1973,7 +1988,7 @@ class Wiki {
 	 * Generate a diff between two or three revision IDs
 	 *
 	 * @access public
-	 * @param string $method Revision method. Options: unified, inline, context, threeway, raw (default: 'unified')
+	 * @param string $method Revision method. Options: unified, HTML, inline, context (default: 'unified')
 	 * @param mixed $rev1
 	 * @param mixed $rev2
 	 * @param mixed $rev3
@@ -2225,16 +2240,16 @@ class Wiki {
 		return $user;
 	}
 
-	/**
-	 * Returns an instance of the Image class as specified by $filename or $pageid
-	 *
-	 * @access public
-	 * @param string $filename Filename
-	 * @param int $pageid Page ID of image
-	 * @param array $prop Informatation to set. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
-	 * @return Image
-	 * @package initFunctions
-	 */
+    /**
+     * Returns an instance of the Image class as specified by $filename or $pageid
+     *
+     * @access public
+     * @param string $filename Filename
+     * @param int $pageid Page ID of image
+     * @return Image
+     * @internal param array $prop Informatation to set. Default array( 'timestamp', 'user', 'comment', 'url', 'size', 'dimensions', 'sha1', 'mime', 'metadata', 'archivename', 'bitdepth' )
+     * @package initFunctions
+     */
 	public function &initImage( $filename = null, $pageid = null ) {
 		$image = new Image( $this, $filename, $pageid );
 		return $image;
@@ -2385,14 +2400,20 @@ class Wiki {
 		return $this->SSH;
 	}
 
-	/**
-	 * Performs nobots checking, new message checking, etc
-	 *
-	 * @var string $action Name of action.
-	 * @var string $title Name of page to check for nobots
-	 * @access public
-	 * @return void
-	 */
+    /**
+     * Performs nobots checking, new message checking, etc
+     *
+     * @param string $action
+     * @param null|string $title
+     * @param null $pageidp
+     * @throws AssertFailure
+     * @throws EditError
+     * @throws LoggedOut
+     * @throws MWAPIError
+     * @internal param string $action Name of action.
+     * @internal param string $title Name of page to check for nobots
+     * @access public
+     */
 	public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
 		global $pgDisablechecks, $pgMasterrunpage;
 		if( $pgDisablechecks ) return;

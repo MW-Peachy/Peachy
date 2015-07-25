@@ -1,13 +1,18 @@
 language: php
 
 php:
+  - 5.6
   - 5.5
   - 5.4
   - 5.3
 
+before_script:
+ - composer install
+ - chmod +x ./Tests/phpunit.xml.dist
+
 script:
+  - phpunit --configuration ./Tests/phpunit.xml.dist
   - ./Tests/phplint.sh
-  - phpunit --coverage-clover=coverage.clover
 
 after_script:
   - wget https://scrutinizer-ci.com/ocular.phar

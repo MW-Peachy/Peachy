@@ -275,12 +275,19 @@ class PeachyAWBFunctions {
 
 	}
 
-	public static function fixTypos( $text, $title ) {
+    /**
+     * @param $text
+     * @param $title
+     * @return mixed
+     *
+     * @todo    Can't find getWiki() method.
+     */
+    public static function fixTypos( $text, $title ) {
 
 		if( !count( self::$typo_list ) ) {
 			global $script;
 
-			$str = $script->getWiki()->initPage( 'Wikipedia:AutoWikiBrowser/Typos' )->get_text();
+                $str = $script->getWiki()->initPage( 'Wikipedia:AutoWikiBrowser/Typos' )->get_text();
 
 			foreach( explode( "\n", $str ) as $line ){
 				if( substr( $line, 0, 5 ) == "<Typo" ) {

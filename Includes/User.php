@@ -109,15 +109,18 @@ class User {
 	 */
 	protected $registration;
 
-	/**
-	 * Construction method for the User class
-	 *
-	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $pgUsername Username
-	 * @param Wiki $wikiClass
-	 * @return null|false
-	 */
+    /**
+     * Construction method for the User class
+     *
+     * @access public
+     * @param Wiki $wikiClass
+     * @param mixed $pgUsername Username
+     * @throws AssertFailure
+     * @throws LoggedOut
+     * @throws MWAPIError
+     *
+     * @todo    All return possibilities not accounted for
+     */
 	public function __construct( Wiki &$wikiClass, $pgUsername ) {
 
 		$this->wiki = & $wikiClass;
@@ -204,7 +207,6 @@ class User {
 	 * @param bool $mailpassword If set to true, a random password will be emailed to the user. Default false.
 	 * @param string $reason Optional reason for creating the account to be put in the logs. Default null.
 	 * @param string $realname Real name of user (optional). Default null.
-	 * @param bool $tboverride Override the title blacklist.  Requires the tboverride right.  Default false.
 	 * @param string $language Language code to set as default for the user (optional, defaults to content language). Default null.
 	 * @param string $domain Domain for external authentication (optional). Default null.
 	 * @return bool True on success, false otherwise

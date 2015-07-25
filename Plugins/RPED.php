@@ -36,16 +36,15 @@ class RPED {
 	 */
 	private $defaultMaxURLLength;
 
-	/**
-	 * Construction method for the RPED class
-	 *
-	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @return void
-	 */
+    /**
+     * Construction method for the RPED class
+     *
+     * @access public
+     * @param Wiki &$wikiClass The Wiki class object
+     */
 	function __construct( Wiki &$wikiClass ) {
 		$this->wiki = $wikiClass;
-		$defaultMaxURLLength = 2000;
+		$this->defaultMaxURLLength = 2000;
 		return;
 	}
 
