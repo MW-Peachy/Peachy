@@ -134,6 +134,9 @@ class HTTP {
 		}
 	}
 
+	/**
+	 * @param array $extraHeaders
+     */
 	private function setCurlHeaders( $extraHeaders = array() ) {
 		curl_setopt( $this->curl_instance, CURLOPT_HTTPHEADER, array_merge( array( 'Expect:' ), $extraHeaders ) );
 	}
@@ -168,6 +171,11 @@ class HTTP {
 		curl_setopt( $this->curl_instance, CURLOPT_COOKIEFILE, $cookie_file );
 	}
 
+	/**
+	 * @param null $user_agent
+	 * @throws BadEntryError
+	 * @throws HookError
+     */
 	public function setUserAgent($user_agent = null)
 	{
 		$this->user_agent = $user_agent;
@@ -374,6 +382,10 @@ class HTTP {
 	private static $defaultInstance = null;
 	private static $defaultInstanceWithEcho = null;
 
+	/**
+	 * @param bool|false $echo
+	 * @return HTTP|null
+     */
 	public static function getDefaultInstance($echo = false)
 	{
 		if( $echo ) {
