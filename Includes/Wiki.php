@@ -560,14 +560,14 @@ class Wiki {
 	 *
 	 * @access public
 	 * @param array $arrayParams Parameters given to query with (default: array())
-	 * @param bool $post Should it be a POST reqeust? (default: false)
+	 * @param bool $post Should it be a POST request? (default: false)
 	 * @param bool $errorcheck
-	 * @param bool $recursed Is this a recursed reqest (default: false)
+	 * @param bool $recursed Is this a recursed request (default: false)
 	 * @param bool $assertcheck Use MediaWiki's assert feature to prevent unwanted edits (default: true)
 	 * @throws LoggedOut
 	 * @throws AssertFailure (see $assertcheck)
 	 * @throws MWAPIError (API unavailable)
-	 * @return array Returns an array with the API result
+	 * @return array|bool Returns an array with the API result
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true ) {
 

@@ -139,7 +139,7 @@ class User {
 			)
 		);
 
-		if( !$uiRes ) {
+		if (!empty($uiRes)) {
 			$this->username = $pgUsername;
 			$this->exists = false;
 		} else {
@@ -166,6 +166,7 @@ class User {
 			}
 		} elseif( isset( $uiRes['query']['users'][0]['missing'] ) || isset( $uiRes['query']['users'][0]['invalid'] ) ) {
 			$this->exists = false;
+
 			return false;
 		} else {
 			$this->editcount = $uiRes['query']['users'][0]['editcount'];
