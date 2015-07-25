@@ -117,7 +117,7 @@ class Page {
 
 	/**
 	 * Timestamp of the last edit
-	 * @var string
+     * @var int
 	 */
 	protected $lastedit;
 
@@ -234,12 +234,12 @@ class Page {
 	/**
 	 * Construction method for the Page class
 	 *
-	 * @param Wiki $wikiClass The Wiki class object
-	 * @param mixed $title Title of the page (default: null)
-	 * @param mixed $pageid ID of the page (default: null)
-	 * @param bool $followRedir Should it follow a redirect when retrieving the page (default: true)
-	 * @param bool $normalize Should the class automatically normalize the title (default: true)
-	 * @param string|double|int $timestamp Set the start of a program or start reference to avoid edit conflicts.
+     * @param Wiki $wikiClass The Wiki class object
+     * @param mixed $title Title of the page (default: null)
+     * @param mixed $pageid ID of the page (default: null)
+     * @param bool $followRedir Should it follow a redirect when retrieving the page (default: true)
+     * @param bool $normalize Should the class automatically normalize the title (default: true)
+     * @param string|double|int $timestamp Set the start of a program or start reference to avoid edit conflicts.
 	 *
 	 * @throws InvalidArgumentException
 	 * @throws NoTitle
@@ -960,7 +960,7 @@ class Page {
 		$tRes = $this->wiki->apiQuery( $tArray );
 
 		if( isset( $tRes['query']['pages'][$this->pageid]['notificationtimestamp'] ) ) {
-			$this->watchlisttimestamp = $tRes['query']['pages'][$this->pageid]['notificationtimestamp'];
+            $this->watchlisttimestamp = (int)$tRes['query']['pages'][$this->pageid]['notificationtimestamp'];
 		} else $this->watchlisttimestamp = 0;
 
 		return $this->watchlisttimestamp;
@@ -1183,11 +1183,11 @@ class Page {
 		if( !is_null( $section ) ) {
 			if( $section == 'new' ) {
 				if( is_null( $sectiontitle ) ) {
-					pecho( "Error: sectiontitle parameter must be specified.  Aborting...\n\n", PECHO_FATAL );
+                    pecho("Error: sectionTitle parameter must be specified.  Aborting...\n\n", PECHO_FATAL);
 					return false;
 				} else {
 					$editarray['section'] = 'new';
-					$editarray['sectiontitle'] = $sectiontitle;
+                    $editarray['sectionTitle'] = $sectiontitle;
 				}
 			} else $editarray['section'] = $section;
 		}
@@ -1244,7 +1244,9 @@ class Page {
 
 		if( isset( $result['edit'] ) ) {
 			if( $result['edit']['result'] == "Success" ) {
-				if( array_key_exists( 'nochange', $result['edit'] ) ) return $this->lastedit;
+                if (array_key_exists('nochange', $result['edit'])) {
+                    return (int)$this->lastedit;
+                }
 
 				$this->__construct( $this->wiki, null, $this->pageid );
 
@@ -1302,31 +1304,51 @@ class Page {
 	 * Create a new section.  Shortcut for Page::edit()
 	 *
 	 * @link http://www.mediawiki.org/wiki/API:Edit_-_Create%26Edit_pages
-	 * @param string $text Text of the page that will be saved
-	 * @param string $sectiontitle The title for a new section. Default null.
-	 * @param string $summary Summary of the edit (default: "")
-	 * @param bool $minor Minor edit (default: false)
-	 * @param bool $bot Mark as bot edit (default: true)
-	 * @param bool $force Override nobots check (default: false)* @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
-	 * @param bool $create Set to 'never', 'only', or 'recreate' to never create a new page, only create a new page, or override errors about the page having been deleted, respectively (default: false)
-	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
-	 * @return int|bool The revision id of the successful edit, false on failure.
+     * @param    string $text Text of the page that will be saved
+     * @param    string $sectionTitle The title for a new section. Default null.
+     * @param    string $summary Summary of the edit (default: "")
+     * @param    bool $minor Minor edit (default: false)
+     * @param    bool $bot Mark as bot edit (default: true)
+     * @param    bool $force Override nobots check (default: false)
+     * @param   bool $create Set to 'never', 'only', or 'recreate' to never create a new page,
+     *                                          only create a new page, or override errors about the page having
+     *                                          been deleted, respectively (default: false)
+     * @param    string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences
+     *                                          or do not change watch. Default: go by user preference.
+     * @return    int|bool                    The revision ID of the successful edit, false on failure.
 	 */
-	public function newsection( $text, $sectiontitle, $summary = null, $minor = false, $bot = true, $force = false, $create = false, $watch = null ) {
-		if( is_null( $summary ) ) $summary = "/* " . $sectiontitle . " */ new section";
-		return $this->edit( $text, $summary, $minor, $bot, $force, false, $create, 'new', $sectiontitle, $watch );
-	}
+    public function newsection(
+        $text,
+        $sectionTitle,
+        $summary = null,
+        $minor = false,
+        $bot = true,
+        $force = false,
+        $create = false,
+        $watch = null
+    ) {
+        if (is_null($summary)) {
+            $summary = "/* " . $sectionTitle . " */ new section";
+        }
 
-	/*
-	 * Undoes one or more edits. (Subject to standard editing restrictions.)
-	 *
-	 * @param bool $force Force an undo, despite e.g. new messages (default false).
-	 * @param string $summary Override the default edit summary (default null).
-	 * @param int $revisions The number of revisions to undo (default 1).
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
-	 * @return int|bool The new revision id of the page edited.
-	 */
-	public function undo( $summary = null, $revisions = 1, $force = false, $watch = null ) {
+        return $this->edit($text, $summary, $minor, $bot, $force, false, $create, 'new', $sectionTitle, $watch);
+    }
+
+    /**
+     * Undoes one or more edits. (Subject to standard editing restrictions.)
+     *
+     * @param   string $summary Override the default edit summary (default null).
+     * @param   int $revisions The number of revisions to undo (default 1).
+     * @param   bool $force Force an undo, despite e.g. new messages (default false).
+     * @param   bool|string $watch Unconditionally add or remove the page from your watchlist, use preferences
+     *                                      or do not change watch. Default: goes by user preference.
+     * @return  bool|int                The new revision id of the page edited.
+     * @throws AssertFailure
+     * @throws LoggedOut
+     * @throws MWAPIError
+     * @throws NoTitle
+     */
+    public function undo($summary = null, $revisions = 1, $force = false, $watch = null ) {
 		global $pgNotag, $pgTag;
 		$info = $this->history( $revisions );
 		$oldrev = $info[( count( $info ) - 1 )]['revid'];
@@ -1386,8 +1408,8 @@ class Page {
 		pecho( "Undoing revision(s) on {$this->title}...\n\n", PECHO_NORMAL );
 		$result = $this->wiki->apiQuery( $params, true );
 
-		if( $result['edit']['result'] == "Success" ) {
-			if( array_key_exists( 'nochange', $result['edit'] ) ) return $this->lastedit;
+		if( $result['edit']['result'] == "Success") {
+            if (array_key_exists('nochange', $result['edit'])) return (int)$this->lastedit;
 
 			$this->__construct( $this->wiki, null, $this->pageid );
 
@@ -1948,14 +1970,14 @@ class Page {
 
 	/**
 	 * Returns the timestamp of the last edit
-	 *
-	 * @param bool $force Regenerate the cached value (default: false)
-	 * @return string
+     *
+     * @param   bool $force Regenerate the cached value (default: false)
+     * @return  int
 	 */
 	public function get_lastedit( $force = false ) {
 		if( $force ) $this->get_metadata();
 
-		return $this->lastedit;
+        return (int)$this->lastedit;
 	}
 
 	/**
@@ -2035,9 +2057,9 @@ class Page {
 			$this->title = $info['title'];
 			$this->namespace_id = $info['ns'];
 
-			if( $this->namespace_id != 0 ) {
-				$this->title_wo_namespace = explode( ':', $this->title, 2 );
-				$this->title_wo_namespace = $this->title_wo_namespace[1];
+			if( $this->namespace_id != 0) {
+                $title_wo_namespace = explode(':', $this->title, 2);
+                $this->title_wo_namespace = $title_wo_namespace[1];
 			} else {
 				$this->title_wo_namespace = $this->title;
 			}
@@ -2082,16 +2104,16 @@ class Page {
 		pecho( "Getting all links to {$this->title}...\n\n", PECHO_NORMAL );
 
 		return $this->wiki->listHandler( $leArray );
-	}
+    }
 
-	/*
+    /**
 	 * Rollbacks the latest edit(s) to a page.
 	 * 
 	 * @see http://www.mediawiki.org/wiki/API:Edit_-_Rollback
 	 * @param bool $force Whether to force an (attempt at an) edit, regardless of news messages, etc.
 	 * @param string $summary Override the default edit summary for this rollback. Default null.
 	 * @param bool $markbot If set, both the rollback and the revisions being rolled back will be marked as bot edits.
-	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
+     * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default preferences.
 	 * @return array Details of the rollback perform. ['revid']: The revision ID of the rollback. ['old_revid']: The revision ID of the first (most recent) revision that was rolled back. ['last_revid']: The revision ID of the last (oldest) revision that was rolled back.
 	 */
 	public function rollback( $force = false, $summary = null, $markbot = false, $watch = null ) {
@@ -2167,23 +2189,24 @@ class Page {
 			pecho( "Rollback error...\n\n" . print_r( $result, true ), PECHO_FATAL );
 			return false;
 		}
-	}
+    }
 
-	/*
-	 * Performs nobots checking, new message checking, etc
-	 * 
-	 * @return void
-	 */
+    /**
+     * Performs nobots checking, new message checking, etc
+     *
+     * @param   string $action
+     * @throws  EditError
+     */
 	protected function preEditChecks( $action = "Edit" ) {
 	    $this->wiki->preEditChecks( $action, $this->title, $this->pageid );
 	}
 
 	/**
 	 * Returns array of pages that embed (transclude) the page given.
-	 *
-	 * @param array $namespace Which namespaces to search (default: null).
-	 * @param int $limit How many results to retrieve (default: null i.e. all).
-	 * @return array A list of pages the title is transcluded in.
+     *
+     * @param   array $namespace Which namespaces to search (default: null).
+     * @param   int $limit How many results to retrieve (default: null i.e. all).
+     * @return  array               A list of pages the title is transcluded in.
 	 */
 	public function embeddedin( $namespace = null, $limit = null ) {
 		$eiArray = array(
