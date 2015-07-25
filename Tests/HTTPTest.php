@@ -46,8 +46,6 @@ class HTTPTest extends \PHPUnit_Framework_TestCase
      *
      * Note: get_HTTP_code() relies on this $this->curl_instance. More testing may be required.
      *
-     * @covers ::get_HTTP_code
-     *
      * @see HTTP::get_HTTP_code_test()
      */
     public function test_get_HTTP_code()
