@@ -103,10 +103,17 @@ class SSH {
 	/**
 	 * Construction method for the SSH class
 	 *
-	 * @access public
-	 * @param string $pgHost Address of remote host.  Default
+	 * @FIXME: Codebase no longer includes SSH-related classes
 	 *
-	 * @return void
+	 * @access    public
+	 * @param    string $pgHost Address of remote host.Default
+	 * @param    int $pgPort Default: 22
+	 * @param    string|null $pgUsername
+	 * @param    string|null $pgPassphrase
+	 * @param    string|null $pgPrikey
+	 * @param    int $pgProtocol
+	 * @param    int $pgTimeout
+	 * @param                $http
 	 */
 	public function __construct( $pgHost, $pgPort = 22, $pgUsername = null, $pgPassphrase = null, $pgPrikey = null, $pgProtocol = 2, $pgTimeout = 10, $http ) {
 		pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
@@ -168,6 +175,8 @@ class SSH {
 
 	/**
 	 * Establishes a connection to the remote server.
+	 *
+	 * @FIXME: Codebase no longer includes SSH-related classes
 	 *
 	 * @access protected
 	 * @param string $pgHost Host of server to connect to.
@@ -249,7 +258,7 @@ class SSH {
 	 * NOTICE: Using a command that opens a new shell will cause hangups.
 	 *
 	 * @access public
-	 * @param string $command Comand to execute
+	 * @param string $command Command to execute
 	 * @param string $callback Function to call upon executing task.
 	 * @param bool $displayError Should stderr be outputted as well. Only available with SSH2.
 	 * @param bool $exitstatus Returns the exit status along with output.  Output becomes array. Only available with SSH2.
@@ -598,6 +607,7 @@ class SSH {
 
 	/**
 	 * @param string $fullUpdatePath
+	 * @return string
 	 */
 	private function getLocalPath( $fullUpdatePath ) {
 		global $pgIP;
@@ -607,7 +617,7 @@ class SSH {
 	}
 
 	/**
-	 * Destruction class.  Closes the SSH connection and kills everything.
+	 * Destruction class. Closes the SSH connection and kills everything.
 	 *
 	 * @access private
 	 * @return void
@@ -621,5 +631,3 @@ class SSH {
 		$this->sftpobject->_disconnect( "Peachy Connection Terminated" );
 	}
 }
-
-?>

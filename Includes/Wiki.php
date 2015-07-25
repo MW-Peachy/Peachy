@@ -167,6 +167,16 @@ class Wiki {
 	 * @access protected
 	 */
 	protected $nobots = true;
+    
+    /**
+     * Nobots task name if nobots is enables.  Perfect for multiple doing the same task.
+     *
+     * (default value: null)
+     *
+     * @var string
+     * @access protected
+     */
+    protected $nobotsTaskname = null;
 
 	/**
 	 * Text to search for in the optout= field of the {{nobots}} template
@@ -254,7 +264,7 @@ class Wiki {
 	protected $cached_config;
 
 	/**
-	 * Contruct function for the wiki. Handles login and related functions.
+     * Construct function for the wiki. Handles login and related functions.
 	 *
 	 * @access public
 	 * @see Peachy::newWiki()
@@ -401,6 +411,7 @@ class Wiki {
 			$lgarray['lgtoken'] = $token;
 		}
 
+        // FIXME:   Why is there a return in a constructor? Should an error be thrown?
 		if( isset( $configuration['nologin'] ) ) {
 			$this->nologin = true;
 			return;
@@ -532,20 +543,31 @@ class Wiki {
 	public function set_runpage( $page = null ) {
 		$this->runpage = $page;
 	}
+    
+    /**
+     * Sets a specific taskname to comply with the nobots template.
+     *
+     * @param string $taskname Name of bot task. Default null.
+     * @access public
+     * @return void
+     */
+    public function set_taskname( $taskname = null ) {
+        $this->nobotsTaskname = $taskname;
+    }
 
 	/**
 	 * Queries the API.
 	 *
 	 * @access public
 	 * @param array $arrayParams Parameters given to query with (default: array())
-	 * @param bool $post Should it be a POST reqeust? (default: false)
+	 * @param bool $post Should it be a POST request? (default: false)
 	 * @param bool $errorcheck
-	 * @param bool $recursed Is this a recursed reqest (default: false)
+	 * @param bool $recursed Is this a recursed request (default: false)
 	 * @param bool $assertcheck Use MediaWiki's assert feature to prevent unwanted edits (default: true)
 	 * @throws LoggedOut
 	 * @throws AssertFailure (see $assertcheck)
 	 * @throws MWAPIError (API unavailable)
-	 * @return array Returns an array with the API result
+	 * @return array|bool Returns an array with the API result
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true ) {
 
@@ -812,10 +834,11 @@ class Wiki {
 	 * @access public
 	 * @link http://wiki.peachy.compwhizii.net/wiki/Manual/Wiki::listHandler
 	 * @param array $tArray Parameters given to query with (default: array()). In addition to those recognised by the API, ['_code'] should be set to the first two characters of all the parameters in a list=XXX API call - for example, with allpages, the parameters start with 'ap', with recentchanges, the parameters start with 'rc' -  and is required; ['_limit'] imposes a hard limit on the number of results returned (optional) and ['_lhtitle'] simplifies a multidimensional result into a unidimensional result - lhtitle is the key of the sub-array to return. (optional)
-	 * @throws BadEntryError
+	 * @param array $resume Parameter passed back at the end of a list-handler operation.  Pass parameter back through to resume listhandler operation. (optional)
+     * @throws BadEntryError
 	 * @return array Returns an array with the API result
 	 */
-	public function listHandler( $tArray = array() ) {
+	public function listHandler( $tArray = array(), &$resume = null ) {
 
 		if( isset( $tArray['_code'] ) ) {
 			$code = $tArray['_code'];
@@ -835,9 +858,15 @@ class Wiki {
 		} else {
 			$lhtitle = null;
 		}
+        if( !is_null( $resume ) ) {
+            $tArray = array_merge( $tArray, $resume );
+        } else {
+            $resume = array();
+        }
 
 		$tArray['action'] = 'query';
 		$tArray[$code . 'limit'] = 'max';
+        $tArray['rawcontinue'] = 1;
 
 		if( isset( $limit ) && !is_null( $limit ) ) {
 			if( !is_numeric( $limit ) ) {
@@ -886,37 +915,40 @@ class Wiki {
 					if( !is_null( $lhtitle ) ) {
 						if( isset( $y[$lhtitle] ) ) {
 							$y = $y[$lhtitle];
-						} else {
+                            if( is_array( $y ) ) $endArray = array_merge( $endArray, $y );
+                            else $endArray[] = $y;
+						    continue;
+                        } else {
 							continue;
 						}
 					}
-
-					$endArray[] = $y;
-				}
-			}
-
-			if( !is_null( $limit ) && $limit != 'max' ) {
-				if( count( $endArray ) >= $limit ) {
-					$endArray = array_slice( $endArray, 0, $limit );
-					break;
+                    $endArray[] = $y;
 				}
 			}
 
 			if( isset( $tRes['query-continue'] ) ) {
 				foreach( $tRes['query-continue'] as $z ){
 					if( isset( $z[$code . 'continue'] ) ) {
-						$continue = $z[$code . 'continue'];
+						$continue = $resume[$code . 'continue'] = $z[$code . 'continue'];
 					} elseif( isset( $z[$code . 'offset'] ) ) {
-						$offset = $z[$code . 'offset'];
+						$offset = $resume[$code . 'offset'] = $z[$code . 'offset'];
 					} elseif( isset( $z[$code . 'start'] ) ) {
-						$start = $z[$code . 'start'];
+						$start = $resume[$code . 'start'] = $z[$code . 'start'];
 					} elseif( isset( $z[$code . 'from'] ) ) {
-						$from = $z[$code . 'from'];
+						$from = $resume[$code . 'from'] = $z[$code . 'from'];
 					}
 				}
 			} else {
+                $resume = array();
 				break;
 			}
+            
+            if( !is_null( $limit ) && $limit != 'max' ) {
+                if( count( $endArray ) >= $limit ) {
+                    $endArray = array_slice( $endArray, 0, $limit );
+                    break;
+                }
+            }
 
 		}
 
@@ -1594,14 +1626,46 @@ class Wiki {
 		return $this->listHandler( $tgArray );
 	}
 
-	public function get_watchlist( $minor = null, $bot = null, $anon = null, $patrolled = null, $namespace = null, $user = null, $excludeuser = null, $start = null, $end = null, $prop = array(
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param null $minor
+     * @param null $bot
+     * @param null $anon
+     * @param null $patrolled
+     * @param null $namespace
+     * @param null $user
+     * @param null $excludeuser
+     * @param null $start
+     * @param null $end
+     * @param array $prop
+     * @param int $limit
+     */
+    public function get_watchlist(
+        $minor = null,
+        $bot = null,
+        $anon = null,
+        $patrolled = null,
+        $namespace = null,
+        $user = null,
+        $excludeuser = null,
+        $start = null,
+        $end = null,
+        $prop = array(
 		'ids', 'title', 'flags', 'user', 'comment', 'parsedcomment', 'timestamp', 'patrol', 'sizes',
 		'notificationtimestamp'
 	), $limit = 50 ) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
-	public function get_watchlistraw( $namespace = null, $changed = null ) {
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param null $namespace
+     * @param null $changed
+     */
+    public function get_watchlistraw($namespace = null, $changed = null)
+    {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1638,7 +1702,15 @@ class Wiki {
 
 	}
 
-	public function users( $users = array(), $prop = array(
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param array $users
+     * @param array $prop
+     */
+    public function users(
+        $users = array(),
+        $prop = array(
 		'blockinfo', 'groups', 'editcount', 'registration', 'emailable', 'gender'
 	) ) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
@@ -1670,7 +1742,13 @@ class Wiki {
 		return $this->listHandler( $rnArray );
 	}
 
-	public function protectedtitles( $namespace = array( 0 ) ) {
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param array $namespace
+     */
+    public function protectedtitles($namespace = array(0))
+    {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1948,6 +2026,8 @@ class Wiki {
 	 * @param mixed $rev3
 	 * @return string|bool False on failure
 	 * @see Diff::load
+     *
+     * @fixme: this uses Diff::load, which has been deprecated and Plugin removed from codebase
 	 */
 	public function diff( $method = 'unified', $rev1, $rev2, $rev3 = null ) {
 		$r1array = array(
@@ -2008,8 +2088,6 @@ class Wiki {
 			if( $method == "raw" ) return array( $r1text, $r2text, $r3text );
 			return Diff::load( $method, $r1text, $r2text, $r3text );
 		}
-
-
 	}
 
 	/**
@@ -2354,14 +2432,18 @@ class Wiki {
 		return $this->SSH;
 	}
 
-	/**
-	 * Performs nobots checking, new message checking, etc
-	 *
-	 * @var string $action Name of action.
-	 * @var string $title Name of page to check for nobots
-	 * @access public
-	 * @return void
-	 */
+    /**
+     * Performs nobots checking, new message checking, etc
+     *
+     * @param       string $action Name of action.
+     * @param       null|string $title Name of page to check for nobots
+     * @param       null $pageidp
+     * @throws      AssertFailure
+     * @throws      EditError
+     * @throws      LoggedOut
+     * @throws      MWAPIError
+     * @access      public
+     */
 	public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
 		global $pgDisablechecks, $pgMasterrunpage;
 		if( $pgDisablechecks ) return;
@@ -2407,7 +2489,7 @@ class Wiki {
 		}
 
 		//Perform nobots checks, login checks, /Run checks
-		if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout() ) && $this->get_nobots() ) {
+		if( checkExclusion( $this, $oldtext, $this->get_username(), $this->get_optout(), $this->nobotsTaskname ) && $this->get_nobots() ) {
 			throw new EditError( "Nobots", "The page has a nobots template" );
 		}
 

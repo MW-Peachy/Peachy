@@ -24,8 +24,12 @@ class SiteMatrix {
 	 *
 	 * @static
 	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
+	 * @param  Wiki &$wikiClass The Wiki class object
 	 * @return array List of all wikis
+	 * @throws AssertFailure
+	 * @throws DependencyError
+	 * @throws LoggedOut
+	 * @throws MWAPIError
 	 */
 	public static function load( Wiki &$wikiClass ) {
 

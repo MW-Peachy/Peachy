@@ -41,7 +41,6 @@ class RPED {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @return void
 	 */
 	function __construct( Wiki &$wikiClass ) {
 		$this->wiki = $wikiClass;

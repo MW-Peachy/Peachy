@@ -21,7 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class CheckUser {
 
-	function __construct( Wiki &$wikiclass = null ) {
+	public function __construct(Wiki &$wikiclass = null)
+	{
 
 		$extensions = $wikiClass->get_extensions();
 		if( !array_key_exists( 'CheckUser', $extensions ) ) {

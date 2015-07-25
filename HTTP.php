@@ -87,7 +87,8 @@ class HTTP {
 	 *
 	 * @return HTTP
 	 */
-	function __construct( $echo = false ) {
+	public function __construct($echo = false)
+	{
 		if( !function_exists( 'curl_init' ) ) {
 			throw new DependencyError( "cURL", "http://us2.php.net/manual/en/curl.requirements.php" );
 		}
@@ -157,7 +158,8 @@ class HTTP {
 	/**
 	 * @param string $cookie_file
 	 */
-	function setCookieJar( $cookie_file ) {
+	public function setCookieJar($cookie_file)
+	{
 		$this->cookie_jar = $cookie_file;
 
 		Hooks::runHook( 'HTTPSetCookieJar', array( &$cookie_file ) );
@@ -166,7 +168,8 @@ class HTTP {
 		curl_setopt( $this->curl_instance, CURLOPT_COOKIEFILE, $cookie_file );
 	}
 
-	function setUserAgent( $user_agent = null ) {
+	public function setUserAgent($user_agent = null)
+	{
 		$this->user_agent = $user_agent;
 
 		Hooks::runHook( 'HTTPSetUserAgent', array( &$user_agent ) );
@@ -255,7 +258,8 @@ class HTTP {
 	 * @access public
 	 * @return int HTTP code
 	 */
-	function get_HTTP_code() {
+	public function get_HTTP_code()
+	{
 		$ci = curl_getinfo( $this->curl_instance );
 		return $ci['http_code'];
 	}
@@ -273,7 +277,8 @@ class HTTP {
 	 *
 	 * @return bool|string Result
 	 */
-	function post( $url, $data, $headers = array(), $verifyssl = null ) {
+	public function post($url, $data, $headers = array(), $verifyssl = null)
+	{
 		global $argv, $displayPostOutData;
 
 		$this->setCurlHeaders( $headers );
@@ -354,7 +359,8 @@ class HTTP {
 	 * @access public
 	 * @return void
 	 */
-	function __destruct() {
+	public function __destruct()
+	{
 		Hooks::runHook( 'HTTPClose', array( &$this ) );
 
 		curl_close( $this->curl_instance );
@@ -365,10 +371,11 @@ class HTTP {
 	/**
 	 * The below allows us to only have one instance of this class
 	 */
-	static $defaultInstance = null;
-	static $defaultInstanceWithEcho = null;
+	private static $defaultInstance = null;
+	private static $defaultInstanceWithEcho = null;
 
-	static function getDefaultInstance( $echo = false ) {
+	public static function getDefaultInstance($echo = false)
+	{
 		if( $echo ) {
 			if( is_null( self::$defaultInstanceWithEcho ) ) {
 				self::$defaultInstanceWithEcho = new Http( $echo );

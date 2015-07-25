@@ -151,7 +151,6 @@ class Peachy {
 			}
 		}
 
-
 		$config_params = parse_ini_file( $config_name );
 
 		if( isset( $config_params['useconfig'] ) ) {

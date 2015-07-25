@@ -112,11 +112,14 @@ class User {
 	/**
 	 * Construction method for the User class
 	 *
+	 * @fixme    Return in constructor method.
+	 *
 	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $pgUsername Username
 	 * @param Wiki $wikiClass
-	 * @return null|false
+	 * @param mixed $pgUsername Username
+	 * @throws AssertFailure
+	 * @throws LoggedOut
+	 * @throws MWAPIError
 	 */
 	public function __construct( Wiki &$wikiClass, $pgUsername ) {
 
@@ -136,7 +139,7 @@ class User {
 			)
 		);
 
-		if( !$uiRes ) {
+		if (!empty($uiRes)) {
 			$this->username = $pgUsername;
 			$this->exists = false;
 		} else {
@@ -163,6 +166,7 @@ class User {
 			}
 		} elseif( isset( $uiRes['query']['users'][0]['missing'] ) || isset( $uiRes['query']['users'][0]['invalid'] ) ) {
 			$this->exists = false;
+
 			return false;
 		} else {
 			$this->editcount = $uiRes['query']['users'][0]['editcount'];

@@ -90,7 +90,7 @@ function in_array_recursive( $needle, $haystack, $insensitive = false ) {
  * @param string $pattern . (default: '*')
  * @param int $flags . (default: 0)
  * @param string $path . (default: '')
- * @return void
+ * @return array
  */
 function rglob( $pattern = '*', $flags = 0, $path = '' ) {
 	$paths = glob( $path . '*', GLOB_MARK | GLOB_ONLYDIR | GLOB_NOSORT );
@@ -104,14 +104,15 @@ function rglob( $pattern = '*', $flags = 0, $path = '' ) {
 /**
  * Detects the presence of a nobots template or one that denies editing by ours
  *
- * @access public
- * @param Wiki $wiki Wiki class
- * @param string $text Text of the page to check (default: '')
- * @param string $pgUsername Username to search for in the template (default: null)
- * @param string $optout Text to search for in the optout= parameter. (default: null)
- * @return bool True on match of an appropriate nobots template
+ * @access    public
+ * @param    Wiki $wiki Wiki class
+ * @param    string $text Text of the page to check (default: '')
+ * @param    string $pgUsername Username to search for in the template (default: null)
+ * @param    string|null $optout Text to search for in the optout= parameter. (default: null)
+ * @param    string|null $taskname (default: null)
+ * @return    bool                    True on match of an appropriate nobots template
  */
-function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = null ) {
+function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = null, $taskname = null ) {
 	if( !$wiki->get_nobots() ) return false;
 
 	if( in_string( "{{nobots}}", $text ) ) return true;
@@ -131,7 +132,7 @@ function checkExclusion( Wiki $wiki, $text = '', $pgUsername = null, $optout = n
 		if( $deny[2] == "all" ) return true;
 		if( $deny[2] == "none" ) return false;
 		$allow = array_map( 'trim', explode( ',', $deny[2] ) );
-		if( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) {
+		if( ( !is_null( $pgUsername ) && in_array( trim( $pgUsername ), $allow ) ) || ( !is_null( $taskname ) && in_array( trim( $taskname ), $allow ) ) ) {
 			return true;
 		}
 		return false;
@@ -221,7 +222,8 @@ function pecho( $text, $cat = 0, $func = 'echo' ) {
  *
  * @access public
  * @param string $text
- * @return void
+ * @param bool $return
+ * @return string
  */
 function cecho( $text, $return = false ) {
 	global $pgColorizer;
@@ -370,6 +372,7 @@ if( !function_exists( 'mb_substr' ) ) {
 	 * @link http://svn.wikimedia.org/svnroot/mediawiki/trunk/phase3/includes/GlobalFunctions.php
 	 * @package Fallback
 	 * @param integer $splitPos
+	 * @return int
 	 */
 	function mb_substr_split_unicode( $str, $splitPos ) {
 		if( $splitPos == 0 ) {
