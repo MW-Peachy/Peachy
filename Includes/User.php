@@ -112,11 +112,14 @@ class User {
 	/**
 	 * Construction method for the User class
 	 *
+	 * @fixme    Return in constructor method.
+	 *
 	 * @access public
-	 * @param Wiki &$wikiClass The Wiki class object
-	 * @param mixed $pgUsername Username
 	 * @param Wiki $wikiClass
-	 * @return null|false
+	 * @param mixed $pgUsername Username
+	 * @throws AssertFailure
+	 * @throws LoggedOut
+	 * @throws MWAPIError
 	 */
 	public function __construct( Wiki &$wikiClass, $pgUsername ) {
 

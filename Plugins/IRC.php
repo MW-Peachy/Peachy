@@ -44,7 +44,6 @@ class IRC {
 	 * @param string $pgPort Port to use
 	 * @param string $Gecos AKA Real Name, Information field, etc.
 	 * @param string|array Channel (s) to connect to
-	 * @return void
 	 */
 	function __construct( $User, $Nick, $Pass, $Server, $pgPort, $Gecos, $Channel ) {
 		$this->f = fsockopen( $Server, $pgPort, $errno, $errstr, 30 );
@@ -251,7 +250,7 @@ class IRC {
 			$return['username'] = $m[12];
 			$return['len'] = $m[14];
 			$return['comment'] = $m[15];
-			$return['timestamp'] = time( 'u' );
+            $return['timestamp'] = time();
 			$return['is_new'] = false;
 			$return['is_minor'] = false;
 			$return['is_bot'] = false;
@@ -283,22 +282,30 @@ class IRC {
 		}
 	}
 
-	public static function get_error( $errno ) {
-		switch( $errno ){
-			case 401:
-				return "Nickname/Channel is currently unused";
-			case 402:
-				return "Server not found";
-			case 403:
-				return "Channel not found";
-			case 404:
-				return "Cannot send to channel";
-			case 405:
-				return "Too many channels joined";
-			case 406:
-				return "There was no such nickname";
-
-		}
+    /**
+     * @param $errno
+     * @return bool|string
+     */
+    public static function get_error($errno)
+    {
+        if ($errno != null) {
+            switch ($errno) {
+                case 401:
+                    return "Nickname/Channel is currently unused";
+                case 402:
+                    return "Server not found";
+                case 403:
+                    return "Channel not found";
+                case 404:
+                    return "Cannot send to channel";
+                case 405:
+                    return "Too many channels joined";
+                case 406:
+                    return "There was no such nickname";
+            }
+        } else {
+            return false;
+        }
 	}
 }
 
@@ -353,21 +360,7 @@ class SimpleIRC {
 			if( @$parsed['type'] == 'PRIVMSG' ) {
 				Hooks::runHook( 'SimpleIRCPrivMSG', array( &$parsed, &$irc, &$this ) );
 			}
-
-
 		}
 	}
 
-
 }
-
-
-
-
-
-
-
-
-
-
-

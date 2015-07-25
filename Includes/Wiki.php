@@ -264,7 +264,7 @@ class Wiki {
 	protected $cached_config;
 
 	/**
-	 * Contruct function for the wiki. Handles login and related functions.
+     * Construct function for the wiki. Handles login and related functions.
 	 *
 	 * @access public
 	 * @see Peachy::newWiki()
@@ -411,6 +411,7 @@ class Wiki {
 			$lgarray['lgtoken'] = $token;
 		}
 
+        // FIXME:   Why is there a return in a constructor? Should an error be thrown?
 		if( isset( $configuration['nologin'] ) ) {
 			$this->nologin = true;
 			return;
@@ -1625,14 +1626,46 @@ class Wiki {
 		return $this->listHandler( $tgArray );
 	}
 
-	public function get_watchlist( $minor = null, $bot = null, $anon = null, $patrolled = null, $namespace = null, $user = null, $excludeuser = null, $start = null, $end = null, $prop = array(
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param null $minor
+     * @param null $bot
+     * @param null $anon
+     * @param null $patrolled
+     * @param null $namespace
+     * @param null $user
+     * @param null $excludeuser
+     * @param null $start
+     * @param null $end
+     * @param array $prop
+     * @param int $limit
+     */
+    public function get_watchlist(
+        $minor = null,
+        $bot = null,
+        $anon = null,
+        $patrolled = null,
+        $namespace = null,
+        $user = null,
+        $excludeuser = null,
+        $start = null,
+        $end = null,
+        $prop = array(
 		'ids', 'title', 'flags', 'user', 'comment', 'parsedcomment', 'timestamp', 'patrol', 'sizes',
 		'notificationtimestamp'
 	), $limit = 50 ) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
-	public function get_watchlistraw( $namespace = null, $changed = null ) {
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param null $namespace
+     * @param null $changed
+     */
+    public function get_watchlistraw($namespace = null, $changed = null)
+    {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1669,7 +1702,15 @@ class Wiki {
 
 	}
 
-	public function users( $users = array(), $prop = array(
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param array $users
+     * @param array $prop
+     */
+    public function users(
+        $users = array(),
+        $prop = array(
 		'blockinfo', 'groups', 'editcount', 'registration', 'emailable', 'gender'
 	) ) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
@@ -1701,7 +1742,13 @@ class Wiki {
 		return $this->listHandler( $rnArray );
 	}
 
-	public function protectedtitles( $namespace = array( 0 ) ) {
+    /**
+     * @FIXME   Implement this method
+     *
+     * @param array $namespace
+     */
+    public function protectedtitles($namespace = array(0))
+    {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1979,6 +2026,8 @@ class Wiki {
 	 * @param mixed $rev3
 	 * @return string|bool False on failure
 	 * @see Diff::load
+     *
+     * @fixme: this uses Diff::load, which has been deprecated and Plugin removed from codebase
 	 */
 	public function diff( $method = 'unified', $rev1, $rev2, $rev3 = null ) {
 		$r1array = array(
@@ -2039,8 +2088,6 @@ class Wiki {
 			if( $method == "raw" ) return array( $r1text, $r2text, $r3text );
 			return Diff::load( $method, $r1text, $r2text, $r3text );
 		}
-
-
 	}
 
 	/**
@@ -2385,14 +2432,18 @@ class Wiki {
 		return $this->SSH;
 	}
 
-	/**
-	 * Performs nobots checking, new message checking, etc
-	 *
-	 * @var string $action Name of action.
-	 * @var string $title Name of page to check for nobots
-	 * @access public
-	 * @return void
-	 */
+    /**
+     * Performs nobots checking, new message checking, etc
+     *
+     * @param       string $action Name of action.
+     * @param       null|string $title Name of page to check for nobots
+     * @param       null $pageidp
+     * @throws      AssertFailure
+     * @throws      EditError
+     * @throws      LoggedOut
+     * @throws      MWAPIError
+     * @access      public
+     */
 	public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
 		global $pgDisablechecks, $pgMasterrunpage;
 		if( $pgDisablechecks ) return;

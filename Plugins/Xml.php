@@ -263,7 +263,7 @@ class Xml {
 	public static function label( $label, $id, $attribs = array() ) {
 		$a = array( 'for' => $id );
 
-		# FIXME avoid copy pasting below:
+		// FIXME avoid copy pasting below:
 		if( isset( $attribs['class'] ) ) {
 			$a['class'] = $attribs['class'];
 		}
@@ -528,6 +528,9 @@ class Xml {
 	 * Arrays are converted to JS arrays, objects are converted to JS associative
 	 * arrays (objects). So cast your PHP associative arrays to objects before
 	 * passing them to here.
+	 *
+	 * @param $value
+	 * @return int|string
 	 */
 	public static function encodeJsVar( $value ) {
 		if( is_bool( $value ) ) {
@@ -578,7 +581,7 @@ class Xml {
 	 */
 	public static function encodeJsCall( $name, $args, $pretty = false ) {
 		foreach( $args as &$arg ){
-			$arg = self::encodeJsVar( $arg, $pretty );
+			$arg = self::encodeJsVar($arg);
 			if( $arg === false ) {
 				return false;
 			}

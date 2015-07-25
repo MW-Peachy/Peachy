@@ -275,6 +275,15 @@ class PeachyAWBFunctions {
 
 	}
 
+	/**
+	 * @Fixme    Method getWiki() not found.
+	 *
+	 * @see        getWiki()
+	 *
+	 * @param    string $text
+	 * @param    string $title
+	 * @return    mixed
+	 */
 	public static function fixTypos( $text, $title ) {
 
 		if( !count( self::$typo_list ) ) {
@@ -314,14 +323,6 @@ class PeachyAWBFunctions {
 			if( !is_null( $text2 ) ) $text = $text2;
 			$run_times[$typo['word']] = number_format( microtime( 1 ) - $time, 2 );
 		}
-
 		return $text;
 	}
-
-
 }
-
-
-
-
-

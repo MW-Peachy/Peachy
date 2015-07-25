@@ -26,6 +26,10 @@ class XMLParse {
 	 * @access public
 	 * @param string $data Either an url to an xml file, or a raw XML string. Peachy will autodetect which is which.
 	 * @return array Parsed XML
+     * @throws BadEntryError
+     * @throws DependencyError
+     * @throws HookError
+     * @throws XMLError
 	 */
 	public static function load( $data ) {
 		$http = HTTP::getDefaultInstance();
@@ -68,6 +72,8 @@ class XMLParse {
 
 	/**
 	 * @param SimpleXMLElement $xml
+     * @param $arr
+     * @param $namespaces
 	 */
 	private static function recurse( $xml, &$arr, $namespaces ) {
 
@@ -105,5 +111,4 @@ class XMLParse {
 			}
 		}
 	}
-
 }
