@@ -32,9 +32,10 @@ class AbuseFilter {
 	 *
 	 * @access public
 	 * @param Wiki &$wikiClass The Wiki class object
-	 * @return void
+	 * @throws DependencyError
 	 */
-	function __construct( Wiki &$wikiClass ) {
+	public function __construct(Wiki &$wikiClass)
+	{
 		$this->wiki = $wikiClass;
 
 		if( !array_key_exists( 'Abuse Filter', $wikiClass->get_extensions() ) ) {

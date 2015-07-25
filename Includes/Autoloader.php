@@ -65,10 +65,10 @@ class Autoloader {
 	 *
 	 * @param $class_name String: name of class we're looking for.
 	 * @return boolean|null Returning false is important on failure as
-	 * it allows Zend to try and look in other registered autoloaders
-	 * as well.
+	 * 		it allows Zend to try and look in other registered autoloaders
+	 * 		as well.
 	 */
-	static function autoload( $class_name ) {
+	public static function autoload( $class_name ) {
 		global $pgIP, $pgAutoloader;
 
 		if( isset( $pgAutoloader[$class_name] ) && is_file( $pgIP . $pgAutoloader[$class_name] ) ) {

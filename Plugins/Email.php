@@ -67,6 +67,7 @@ class Email {
 	 * @param string $fromName Name of sender.
 	 * @param string $subject Subject of email
 	 * @param string $message Message to send
+	 * @throws DependencyError
 	 */
 	function __construct( $fromEmail, $fromName, $subject, $message ) {
 

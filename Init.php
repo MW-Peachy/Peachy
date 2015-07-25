@@ -117,7 +117,7 @@ date_default_timezone_set( @date_default_timezone_get() );
 //Check for updates before loading Peachy.
 if( !$pgDisableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
 	//the below MUST have its own Http object or else things will break
-	$updater = new AutoUpdate( new Http() );
+	$updater = new AutoUpdate(new HTTP());
 	$Uptodate = $updater->Checkforupdate();
 	if( !$Uptodate ) $updater->updatePeachy();
 }

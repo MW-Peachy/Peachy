@@ -370,7 +370,7 @@ class Page {
 	 *
 	 * @param bool $force Grab text from the API, don't use the cached copy (default: false)
 	 * @param string|int $section Section title or ID to retrieve
-	 * @return string Page content
+	 * @return string|bool Page content
 	 */
 	public function get_text( $force = false, $section = null ) {
 		pecho( "Getting page content for {$this->title}..\n\n", PECHO_NOTICE );
@@ -1137,7 +1137,9 @@ class Page {
 	 * @param string $section Section number. 0 for the top section, 'new' for a new section.  Default null.
 	 * @param string $sectiontitle The title for a new section. Default null.
 	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
-	 * @return int|bool The revision id of the successful edit, false on failure.
+	 * @return string|int|bool The revision id of the successful edit, false on failure.
+	 *
+	 * @fixme: Cast return $this->lastedit; as integer, not string?
 	 */
 	public function edit(
 		$text,
@@ -1322,7 +1324,7 @@ class Page {
 	 * @param string $summary Override the default edit summary (default null).
 	 * @param int $revisions The number of revisions to undo (default 1).
 	 * @param string or bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch.  Default preferences.
-	 * @return int The new revision id of the page edited.
+	 * @return int|bool The new revision id of the page edited.
 	 */
 	public function undo( $summary = null, $revisions = 1, $force = false, $watch = null ) {
 		global $pgNotag, $pgTag;
@@ -1802,11 +1804,13 @@ class Page {
 	 *
 	 * @see Page::embeddedin()
 	 * @deprecated since 18 June 2013
+	 * @param null $namespace
+	 * @param null $limit
+	 * @return array
 	 */
 	public function get_transclusions( $namespace = null, $limit = null ) {
 		Peachy::deprecatedWarn( 'Page::get_transclusions()', 'Page::embeddedin()' );
 		return $this->embeddedin( $namespace, $limit );
-
 	}
 
 	/**

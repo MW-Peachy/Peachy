@@ -20,10 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class CodeReview {
 
 	private $wiki;
-
 	private $repo;
 
-	function __construct( Wiki &$wikiClass, $repo ) {
+	public function __construct(Wiki &$wikiClass, $repo)
+	{
 		$this->wiki = $wikiClass;
 		$this->repo = $repo;
 
@@ -52,6 +52,5 @@ class CodeReview {
 	public function testupload() { }
 
 	public function comments() { }
-
 
 }

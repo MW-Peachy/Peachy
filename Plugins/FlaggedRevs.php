@@ -21,6 +21,10 @@ class FlaggedRevs {
 
 	private $wiki;
 
+    /**
+     * @param Wiki $wikiClass
+     * @throws DependencyError
+     */
 	function __construct( Wiki &$wikiClass ) {
 
 		if( !array_key_exists( 'FlaggedRevs', $wikiClass->get_extensions() ) ) {
@@ -30,6 +34,17 @@ class FlaggedRevs {
 		$this->wiki = $wikiClass;
 	}
 
+    /**
+     * @param $revid
+     * @param null $reason
+     * @param int $status
+     * @return bool
+     * @throws AssertFailure
+     * @throws BadEntryError
+     * @throws HookError
+     * @throws LoggedOut
+     * @throws MWAPIError
+     */
 	public function review( $revid, $reason = null, $status = 1 ) {
 
 		if( !in_array( 'review', $this->wiki->get_userrights() ) ) {
@@ -81,6 +96,19 @@ class FlaggedRevs {
 		}
 	}
 
+    /**
+     * @param $title
+     * @param string $level
+     * @param null $reason
+     * @param bool|false $autoreview
+     * @param bool|false $watch
+     * @return bool
+     * @throws AssertFailure
+     * @throws BadEntryError
+     * @throws HookError
+     * @throws LoggedOut
+     * @throws MWAPIError
+     */
 	public function stabilize( $title, $level = 'none', $reason = null, $autoreview = false, $watch = false ) {
 
 		if( !in_array( 'stablesettings', $this->wiki->get_userrights() ) ) {
@@ -142,6 +170,4 @@ class FlaggedRevs {
 
 	public function oldreviewedpages() { }
 
-
 }
-

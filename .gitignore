@@ -1,3 +1,6 @@
+*/phpunit.phar
+
+
 #################
 ## PhpStorm
 #################
@@ -73,14 +76,12 @@ build/
 *.tlb
 *.tli
 *.tlh
-*.tmp
 *.tmp_proj
 *.log
 *.vspscc
 *.vssscc
 .builds
 *.pidb
-*.log
 *.scc
 
 # Visual C++ cache files
@@ -198,7 +199,6 @@ $RECYCLE.BIN/
 *.egg
 *.egg-info
 dist/
-build/
 eggs/
 parts/
 var/
@@ -228,7 +228,6 @@ Includes/updateversion
 Includes/SSHCore
 Includes/phpseclibupdate
 
-Configs/*
 !Configs/redirector.cfg
 !Configs/sample.cfg
 !Configs/scriptdefault.cfg
