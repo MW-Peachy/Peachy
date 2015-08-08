@@ -627,7 +627,7 @@ class Page {
 		$result = $this->wiki->listHandler( $tArray );
 
 		if( count( $result ) > 0 ) {
-			foreach( $result[0] as $category ){
+			foreach( $result as $category ){
 				$this->categories[] = $category['title'];
 			}
 		}
