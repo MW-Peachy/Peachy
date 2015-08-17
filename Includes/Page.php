@@ -555,7 +555,7 @@ class Page {
 		$result = $this->wiki->listHandler( $tArray );
 
 		if( count( $result ) > 0 ) {
-			foreach( $result[0] as $template ){
+			foreach( $result as $template ){
 				$this->templates[] = $template['title'];
 			}
 		}
