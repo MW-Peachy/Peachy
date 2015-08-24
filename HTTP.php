@@ -116,7 +116,7 @@ class HTTP {
 		curl_setopt( $this->curl_instance, CURLOPT_ENCODING, 'gzip' );
 		curl_setopt( $this->curl_instance, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt( $this->curl_instance, CURLOPT_HEADER, 1 );
-		curl_setopt( $this->curl_instance, CURLOPT_TIMEOUT, 100 );
+		curl_setopt( $this->curl_instance, CURLOPT_TIMEOUT, 10 );
 		curl_setopt( $this->curl_instance, CURLOPT_CONNECTTIMEOUT, 10 );
 
 		global $pgProxy;
