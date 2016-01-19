@@ -4,6 +4,11 @@ namespace Tests;
 
 use AutoUpdate;
 
+/**
+ * Class AutoUpdateTest
+ *
+ * @package Tests
+ */
 class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 
 	/**
@@ -11,6 +16,9 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 	 */
 	private static $logContents;
 
+    /**
+     * @inheritdoc
+     */
 	public static function setUpBeforeClass() {
 		parent::setUpBeforeClass();
 
@@ -20,6 +28,9 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		}
 	}
 
+    /**
+     * @inheritdoc
+     */
 	public static function tearDownAfterClass() {
 		parent::tearDownAfterClass();
 
@@ -29,11 +40,21 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		}
 	}
 
-	private function getUpdater( $http ) {
+    /**
+     * @param $http
+     * @return AutoUpdate
+     */
+    private function getUpdater($http)
+    {
 		return new AutoUpdate( $http );
 	}
 
-	private function getMockHttp( $data = array() ) {
+    /**
+     * @param array $data
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
+    private function getMockHttp($data = array())
+    {
 		$mock = $this->getMockBuilder( 'HTTP' )
 			->disableOriginalConstructor()
 			->getMock();
@@ -43,7 +64,11 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		return $mock;
 	}
 
-	public function provideCheckforupdate() {
+    /**
+     * @return array
+     */
+    public function provideCheckforupdate()
+    {
 		return array(
 			array(
 				true,
@@ -70,17 +95,23 @@ class AutoUpdateTest extends \PHPUnit_Framework_TestCase {
 		);
 	}
 
-	/**
-	 * @dataProvider provideCheckforupdate
-	 * @covers       AutoUpdate::Checkforupdate
-	 * @covers	AutoUpdate::cacheLastGithubETag
-	 * @covers	AutoUpdate::getTimeToNextLimitWindow
-	 * @covers	AutoUpdate::__construct
-	 * @covers	AutoUpdate::updatePeachy
-	 * @covers	AutoUpdate::getLocalPath
-	 * @covers	AutoUpdate::copyOverGitFiles
-	 * @covers	AutoUpdate::rrmdir
-	 */
+    /**
+     * @dataProvider provideCheckforupdate
+     * @covers       AutoUpdate::Checkforupdate
+     * @covers       AutoUpdate::cacheLastGithubETag
+     * @covers       AutoUpdate::getTimeToNextLimitWindow
+     * @covers       AutoUpdate::__construct
+     * @covers       AutoUpdate::updatePeachy
+     * @covers       AutoUpdate::getLocalPath
+     * @covers       AutoUpdate::copyOverGitFiles
+     * @covers       AutoUpdate::rrmdir
+     * @param $expected
+     * @param $data
+     * @param string $outputRegex
+     * @param null $updatelog
+     * @param bool $experimental
+     * @param bool $wasexperimental
+     */
 	public function testCheckforupdate( $expected, $data, $outputRegex = '/.*?/', $updatelog = null, $experimental = false, $wasexperimental = false ) {
 		$updater = $this->getUpdater( $this->getMockHttp( $data ) );
 		if( $updatelog === null ) {

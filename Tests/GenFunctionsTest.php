@@ -2,6 +2,11 @@
 
 namespace Tests;
 
+/**
+ * Class GenFunctionsTest
+ *
+ * @package Tests
+ */
 class GenFunctionsTest extends \PHPUnit_Framework_TestCase {
 
 	/**

@@ -6,7 +6,7 @@
 class Peachy {
 
 	/**
-	 * Initializes Peachy, logs in with a either configuration file or a given username and password
+	 * Initializes Peachy, logs in with a either the configuration file or a given username and password
 	 *
 	 * @static
 	 * @access public
@@ -18,7 +18,7 @@ class Peachy {
 	 * @param string $classname
 	 *
 	 * @throws LoginError
-	 * @return Wiki Instance of the Wiki class, where most functions are stored
+	 * @return Wiki                Instance of the Wiki class, where most functions are stored
 	 */
 	public static function newWiki( $config_name = null, $pgUsername = null, $password = null, $base_url = 'http://en.wikipedia.org/w/api.php', $classname = 'Wiki' ) {
 		pecho( "Loading Peachy (version " . PEACHYVERSION . ")...\n\n", PECHO_NORMAL );
@@ -64,15 +64,15 @@ class Peachy {
 	 * Checks if MW version is at least {@link MINMW}
 	 *
 	 * @static
-	 * @access public
-	 * @param string $base_url URL to api.php
-	 * @throws DependencyError
-	 * @return array Installed extensions
+	 * @access    public
+	 * @param    string $base_url URL to api.php
+	 * @throws    DependencyError|string
+	 * @return    array                                    Installed extensions
 	 */
 	public static function wikiChecks( $base_url ) {
 		$http = HTTP::getDefaultInstance();
 
-		$siteinfo = unserialize(
+		$siteInfo = unserialize(
 			$http->get(
 				$base_url,
 				array(
@@ -84,13 +84,13 @@ class Peachy {
 			)
 		);
 
-		if( isset( $siteinfo['error'] ) && $siteinfo['error']['code'] == 'readapidenied' ) {
+		if (isset($siteInfo['error']) && $siteInfo['error']['code'] == 'readapidenied') {
 			global $pgHooks;
 			$pgHooks['PostLogin'][] = array( 'Peachy::wikiChecks', $base_url );
 			return array( MINMW, array() );
 		}
 
-		$version = preg_replace( '/[^0-9\.]/', '', $siteinfo['query']['general']['generator'] );
+		$version = preg_replace('/[^0-9\.]/', '', $siteInfo['query']['general']['generator']);
 
 		if( version_compare( $version, MINMW ) < 0 ) {
 			throw new DependencyError( "MediaWiki " . MINMW, "http://mediawiki.org" );
@@ -98,7 +98,7 @@ class Peachy {
 
 		$extensions = array();
 
-		foreach( $siteinfo['query']['extensions'] as $ext ){
+		foreach ($siteInfo['query']['extensions'] as $ext) {
 			if( isset( $ext['version'] ) ) {
 				$extensions[$ext['name']] = $ext['version'];
 			} else {
@@ -110,39 +110,13 @@ class Peachy {
 	}
 
 	/**
-	 * Loads a specific plugin into memory
-	 *
-	 * @static
-	 * @access public
-	 * @param string|array $plugins Name of plugin(s) to load from Plugins directory, minus .php ending
-	 * @return void
-	 * @deprecated since 18 June 2013
-	 */
-	public static function loadPlugin( $plugins ) {
-		self::deprecatedWarn( null, null, "Warning: Peachy::loadPlugin() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
-	}
-
-	/**
-	 * Loads all available plugins
-	 *
-	 * @static
-	 * @access public
-	 * @return void
-	 * @deprecated since 18 June 2013
-	 */
-	public static function loadAllPlugins() {
-		self::deprecatedWarn( null, null, "Warning: Peachy::loadAllPlugins() is deprecated. Thanks to the wonders of PHP 5, the call can just be removed." );
-
-	}
-
-	/**
 	 * Checks for config files, parses them.
 	 *
-	 * @access private
+	 * @access    private
 	 * @static
-	 * @param string $config_name Name of config file
-	 * @throws BadEntryError
-	 * @return array Config params
+	 * @param    string $config_name Name of config file
+	 * @throws    BadEntryError
+	 * @return    array                            Config params
 	 */
 	private static function parse_config( $config_name ) {
 		global $pgIP;
@@ -164,13 +138,16 @@ class Peachy {
 	}
 
 	/**
+	 * Function that displays an error message when an End-User attempts to use a function no longer included in Peachy
+	 *
 	 * @param null|string $method
-	 * @param null|string $newfunction
+	 * @param null|string $newFunction
 	 * @param string $message
 	 */
-	public static function deprecatedWarn( $method, $newfunction, $message = null ) {
+	public static function deprecatedWarn($method, $newFunction, $message = null)
+	{
 		if( is_null( $message ) ) {
-			$message = "Warning: $method is deprecated. Please use $newfunction instead.";
+			$message = "Warning: $method is deprecated. Please use $newFunction instead.";
 		}
 
 		$message = "[$message|YELLOW_BAR]\n\n";
@@ -178,6 +155,11 @@ class Peachy {
 		pecho( $message, PECHO_WARN, 'cecho' );
 	}
 
+	/**
+	 * Checks for and returns an SVN repository version.
+	 *
+	 * @return array|bool
+	 */
 	public static function getSvnInfo() {
 		global $pgIP;
 
