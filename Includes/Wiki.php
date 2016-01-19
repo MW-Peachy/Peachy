@@ -262,6 +262,46 @@ class Wiki {
 	 * @access protected
 	 */
 	protected $cached_config;
+	
+	/**
+	 * If bot running with OAuth or not.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $oauthEnabled = false;
+	
+	/**
+	 * OAuth Consumer Key.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $consumerKey = "";
+	
+	/**
+	 * Key secret to establish owner verification.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $consumerSecret = "";
+	
+	/**
+	 * OAuth Access token to request access.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $accessToken = "";
+	
+	/**
+	 * Token Secret for Authorization.
+	 *
+	 * @var array
+	 * @access protected
+	 */
+	protected $accessTokenSecret = "";
 
 	/**
      * Construct function for the wiki. Handles login and related functions.
@@ -332,16 +372,6 @@ class Wiki {
 			$this->http->setUserAgent( $configuration['useragent'] );
 		}
 
-		$use_cookie_login = false;
-		if( isset( $configuration['cookiejar'] ) ) {
-			$this->http->setCookieJar( $configuration['cookiejar'] );
-		} else {
-
-			$this->http->setCookieJar( sys_get_temp_dir() . '/PeachyCookieSite' . sha1( $configuration['encodedparams'] ) );
-
-			if( $this->is_logged_in() ) $use_cookie_login = true;
-		}
-
 		if( isset( $configuration['optout'] ) ) {
 			$this->optout = $configuration['optout'];
 		}
@@ -395,27 +425,51 @@ class Wiki {
 		if( ( isset( $configuration['nobots'] ) && $configuration['nobots'] == 'false' ) || strpos( $configuration['baseurl'], '//en.wikipedia.org/w/api.php' ) === false ) {
 			$this->nobots = false;
 		}
+		if( isset( $configuration['method'] ) && $configuration['method'] == 'legacy' ) {
+			$lgarray = array(
+				'lgname'     => $this->username,
+				'lgpassword' => $configuration['password'],
+				'action'     => 'login',
+			);
 
-		$lgarray = array(
-			'lgname'     => $this->username,
-			'lgpassword' => $configuration['password'],
-			'action'     => 'login',
-		);
-
+			if( !is_null( $token ) ) {
+				$lgarray['lgtoken'] = $token;
+			}
+		} else {
+			if( !isset( $extensions['OAuth'] ) ) throw new DependencyError( "OAuth", "https://www.mediawiki.org/wiki/Extension:OAuth or try setting \'method = \"legacy\"\' in the cfg file." );
+			if( !isset( $configuration['consumerkey'] ) ) throw new LoginError( array( "Missing consumer key", "set consumerkey in cfg file" ) );
+			if( !isset( $configuration['consumersecret'] ) ) throw new LoginError( array( "Missing consumer secret", "set consumersecret in cfg file" ) );
+			if( !isset( $configuration['accesstoken'] ) ) throw new LoginError( array( "Missing access token", "set accesstoken in cfg file" ) );
+			if( !isset( $configuration['accesssecret'] ) ) throw new LoginError( array( "Missing access token secret", "set accesssecret in cfg file" ) );
+			if( !isset( $configuration['oauthurl'] ) ) throw new LoginError( array( "Missing OAuth URL", "set oauthurl in cfg file" ) );
+			$this->oauthEnabled = true;
+			$this->consumerKey = $configuration['consumerkey'];
+			$this->consumerSecret = $configuration['consumersecret'];
+			$this->accessToken = $configuration['accesstoken'];
+			$this->accessTokenSecret = $configuration['accesssecret'];
+			$this->oauth_url = $configuration['oauthurl'];
+		}
+		
 		if( isset( $configuration['maxlag'] ) && $configuration['maxlag'] != "0" ) {
 			$this->maxlag = $configuration['maxlag'];
 			$lgarray['maxlag'] = $this->maxlag;
-		}
-
-		if( !is_null( $token ) ) {
-			$lgarray['lgtoken'] = $token;
-		}
-
-        // FIXME:   Why is there a return in a constructor? Should an error be thrown?
+		}	
+		
+		// FIXME:   Why is there a return in a constructor? Should an error be thrown?
 		if( isset( $configuration['nologin'] ) ) {
 			$this->nologin = true;
 			return;
 		}
+		
+		$use_cookie_login = false;
+		if( isset( $configuration['cookiejar'] ) ) {
+			$this->http->setCookieJar( $configuration['cookiejar'] );
+		} else {
+
+			$this->http->setCookieJar( sys_get_temp_dir() . '/PeachyCookieSite' . sha1( $configuration['encodedparams'] ) );
+
+			if( $this->is_logged_in() ) $use_cookie_login = true;
+		}	
 
 		if( $use_cookie_login ) {
 			pecho( "Logging in to {$this->base_url} as {$this->username}, using a saved login cookie\n\n", PECHO_NORMAL );
@@ -428,12 +482,58 @@ class Wiki {
 				pecho( "Logging in to {$this->base_url}...\n\n", PECHO_NOTICE );
 			}
 
-			$loginRes = $this->apiQuery( $lgarray, true, true, false, false );
+			if( isset( $configuration['method'] ) && $configuration['method'] == 'legacy' ) $loginRes = $this->apiQuery( $lgarray, true, true, false, false );
+			else {
+				$loginRes = $this->apiQuery( array(), false, true, false, false, $this->oauth_url."/identify" );
+				if ( !$loginRes ) {
+					throw new LoginError( ( array( 'BadData', 'The server returned unparsable data' ) ) );
+	            }
+	            $err = json_decode( $loginRes );
+	            if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
+	                // We're not authorized!
+	                throw new LoginError( ( array( 'AuthFailure', 'Missing authorization or authorization failed' ) ) );
+	            }
+
+	            // There are three fields in the response
+	            $fields = explode( '.', $loginRes );
+	            if ( count( $fields ) !== 3 ) {
+	                throw new LoginError( ( array( 'BadResponse', 'Invalid identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+	            }
+
+	            // Validate the header. MWOAuth always returns alg "HS256".
+	            $header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
+	            if ( $header !== false ) {
+	                $header = json_decode( $header );
+	            }
+	            if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
+	                throw new LoginError( ( array( 'BadHeader', 'Invalid header in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+	            }
+
+	            // Verify the signature
+	            $sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
+	            $check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], $this->consumerSecret, true );
+	            if ( $sig !== $check ) {
+	                throw new LoginError( ( array( 'BadSignature', 'JWT signature validation failed: ' . htmlspecialchars( $loginRes ) ) ) );
+	            }
+
+	            // Decode the payload
+	            $payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
+	            if ( $payload !== false ) {
+	                $payload = json_decode( $payload );
+	            }
+	            if ( !is_object( $payload ) ) {
+	                throw new LoginError( ( array( 'BadPayload', 'Invalid payload in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+	            }
+	            
+	            pecho( "Successfully logged in to {$this->base_url} as {$payload->username}\n\n", PECHO_NORMAL );
+
+				$this->runSuccess( $configuration );
+			}
 
 			Hooks::runHook( 'PostLogin', array( &$loginRes ) );
 		}
 
-		if( isset( $loginRes['login']['result'] ) ) {
+		if( !$this->oauthEnabled && isset( $loginRes['login']['result'] ) ) {
 			switch( $loginRes['login']['result'] ){
 				case 'NoName':
 					throw new LoginError( array( 'NoName', 'Username not specified' ) );
@@ -554,6 +654,45 @@ class Wiki {
     public function set_taskname( $taskname = null ) {
         $this->nobotsTaskname = $taskname;
     }
+    
+    private function generateSignature( $method, $url, $params = array() ) {
+	    $parts = parse_url( $url );
+
+	    // We need to normalize the endpoint URL
+	    $scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'http';
+	    $host = isset( $parts['host'] ) ? $parts['host'] : '';
+	    $port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
+	    $path = isset( $parts['path'] ) ? $parts['path'] : '';
+	    if ( ( $scheme == 'https' && $port != '443' ) ||
+	        ( $scheme == 'http' && $port != '80' ) 
+	    ) {
+	        // Only include the port if it's not the default
+	        $host = "$host:$port";
+	    }
+
+	    // Also the parameters
+	    $pairs = array();
+	    parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
+	    $query += $params;
+	    unset( $query['oauth_signature'] );
+	    if ( $query ) {
+	        $query = array_combine(
+	            // rawurlencode follows RFC 3986 since PHP 5.3
+	            array_map( 'rawurlencode', array_keys( $query ) ),
+	            array_map( 'rawurlencode', array_values( $query ) )
+	        );
+	        ksort( $query, SORT_STRING );
+	        foreach ( $query as $k => $v ) {
+	            $pairs[] = "$k=$v";
+	        }
+	    }
+
+	    $toSign = rawurlencode( strtoupper( $method ) ) . '&' .
+	        rawurlencode( "$scheme://$host$path" ) . '&' .
+	        rawurlencode( join( '&', $pairs ) );
+	    $key = rawurlencode( $this->consumerSecret ) . '&' . rawurlencode( $this->accessTokenSecret );
+	    return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
+	}
 
 	/**
 	 * Queries the API.
@@ -569,15 +708,18 @@ class Wiki {
 	 * @throws MWAPIError (API unavailable)
 	 * @return array|bool Returns an array with the API result
 	 */
-	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true ) {
+	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true, $talktoOauth = false ) {
 
 		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData;
 		$requestid = mt_rand();
+		$header = "";
+		if( $talktoOauth === false ) {
+			$arrayParams['format'] = 'php';
+			$arrayParams['servedby'] = '';
+			$arrayParams['requestid'] = $requestid;
+			$assert = false;	
+		}
 		$attempts = $pgMaxAttempts;
-		$arrayParams['format'] = 'php';
-		$arrayParams['servedby'] = '';
-		$arrayParams['requestid'] = $requestid;
-		$assert = false;
 
 		if( !file_exists( $pgIP . 'Includes/Communication_Logs' ) ) mkdir( $pgIP . 'Includes/Communication_Logs', 02775 );
 		if( $post && $this->requiresFlag && $assertcheck ) {
@@ -590,7 +732,7 @@ class Wiki {
 			Hooks::runHook( 'QueryAssert', array( &$arrayParams['assert'], &$assert ) );
 		} elseif( isset( $arrayParams['assert'] ) ) unset( $arrayParams['assert'] );
 
-		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE );
+		pecho( "Running API query with params " . implode( ";", $arrayParams ) . "...\n\n", PECHO_VERBOSE ); 
 
 		if( $post ) {
 			$is_loggedin = $this->get_nologin();
@@ -599,11 +741,35 @@ class Wiki {
 
 			Hooks::runHook( 'PreAPIPostQuery', array( &$arrayParams ) );
 			for( $i = 0; $i < $attempts; $i++ ){
+				if( $this->oauthEnabled ) {
+					$headerArr = array(
+                                // OAuth information
+		                                'oauth_consumer_key' => $this->consumerKey,
+		                                'oauth_token' => $this->accessToken,
+		                                'oauth_version' => '1.0',
+		                                'oauth_nonce' => md5( microtime() . mt_rand() ),
+		                                'oauth_timestamp' => time(),
+
+		                                // We're using secret key signatures here.
+		                                'oauth_signature_method' => 'HMAC-SHA1',
+		                            );
+		            $signature = $this->generateSignature( 'POST', ( $talktoOauth ? $talktoOauth : $this->base_url ), $headerArr  );
+		            $headerArr['oauth_signature'] = $signature; 
+
+		            $header = array();
+		            foreach ( $headerArr as $k => $v ) {
+		                $header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+		            }
+		            $header = 'Authorization: OAuth ' . join( ', ', $header );
+		            unset( $headerArr );
+				}
 				$logdata = "Date/Time: " . date( 'r' ) . "\nMethod: POST\nURL: {$this->base_url} (Parameters masked for security)\nRaw Data: ";
 				$data = $this->get_http()->post(
-					$this->base_url,
-					$arrayParams
+					( $talktoOauth ? $talktoOauth : $this->base_url ),
+					$arrayParams,
+					$header
 				);
+				if( $talktoOauth !== false && $data !== false ) return $data;
 				$logdata .= $data;
 				$data2 = ( $data === false || is_null( $data ) ? false : unserialize( $data ) );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
@@ -733,11 +899,35 @@ class Wiki {
 			Hooks::runHook( 'PreAPIGetQuery', array( &$arrayParams ) );
 
 			for( $i = 0; $i < $attempts; $i++ ){
+				if( $this->oauthEnabled ) {
+					$headerArr = array(
+		                                // OAuth information
+		                                'oauth_consumer_key' => $this->consumerKey,
+		                                'oauth_token' => $this->accessToken,
+		                                'oauth_version' => '1.0',
+		                                'oauth_nonce' => md5( microtime() . mt_rand() ),
+		                                'oauth_timestamp' => time(),
+
+		                                // We're using secret key signatures here.
+		                                'oauth_signature_method' => 'HMAC-SHA1',
+		                            );
+		            $signature = $this->generateSignature( 'GET', ( $talktoOauth ? $talktoOauth : $this->base_url ), $arrayParams + $headerArr );
+		            $headerArr['oauth_signature'] = $signature; 
+
+		            $header = array();
+		            foreach ( $headerArr as $k => $v ) {
+		                $header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+		            }
+		            $header = 'Authorization: OAuth ' . join( ', ', $header );
+		            unset( $headerArr );
+				}
 				$logdata = "Date/Time: " . date( 'r' ) . "\nMethod: GET\nURL: {$this->base_url}\nParameters: " . print_r( $arrayParams, true ) . "\nRaw Data: ";
 				$data = $this->get_http()->get(
-					$this->base_url,
-					$arrayParams
+					( $talktoOauth ? $talktoOauth : $this->base_url ),
+					$arrayParams,
+					$header
 				);
+				if( $talktoOauth !== false && $data !== false ) return $data;
 				$logdata .= $data;
 				$data2 = ( $data === false || is_null( $data ) ? false : unserialize( $data ) );
 				if( $data2 === false && serialize( $data2 ) != $data ) {
@@ -846,13 +1036,13 @@ class Wiki {
 		} else {
 			throw new BadEntryError( "listHandler", "Parameter _code is required." );
 		}
-		if( isset( $tArray['_limit'] ) ) {
+		if( isset( $tArray['_limit'] ) || is_null( $tArray['_limit'] ) ) {
 			$limit = $tArray['_limit'];
 			unset( $tArray['_limit'] );
 		} else {
 			$limit = null;
 		}
-		if( isset( $tArray['_lhtitle'] ) ) {
+		if( isset( $tArray['_lhtitle'] ) || is_null( $tArray['_limit'] ) ) {
 			$lhtitle = $tArray['_lhtitle'];
 			unset( $tArray['_lhtitle'] );
 		} else {
@@ -1132,9 +1322,9 @@ class Wiki {
 			if( is_array( $revids ) ) $revids = implode( '|', $revids );
 			$apiArr['revids'] = $revids;
 		}
-		if( $redirects ) $apiArr['redirects'] = 'yes';
-		if( $force ) $apiArr['forcelinkupdate'] = 'yes';
-		if( $convert ) $apiArr['converttitles'] = 'yes';
+		if( $redirects ) $apiArr['redirects'] = '';
+		if( $force ) $apiArr['forcelinkupdate'] = '';
+		if( $convert ) $apiArr['converttitles'] = '';
 
 		$genparams = $this->generatorvalues;
 		if( !is_null( $generator ) ) {
@@ -1506,7 +1696,7 @@ class Wiki {
 		if( !is_null( $from ) ) $leArray['alfrom'] = $from;
 		if( !is_null( $prefix ) ) $leArray['alprefix'] = $prefix;
 		if( !is_null( $continue ) ) $leArray['alcontinue'] = $continue;
-		if( $unique ) $leArray['alunique'] = 'yes';
+		if( $unique ) $leArray['alunique'] = '';
 		$leArray['limit'] = $this->apiQueryLimit;
 
 		Hooks::runHook( 'PreQueryAlllinks', array( &$leArray ) );
@@ -1542,7 +1732,7 @@ class Wiki {
 		if( !is_null( $from ) ) $leArray['aufrom'] = $from;
 		if( !is_null( $prefix ) ) $leArray['auprefix'] = $prefix;
 		if( count( $groups ) ) $leArray['augroup'] = implode( '|', $groups );
-		if( $editsonly ) $leArray['auwitheditsonly'] = 'yes';
+		if( $editsonly ) $leArray['auwitheditsonly'] = '';
 
 		Hooks::runHook( 'PreQueryAllusers', array( &$leArray ) );
 
@@ -1772,11 +1962,11 @@ class Wiki {
 		);
 
 		if( in_array( 'interwikimap', $prop ) && $iwfilter ) {
-			$siArray['sifilteriw'] = 'yes';
+			$siArray['sifilteriw'] = '';
 		} elseif( in_array( 'interwikimap', $prop ) && $iwfilter ) $siArray['sifilteriw'] = 'no';
 
-		if( in_array( 'dbrepllag', $prop ) ) $siArray['sishowalldb'] = 'yes';
-		if( in_array( 'usergroups', $prop ) ) $siArray['sinumberingroup'] = 'yes';
+		if( in_array( 'dbrepllag', $prop ) ) $siArray['sishowalldb'] = '';
+		if( in_array( 'usergroups', $prop ) ) $siArray['sinumberingroup'] = '';
 
 		Hooks::runHook( 'PreQuerySiteInfo', array( &$siArray ) );
 
@@ -1804,7 +1994,7 @@ class Wiki {
 
 		if( !is_null( $filter ) ) $amArray['amfilter'] = $filter;
 		if( count( $messages ) ) $amArray['ammessages'] = implode( '|', $messages );
-		if( $parse ) $amArray['amenableparser'] = 'yes';
+		if( $parse ) $amArray['amenableparser'] = '';
 		if( count( $args ) ) $amArray['amargs'] = implode( '|', $args );
 		if( !is_null( $lang ) ) $amArray['amlang'] = $lang;
 
@@ -1830,7 +2020,7 @@ class Wiki {
 			'text'   => $text
 		);
 
-		if( $generatexml ) $etArray['generatexml'] = 'yes';
+		if( $generatexml ) $etArray['generatexml'] = '';
 		if( !is_null( $title ) ) $etArray['title'] = $title;
 
 		Hooks::runHook( 'PreQueryExpandtemplates', array( &$etArray ) );
@@ -1885,7 +2075,7 @@ class Wiki {
 
 		if( $generatexml ) {
 			if( !in_array( 'wikitext', $prop ) ) $prop[] = 'wikitext';
-			$apiArray['generatexml'] = 'yes';
+			$apiArray['generatexml'] = '';
 		}
 
 		if( !is_null( $text ) ) $apiArray['text'] = $text;
@@ -1911,12 +2101,12 @@ class Wiki {
 			} else pecho( "Error: mobileformat not specified correctly.  Omitting value...\n\n", PECHO_ERROR );
 		}
 
-		if( $pst ) $apiArray['pst'] = 'yes';
-		if( $onlypst ) $apiArray['onlypst'] = 'yes';
-		if( $redirects ) $apiArray['redirects'] = 'yes';
-		if( $disablepp ) $apiArray['disablepp'] = 'yes';
-		if( $noimages ) $apiArray['noimages'] = 'yes';
-		if( $mainpage ) $apiArray['mainpage'] = 'yes';
+		if( $pst ) $apiArray['pst'] = '';
+		if( $onlypst ) $apiArray['onlypst'] = '';
+		if( $redirects ) $apiArray['redirects'] = '';
+		if( $disablepp ) $apiArray['disablepp'] = '';
+		if( $noimages ) $apiArray['noimages'] = '';
+		if( $mainpage ) $apiArray['mainpage'] = '';
 
 		Hooks::runHook( 'PreParse', array( &$apiArray ) );
 
@@ -1971,7 +2161,7 @@ class Wiki {
 			'token'   => $tokens['import']
 		);
 
-		if( $root ) $apiArray['rootpage'] = 'yes';
+		if( $root ) $apiArray['rootpage'] = '';
 
 		if( !is_null( $page ) ) {
 			if( !is_file( $page ) ) {
@@ -1983,8 +2173,8 @@ class Wiki {
 					return false;
 				}
 				if( !is_null( $namespace ) ) $apiArray['namespace'] = $namespace;
-				if( $fullhistory ) $apiArray['fullhistory'] = 'yes';
-				if( $templates ) $apiArray['templates'] = 'yes';
+				if( $fullhistory ) $apiArray['fullhistory'] = '';
+				if( $templates ) $apiArray['templates'] = '';
 				pecho( "Importing $page from $site...\n\n", PECHO_NOTICE );
 			} else {
 				$apiArray['xml'] = "@$page";
@@ -2361,7 +2551,7 @@ class Wiki {
 			'limit'     => $limit,
 			'namespace' => implode( '|', $namespaces )
 		);
-		if( $suggest ) $apiArray['suggest'] = 'yes';
+		if( $suggest ) $apiArray['suggest'] = '';
 
 		$OSres = $this->get_http()->get( $this->get_base_url(), $apiArray );
 		return ( $OSres === false || is_null( $OSres ) ? false : json_decode( $OSres, true ) );
@@ -2403,7 +2593,7 @@ class Wiki {
 		);
 
 		if( $reset ) {
-			$apiArray['reset'] = 'yes';
+			$apiArray['reset'] = '';
 			$apiArray['resetkinds'] = implode( '|', $resetoptions );
 		}
 

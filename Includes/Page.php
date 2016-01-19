@@ -620,7 +620,7 @@ class Page {
 			'clprop'   => implode( '|', $prop )
 		);
 
-		if( $hidden ) $tArray['clshow'] = 'yes';
+		if( $hidden ) $tArray['clshow'] = '';
 
 		pecho( "Getting categories {$this->title} is part of..\n\n", PECHO_NORMAL );
 
@@ -744,7 +744,7 @@ class Page {
 
 		if( !is_null( $lang ) ) $tArray['lllang'] = $lang;
 		if( !is_null( $title ) ) $tArray['lltitle'] = $title;
-		if( $fullurl ) $tArray['llurl'] = 'yes';
+		if( $fullurl ) $tArray['llurl'] = '';
 
 		pecho( "Getting all interlanguage links for {$this->title}..\n\n", PECHO_NORMAL );
 
@@ -790,7 +790,7 @@ class Page {
 
 		if( !is_null( $prefix ) ) $tArray['iwprefix'] = $prefix;
 		if( !is_null( $title ) ) $tArray['iwtitle'] = $title;
-		if( $fullurl ) $tArray['iwurl'] = 'yes';
+		if( $fullurl ) $tArray['iwurl'] = '';
 
 
 		pecho( "Getting all interwiki links for {$this->title}..\n\n", PECHO_NORMAL );
@@ -1169,8 +1169,6 @@ class Page {
 			return false;
 		}
 
-		pecho( "Making edit to {$this->title}...\n\n", PECHO_NORMAL );
-
 		$editarray = array(
 			'title'         => $this->title,
 			'action'        => 'edit',
@@ -1213,19 +1211,19 @@ class Page {
 		}
 
 		if( $create == "never" ) {
-			$editarray['nocreate'] = 'yes';
-		} elseif( $create == "only" ) $editarray['createonly'] = 'yes';
-		elseif( $create == "recreate" ) $editarray['recreate'] = 'yes';
+			$editarray['nocreate'] = '';
+		} elseif( $create == "only" ) $editarray['createonly'] = '';
+		elseif( $create == "recreate" ) $editarray['recreate'] = '';
 
 		if( $this->wiki->get_maxlag() ) $editarray['maxlag'] = $this->wiki->get_maxlag();
 
 		if( !empty( $summary ) ) $editarray['summary'] = $summary;
 
 		if( $minor ) {
-			$editarray['minor'] = 'yes';
-		} else $editarray['notminor'] = 'yes';
+			$editarray['minor'] = '';
+		} else $editarray['notminor'] = '';
 
-		if( $bot ) $editarray['bot'] = 'yes';
+		if( $bot ) $editarray['bot'] = '';
 
 		if( !$force ) {
 			try{
@@ -1500,13 +1498,13 @@ class Page {
 			} else pecho( "Watch parameter set incorrectly.  Omitting...\n\n", PECHO_WARN );
 		}
 
-		if( $nowarnings ) $editarray['ignorewarnings'] = 'yes';
+		if( $nowarnings ) $editarray['ignorewarnings'] = '';
 		if( !$pgNotag ) $reason .= $pgTag;
 		if( !empty( $reason ) ) $editarray['reason'] = $reason;
 
-		if( $movetalk ) $editarray['movetalk'] = 'yes';
-		if( $movesubpages ) $editarray['movesubpages'] = 'yes';
-		if( $noredirect ) $editarray['noredirect'] = 'yes';
+		if( $movetalk ) $editarray['movetalk'] = '';
+		if( $movesubpages ) $editarray['movesubpages'] = '';
+		if( $noredirect ) $editarray['noredirect'] = '';
 
 		if( $this->wiki->get_maxlag() ) {
 			$editarray['maxlag'] = $this->wiki->get_maxlag();
@@ -1569,7 +1567,7 @@ class Page {
 
 		$editarray['protections'] = implode( "|", $editarray['protections'] );
 
-		if( $cascade ) $editarray['cascade'] = 'yes';
+		if( $cascade ) $editarray['cascade'] = '';
 
 		if( !is_null( $watch ) ) {
 			if( $watch ) {
@@ -1878,7 +1876,7 @@ class Page {
 			'action'  => 'watch',
 			'token'   => $tokens['watch'],
 			'title'   => $this->title,
-			'unwatch' => 'yes'
+			'unwatch' => ''
 		);
 
 		if( !is_null( $lang ) ) $apiArray['uselang'] = $lang;
@@ -2075,7 +2073,7 @@ class Page {
 			'bltitle'       => $this->title
 		);
 
-		if( $followredir ) $leArray['blredirect'] = 'yes';
+		if( $followredir ) $leArray['blredirect'] = '';
 
 		Hooks::runHook( 'PreQueryBacklinks', array( &$leArray ) );
 
@@ -2128,7 +2126,7 @@ class Page {
 
 			$params['summary'] = $summary;
 		}
-		if( $markbot ) $params['markbot'] = 'yes';
+		if( $markbot ) $params['markbot'] = '';
 
 		if( !is_null( $watch ) ) {
 			if( $watch ) {
