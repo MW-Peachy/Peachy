@@ -223,7 +223,8 @@ class HTTP {
 	public function get( $url, $data = null, $headers = array(), $verifyssl = null ) {
 		global $argv, $displayGetOutData;
 
-		$this->setCurlHeaders( $headers );
+		if( is_string( $headers ) ) curl_setopt( $this->curl_instance, CURLOPT_HTTPHEADER, array( $headers ) );
+		else $this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 1 );
@@ -234,7 +235,7 @@ class HTTP {
 			curl_setopt($this->curl_instance,CURLOPT_COOKIE, $this->use_cookie);
 		}*/
 
-		if( !is_null( $data ) && is_array( $data ) ) {
+		if( !is_null( $data ) && is_array( $data ) && !empty( $data ) ) {
 			$url .= '?' . http_build_query( $data );
 		}
 
@@ -281,7 +282,8 @@ class HTTP {
 	{
 		global $argv, $displayPostOutData;
 
-		$this->setCurlHeaders( $headers );
+		if( is_string( $headers ) ) curl_setopt( $this->curl_instance, CURLOPT_HTTPHEADER, array( $headers ) );
+		else $this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
 		curl_setopt( $this->curl_instance, CURLOPT_FOLLOWLOCATION, 0 );
@@ -323,7 +325,8 @@ class HTTP {
 
 		$out = fopen( $local, 'wb' );
 
-		$this->setCurlHeaders( $headers );
+		if( is_string( $headers ) ) curl_setopt( $this->curl_instance, CURLOPT_HTTPHEADER, array( $headers ) );
+		else $this->setCurlHeaders( $headers );
 		$this->setVerifySSL( $verifyssl );
 
 		// curl_setopt($this->curl_instance, CURLOPT_FILE, $out);

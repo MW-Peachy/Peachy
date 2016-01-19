@@ -42,7 +42,10 @@ class Peachy {
 			throw new LoginError( array( "MissingParam", "The baseurl parameter was not set." ) );
 		}
 
-		if( !isset( $config_params['username'] ) || !isset( $config_params['password'] ) ) {
+		if( !isset( $config_params['username'] ) ) {
+			$config_params['nologin'] = true;
+		}
+		if( !isset( $config_params['password'] ) && isset( $config_params['method'] ) && $config_params['method'] == "legacy" ) {
 			$config_params['nologin'] = true;
 		}
 
