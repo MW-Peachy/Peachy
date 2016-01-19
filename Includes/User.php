@@ -139,7 +139,7 @@ class User {
 			)
 		);
 
-		if (!empty($uiRes)) {
+		if ( !$uiRes ) {
 			$this->username = $pgUsername;
 			$this->exists = false;
 		} else {

@@ -49,7 +49,7 @@ class SSH {
 	 * @var string
 	 * @access private
 	 */
-	private $prikey;
+    private $privateKey;
 
 	/**
 	 * SSH protocol being used
@@ -73,7 +73,7 @@ class SSH {
 	 * @var Object
 	 * @access private
 	 */
-	private $sshobject;
+    private $SSHObject;
 
 	/**
 	 * The SFTP connection object.
@@ -81,7 +81,7 @@ class SSH {
 	 * @var Object
 	 * @access private
 	 */
-	private $sftpobject;
+    private $SFTPObject;
 
 	/**
 	 * Stores the commits of the PHPSecLib class
@@ -105,21 +105,34 @@ class SSH {
 	 *
 	 * @FIXME: Codebase no longer includes SSH-related classes
 	 *
-	 * @access    public
-	 * @param    string $pgHost Address of remote host.Default
-	 * @param    int $pgPort Default: 22
-	 * @param    string|null $pgUsername
-	 * @param    string|null $pgPassphrase
-	 * @param    string|null $pgPrikey
-	 * @param    int $pgProtocol
-	 * @param    int $pgTimeout
-	 * @param                $http
+     * @access      public
+     * @param       string $pgHost Address of remote host.Default
+     * @param       int $pgPort Default: 22
+     * @param       string|null $pgUsername
+     * @param       string|null $pgPassphrase
+     * @param       string|null $pgPrivateKey
+     * @param       int $pgProtocol
+     * @param       int $pgTimeout
+     * @param       HTTP $http This must be a HTTP class object from HTTP::getDefaultInstance()
+     *
+     * @see         HTTP::getDefaultInstance()
+     * @see         WIKI::__construct()
 	 */
-	public function __construct( $pgHost, $pgPort = 22, $pgUsername = null, $pgPassphrase = null, $pgPrikey = null, $pgProtocol = 2, $pgTimeout = 10, $http ) {
+    public function __construct(
+        $pgHost,
+        $pgPort = 22,
+        $pgUsername = null,
+        $pgPassphrase = null,
+        $pgPrivateKey = null,
+        $pgProtocol = 2,
+        $pgTimeout = 10,
+        HTTP $http
+    ) {
 		pecho( "Initializing SSH class...\n\n", PECHO_NORMAL );
 		global $pgIP;
 		$this->http = $http;
-		if( !file_exists( $pgIP . 'Includes/SSHCore' ) ) {
+        // FIXME    The code base no longer includes a 'Includes/SSHCore' directory
+        if (!file_exists($pgIP . 'Includes/SSHCore')) {
 			pecho( "Setting up the SSH Class for first time use...\n\n", PECHO_NOTICE );
 			$data = json_decode( $this->http->get( 'https://api.github.com/repos/phpseclib/phpseclib/branches/master', null, array(), false ), true );
 			$this->commits = $data;
@@ -130,18 +143,18 @@ class SSH {
 		if( !$this->CheckForUpdate() ) $this->installPHPseclib();
 
 		set_include_path( get_include_path() . PATH_SEPARATOR . $pgIP . 'Includes/SSHCore' );
-		require_once( 'Net/SCP.php' );
-		require_once( 'Crypt/RSA.php' );
-		require_once( 'Net/SFTP.php' );
+        require_once('Net/SCP.php');      // FIXME    Directory doesn't exist
+        require_once('Crypt/RSA.php');    // FIXME    Directory doesn't exist
+        require_once('Net/SFTP.php');     // FIXME    Directory doesn't exist
 		switch( $pgProtocol ){
 			case 1:
-				require_once( 'Net/SSH1.php' );
+                require_once('Net/SSH1.php'); // FIXME    Directory doesn't exist
 				break;
 			case 2:
-				require_once( 'Net/SSH2.php' );
+                require_once('Net/SSH2.php'); // FIXME    Directory doesn't exist
 				break;
 			default:
-				require_once( 'Net/SSH2.php' );
+                require_once('Net/SSH2.php'); // FIXME    Directory doesn't exist
 				break;
 		}
 
@@ -149,7 +162,7 @@ class SSH {
 		$this->protocol = $pgProtocol;
 		$this->host = $pgHost;
 		$this->username = $pgUsername;
-		$this->prikey = $pgPrikey;
+        $this->privateKey = $pgPrivateKey;
 		if( !$this->connect( $pgHost, $pgPort, $pgProtocol, $pgTimeout ) ) {
 			pecho( "Cannot connect, aborting SSH initialization...\n\n", PECHO_FATAL );
 			$this->__destruct();
@@ -158,7 +171,7 @@ class SSH {
 		pecho( "Successfully connected to $pgHost.\n\n", PECHO_NORMAL );
 
 		//Now authenticate
-		if( !( $this->authenticate( $pgUsername, $pgPassphrase, $pgPrikey ) ) ) {
+        if (!($this->authenticate($pgUsername, $pgPassphrase, $pgPrivateKey))) {
 			$this->__destruct();
 			return;
 		}
@@ -167,61 +180,66 @@ class SSH {
 		if( $this->connected ) {
 			echo "Connection socket open.\n\n";
 		} else {
-			echo "A connection error occured. Closing...\n\n";
+            echo "A connection error occurred. Closing...\n\n";
 			$this->__destruct();
 			return;
 		}
 	}
 
-	/**
-	 * Establishes a connection to the remote server.
-	 *
-	 * @FIXME: Codebase no longer includes SSH-related classes
-	 *
-	 * @access protected
-	 * @param string $pgHost Host of server to connect to.
-	 * @param int $pgPort Port of server.
-	 * @param int $pgProtocol Which SSH protocol to use.
-	 * @return bool
-	 */
+    /**
+     * Establishes a connection to the remote server.
+     *
+     * @FIXME: Codebase no longer includes SSH-related classes
+     *
+     * @access  protected
+     * @param   string $pgHost Host of server to connect to.
+     * @param   int $pgPort Port of server.
+     * @param   int $pgProtocol Which SSH protocol to use.
+     * @param   int $pgTimeout How long before the connection times out. (Milliseconds)
+     * @return  bool
+     */
 	protected function connect( $pgHost, $pgPort = 22, $pgProtocol, $pgTimeout = 10 ) {
 		pecho( "Connecting to $pgHost:$pgPort...\n\n", PECHO_NORMAL );
 		switch( $pgProtocol ){
 			case 1:
-				$this->sshobject = new Net_SSH1( $pgHost, $pgPort, $pgTimeout );
+                $this->SSHObject = new Net_SSH1($pgHost, $pgPort, $pgTimeout); // FIXME    Directory doesn't exist
 				break;
 			case 2:
-				$this->sshobject = new Net_SSH2( $pgHost, $pgPort, $pgTimeout );
+                $this->SSHObject = new Net_SSH2($pgHost, $pgPort, $pgTimeout); // FIXME    Directory doesn't exist
 				break;
 			default:
-				$this->sshobject = new Net_SSH2( $pgHost, $pgPort, $pgTimeout );
+                $this->SSHObject = new Net_SSH2($pgHost, $pgPort, $pgTimeout); // FIXME    Directory doesn't exist
 				break;
 		}
-		return $this->sftpobject = new Net_SFTP( $pgHost, $pgPort, $pgTimeout );
+
+        return $this->SFTPObject = new Net_SFTP($pgHost, $pgPort, $pgTimeout); // FIXME    Directory doesn't exist
 	}
 
 	/**
 	 * Authenticates to the remote server.
 	 *
-	 * @access protected
-	 * @param string $pgUsername Username
-	 * @param string $pgPassphrase Password or passphrase of key file
-	 * @param string $pgPrikey File path of key file.
-	 * @return bool
+     * @access  protected
+     * @param   string $pgUsername Username
+     * @param   string $pgPassphrase Password or passphrase of key file
+     * @param   string $pgPrivateKey File path of key file.
+     * @return  bool
 	 */
-	protected function authenticate( $pgUsername, $pgPassphrase, $pgPrikey ) {
+    protected function authenticate($pgUsername, $pgPassphrase, $pgPrivateKey)
+    {
 		//Determine the type of authentication to use.
 		if( is_null( $pgUsername ) ) {
 			pecho( "A username must at least be specified to authenticate to the server,\neven if there is authentication is none.\n\n", PECHO_FATAL );
 			return false;
 		}
 		$fails = 0;
-		if( !is_null( $pgUsername ) && !is_null( $pgPrikey ) && $this->protocol == 2 ) {
+        if (!is_null($pgUsername) && !is_null($pgPrivateKey) && $this->protocol == 2) {
 			pecho( "Authenticating with Private Key Authentication...\n\n", PECHO_NORMAL );
-			$key = new Crypt_RSA();
-			if( !is_null( $pgPassphrase ) ) $key->setPassword( $pgPassphrase );
-			$key->loadKey( file_get_contents( $pgPrikey ) );
-			if( $this->sshobject->login( $pgUsername, $key ) && $this->sftpobject->login( $pgUsername, $key ) ) {
+            $key = new Crypt_RSA(); // FIXME    Class doesn't exist
+            if (!is_null($pgPassphrase)) {
+                $key->setPassword($pgPassphrase);
+            } // FIXME    Method doesn't exist
+            $key->loadKey(file_get_contents($pgPrivateKey)); // FIXME    Method doesn't exist
+            if ($this->SSHObject->login($pgUsername, $key) && $this->SFTPObject->login($pgUsername, $key)) {
 				pecho( "Successfully authenticated using Private Key Authentication.\n\n", PECHO_NORMAL );
 				return true;
 			}
@@ -229,7 +247,9 @@ class SSH {
 		} else $fails += 5;
 		if( !is_null( $pgUsername ) && !is_null( $pgPassphrase ) ) {
 			pecho( "Authenticating with Password Authentication...\n\n", PECHO_NORMAL );
-			if( $this->sshobject->login( $pgUsername, $pgPassphrase ) && $this->sftpobject->login( $pgUsername, $pgPassphrase ) ) {
+            if ($this->SSHObject->login($pgUsername, $pgPassphrase) && $this->SFTPObject->login($pgUsername,
+                    $pgPassphrase)
+            ) {
 				pecho( "Successfully authenticated using Password Authentication\n\n", PECHO_NORMAL );
 				return true;
 			}
@@ -237,7 +257,7 @@ class SSH {
 		} else $fails += 5;
 		if( !is_null( $pgUsername ) ) {
 			pecho( "Authenticating with No Authentication...\n\n", PECHO_NORMAL );
-			if( $this->sshobject->login( $pgUsername ) && $this->sftpobject->login( $pgUsername ) ) {
+            if ($this->SSHObject->login($pgUsername) && $this->SFTPObject->login($pgUsername)) {
 				pecho( "Successfully authenticated with No Authentication\n\n", PECHO_NORMAL );
 				return true;
 			}
@@ -267,15 +287,15 @@ class SSH {
 	public function exec( $command, $callback = null, $displayError = false, $exitstatus = false ) {
 		if( $this->protocol === 2 ) {
 			if( $displayError ) {
-				$this->sshobject->enableQuietMode();
-			} else $this->sshobject->disableQuietMode();
+                $this->SSHObject->enableQuietMode();
+            } else $this->SSHObject->disableQuietMode();
 		}
 		if( $this->protocol === 2 && $exitstatus ) {
 			return array(
-				'result'      => $this->sshobject->exec( $command, $callback ),
-				'exit_status' => $this->sshobject->getExitStatus()
+                'result' => $this->SSHObject->exec($command, $callback),
+                'exit_status' => $this->SSHObject->getExitStatus()
 			);
-		} else return $this->sshobject->exec( $command, $callback );
+        } else return $this->SSHObject->exec($command, $callback);
 	}
 
 	/**
@@ -284,13 +304,16 @@ class SSH {
 	 * @access public
 	 * @param string $command Command to execute
 	 * @param string $expect String of output to expect and remove from output.
-	 * @param bool $expectregex Switches string expectation to regular expressions.
+     * @param bool $expectRegex Switches string expectation to regular expressions.
 	 * @returns bool|string
+     *
+     * FIXME    Contains undefined constants
 	 */
-	public function iexec( $command, $expect = "", $expectregex = false ) {
+    public function iExec($command, $expect = "", $expectRegex = false) {
 		trim( $command, "\n" );
-		if( $this->sshobject->write( $command . "\n" ) ) {
-			return $this->sshobject->read( $expect, ( $expectregex ? NET_SSH . $this->protocol . _READ_REGEX : NET_SSH . $this->protocol . _READ_SIMPLE ) );
+        if ($this->SSHObject->write($command . "\n")) {
+            return $this->SSHObject->read($expect,
+                ($expectRegex ? NET_SSH . $this->protocol . _READ_REGEX : NET_SSH . $this->protocol . _READ_SIMPLE));
 		} else return false;
 	}
 
@@ -301,8 +324,9 @@ class SSH {
 	 * @param int $time
 	 * @return void
 	 */
-	public function setTimeout( $time ) {
-		$this->sshobject->setTimeout( $time );
+	public function setTimeout( $time )
+    {
+        $this->SSHObject->setTimeout($time);
 	}
 
 	/**
@@ -313,7 +337,7 @@ class SSH {
 	 */
 	public function didTimout() {
 		if( $this->protocol === 2 ) {
-			return $this->sshobject->isTimout();
+            return $this->SSHObject->isTimout();
 		} else return null;
 	}
 
@@ -325,11 +349,15 @@ class SSH {
 	 * @param string $data data to write or file location of file to upload
 	 * @param bool $resume resume an interrupted transfer
 	 * @return bool
+     *
+     * FIXME    Contains undefined constants
 	 */
 	public function file_put_contents( $to, $data, $resume = false ) {
 		if( $resume ) {
-			return $this->sftpobject->put( $to, $data, ( is_file( $data ) && file_exists( $data ) ? NET_SFTP_LOCAL_FILE : NET_SFTP_STRING ) | NET_SFTP_RESUME );
-		} else return $this->sftpobject->put( $to, $data, ( is_file( $data ) && file_exists( $data ) ? NET_SFTP_LOCAL_FILE : NET_SFTP_STRING ) );
+            return $this->SFTPObject->put($to, $data,
+                (is_file($data) && file_exists($data) ? NET_SFTP_LOCAL_FILE : NET_SFTP_STRING) | NET_SFTP_RESUME);
+        } else return $this->SFTPObject->put($to, $data,
+            (is_file($data) && file_exists($data) ? NET_SFTP_LOCAL_FILE : NET_SFTP_STRING));
 
 	}
 
@@ -338,13 +366,14 @@ class SSH {
 	 *
 	 * @access public
 	 * @param string $from Location on remote server to retrieve from.
-	 * @param string $to Location to write to.  If left blank, file contents is returned.
+     * @param string|bool $to Location to write to.  If left blank, file contents is returned.
 	 * @param int $offset Where to start retrieving files from.
 	 * @param int $length How much of the file to retrieve.
 	 * @returns bool|string
 	 */
-	public function file_get_contents( $from, $to = false, $offset = 0, $length = -1 ) {
-		return $this->sftpobject->get( $from, $to, $offset, $length );
+	public function file_get_contents( $from, $to = false, $offset = 0, $length = -1 )
+    {
+        return $this->SFTPObject->get($from, $to, $offset, $length);
 	}
 
 	/**
@@ -356,8 +385,9 @@ class SSH {
 	 * @return bool
 	 * @access public
 	 */
-	public function mkdir( $pathname, $mode = 0777, $recursive = false ) {
-		return $this->sftpobject->mkdir( $pathname, $mode, $recursive );
+	public function mkdir( $pathname, $mode = 0777, $recursive = false )
+    {
+        return $this->SFTPObject->mkdir($pathname, $mode, $recursive);
 	}
 
 	/**
@@ -367,8 +397,9 @@ class SSH {
 	 * @return bool
 	 * @access public
 	 */
-	public function chdir( $directory ) {
-		return $this->sftpobject->chdir( $directory );
+	public function chdir( $directory )
+    {
+        return $this->SFTPObject->chdir($directory);
 	}
 
 	/**
@@ -377,8 +408,9 @@ class SSH {
 	 * @access public
 	 * @return string
 	 */
-	public function pwd() {
-		return $this->sftpobject->pwd();
+	public function pwd()
+    {
+        return $this->SFTPObject->pwd();
 	}
 
 	/**
@@ -388,8 +420,9 @@ class SSH {
 	 * @param string $dirname Path to the directory.
 	 * @return bool
 	 */
-	public function rmdir( $dirname ) {
-		return $this->sftpobject->delete( $dirname, true );
+	public function rmdir( $dirname )
+    {
+        return $this->SFTPObject->delete($dirname, true);
 	}
 
 	/**
@@ -400,8 +433,9 @@ class SSH {
 	 * @access public
 	 * @return bool|array
 	 */
-	public function directory_get_contents( $dir, $detailed = false ) {
-		return $this->sftpobject->_list( $dir, $detailed );
+	public function directory_get_contents( $dir, $detailed = false )
+    {
+        return $this->SFTPObject->_list($dir, $detailed);
 	}
 
 	/**
@@ -413,8 +447,9 @@ class SSH {
 	 * @param bool $recursive Apply it to files within directory and children directories.
 	 * @return bool|int
 	 */
-	public function chmod( $path, $mode, $recursive = false ) {
-		return $this->sftpobject->chmod( $mode, $path, $recursive );
+	public function chmod( $path, $mode, $recursive = false )
+    {
+        return $this->SFTPObject->chmod($mode, $path, $recursive);
 	}
 
 	/**
@@ -426,8 +461,9 @@ class SSH {
 	 * @param int $atime If present, the access time of the given filename is set to the value of atime. Otherwise, it is set to the value passed to the time parameter. If neither are present, the current system time is used.
 	 * @return bool
 	 */
-	public function touch( $filename, $time = null, $atime = null ) {
-		return $this->sftpobject->touch( $filename, $time, $atime );
+	public function touch( $filename, $time = null, $atime = null )
+    {
+        return $this->SFTPObject->touch($filename, $time, $atime);
 	}
 
 	/**
@@ -439,8 +475,9 @@ class SSH {
 	 * @access public
 	 * @return bool
 	 */
-	public function chown( $filename, $user, $recursive = false ) {
-		return $this->sftpobject->chown( $filename, $user, $recursive );
+	public function chown( $filename, $user, $recursive = false )
+    {
+        return $this->SFTPObject->chown($filename, $user, $recursive);
 	}
 
 	/**
@@ -452,8 +489,9 @@ class SSH {
 	 * @access public
 	 * @return bool
 	 */
-	public function chgrp( $filename, $group, $recursive = false ) {
-		return $this->sftpobject->chgrp( $filename, $group, $recursive );
+	public function chgrp( $filename, $group, $recursive = false )
+    {
+        return $this->SFTPObject->chgrp($filename, $group, $recursive);
 	}
 
 	/**
@@ -464,8 +502,9 @@ class SSH {
 	 * @access public
 	 * @return bool
 	 */
-	public function truncate( $filename, $size ) {
-		return $this->sftpobject->truncate( $filename, $size );
+	public function truncate( $filename, $size )
+    {
+        return $this->SFTPObject->truncate($filename, $size);
 	}
 
 	/**
@@ -475,8 +514,9 @@ class SSH {
 	 * @access public
 	 * @return array|bool
 	 */
-	public function stat( $filename ) {
-		return $this->sftpobject->stat( $filename );
+	public function stat( $filename )
+    {
+        return $this->SFTPObject->stat($filename);
 	}
 
 	/**
@@ -486,8 +526,9 @@ class SSH {
 	 * @access public
 	 * @return array|bool
 	 */
-	public function lstat( $filename ) {
-		return $this->sftpobject->lstat( $filename );
+	public function lstat( $filename )
+    {
+        return $this->SFTPObject->lstat($filename);
 	}
 
 	/**
@@ -497,8 +538,9 @@ class SSH {
 	 * @param string $filename Path to the file.
 	 * @return bool|int
 	 */
-	public function filesize( $filename ) {
-		return $this->sftpobject->size( $filename );
+	public function filesize( $filename )
+    {
+        return $this->SFTPObject->size($filename);
 	}
 
 	/**
@@ -508,8 +550,9 @@ class SSH {
 	 * @param string $filename Path to the file.
 	 * @return bool
 	 */
-	public function unlink( $filename ) {
-		return $this->sftpobject->delete( $filename, false );
+	public function unlink( $filename )
+    {
+        return $this->SFTPObject->delete($filename, false);
 	}
 
 	/**
@@ -520,11 +563,22 @@ class SSH {
 	 * @param string $newname The new name.
 	 * @return bool
 	 */
-	public function rename( $oldname, $newname ) {
-		return $this->sftpobject->rename( $oldname, $newname );
+	public function rename( $oldname, $newname )
+    {
+        return $this->SFTPObject->rename($oldname, $newname);
 	}
 
-	protected function CheckForUpdate() {
+    /**
+     * Check for Update Function
+     *
+     * Checks the phpseclib/phpseclib library for updates.
+     *
+     * @return  bool    Returns true if no updates
+     *                  Returns false if updates needed
+     *
+     * FIXME    The .json file may no longer contain ['commit']['sha'], but possibly ['tree']['sha']
+     */
+    protected function CheckForUpdate() {
 		global $pgIP;
 		$data = json_decode( $this->http->get( 'https://api.github.com/repos/phpseclib/phpseclib/branches/master', null, array(), false ), true );
 		$this->commits = $data;
@@ -622,12 +676,13 @@ class SSH {
 	 * @access private
 	 * @return void
 	 */
-	public function __destruct() {
-		$this->prikey = null;
+	public function __destruct()
+    {
+        $this->privateKey = null;
 		$this->connected = false;
 		$this->host = null;
 		$this->username = null;
-		$this->sshobject->_disconnect( "Peachy Connection Terminated" );
-		$this->sftpobject->_disconnect( "Peachy Connection Terminated" );
+        $this->SSHObject->_disconnect("Peachy Connection Terminated");
+        $this->SFTPObject->_disconnect("Peachy Connection Terminated");
 	}
 }
