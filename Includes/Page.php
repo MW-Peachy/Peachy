@@ -320,9 +320,10 @@ class Page {
 	 * @param int $revid Revision ID to start from (default: null)
 	 * @param bool $rollback_token Should a rollback token be returned (default: false)
 	 * @param bool $recurse Used internally to provide more results than can be returned with a single API query
+	 * @param int $rvstart Timestamp to start from (default: null)
 	 * @return array Revision data
 	 */
-	public function history( $count = 1, $dir = "older", $content = false, $revid = null, $rollback_token = false, $recurse = false ) {
+	public function history( $count = 1, $dir = "older", $content = false, $revid = null, $rollback_token = false, $recurse = false, $rvstart = null ) {
 		if( !$this->exists ) return array();
 
 		$historyArray = array(
@@ -330,7 +331,7 @@ class Page {
 			'prop'   => 'revisions',
 			'titles' => $this->title,
 			'rvprop' => 'timestamp|ids|user|comment',
-            'rawcontinue' => 1,
+			'rawcontinue' => 1,
 			'rvdir'  => $dir,
 
 		);
@@ -338,6 +339,7 @@ class Page {
 		if( $content ) $historyArray['rvprop'] .= "|content";
 
 		if( !is_null( $revid ) ) $historyArray['rvstartid'] = $revid;
+		if( !is_null( $rvstart ) ) $historyArray['rvstart'] = $rvstart;
 		if( !is_null( $count ) ) $historyArray['rvlimit'] = $count;
 
 		if( $rollback_token ) $historyArray['rvtoken'] = 'rollback';
