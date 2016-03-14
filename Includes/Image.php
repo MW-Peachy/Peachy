@@ -938,4 +938,13 @@ class Image {
 		return $this->height;
 	}
 
+	/**
+	 * Whether or not the image is in landscape format (width greater than height)
+	 *
+	 * @return bool
+	 */
+	public function get_landscape() {
+		return ($this->width > $this->height);
+	}
+
 }
