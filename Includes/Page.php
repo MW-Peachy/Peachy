@@ -63,6 +63,18 @@ class Page {
 	protected $redirectFollowed = false;
 
 	/**
+	 * When retriving the page information, it was a redirect followed, hence the new Title
+	 * @var string
+	 */
+	protected $redirectsTitle;
+
+	/**
+	 * When retriving the page information, the right title is normalized
+	 * @var string
+	 */
+	protected $normalizedTitle;
+
+	/**
 	 * The page title without the namespace bit
 	 * @var string
 	 */
@@ -1931,13 +1943,22 @@ class Page {
 	 * Returns the page title
 	 *
 	 * @param bool $namespace Set to true to return the title with namespace, false to return it without the namespace. Default true.
+	 * @param bool $normalized Set to true to return the title from a redirect or normalisez. Default false, for backwards compatibility.
 	 * @return string Page title
 	 */
-	public function get_title( $namespace = true ) {
+	public function get_title( $namespace = true, $normalized = false ) {
 		if( !$namespace ) {
 			return $this->title_wo_namespace;
 		}
-		return $this->title;
+                $title = $this->title;
+                if ($normalized){
+                    if ( $this->redirectsTitle != NULL )
+                        $title = $this->redirectsTitle;
+                    else if ( $this->normalizedTitle != NULL )
+                        $title = $this->normalizedTitle;
+                }
+                                
+		return $title;
 	}
 
 	/**
@@ -2039,6 +2060,11 @@ class Page {
 
 		if( isset( $pageInfoRes['query']['redirects'][0] ) ) {
 			$this->redirectFollowed = true;
+			$this->redirectsTitle = $pageInfoRes['query']['redirects'][0]["to"]; 
+		}
+                
+                if( isset( $pageInfoRes['query']['normalized'][0] ) ) {
+			$this->normalizedTitle = $pageInfoRes['query']['normalized'][0]["to"]; 
 		}
 
 		foreach( $pageInfoRes['query']['pages'] as $key => $info ){

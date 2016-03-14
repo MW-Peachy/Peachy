@@ -2434,6 +2434,21 @@ class Wiki {
 	}
 
 	/**
+	 * Returns the normalized (or redirected) title of the Page class as specified by $title or $pageid
+	 *
+	 * @access public
+	 * @param mixed $title Title of the page (default: null)
+	 * @param mixed $pageid ID of the page (default: null)
+	 * @return Page title resolution
+	 * @package initFunctions
+	 */
+	public function &resolveTitle( $title = null, $pageid = null ) {
+		$page = new Page( $this, $title, $pageid, true, true );
+                $title = $page->get_title(true, true);
+		return $title;
+	}
+
+	/**
 	 * Returns an instance of the Page class as specified by $title or $pageid
 	 *
 	 * @access public
