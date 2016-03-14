@@ -129,15 +129,9 @@ class Page {
 
 	/**
 	 * Timestamp of the last edit
-        * @var int
+     * @var int
 	 */
 	protected $lastedit;
-
-	/**
-	 * Timestamp of the last page edit, permission changes, creation or deletion of linked pages, and alteration of contained templates.
-        * @var int
-	 */
-	protected $touch;
 
 	/**
 	 * Length of the page in bytes
@@ -1193,10 +1187,10 @@ class Page {
 			'title'         => $this->title,
 			'action'        => 'edit',
 			'token'         => $tokens['edit'],
+			'basetimestamp' => $this->lastedit,
 			'md5'           => md5( $text ),
 			'text'          => $text
 		);
-		if( !is_null( $this->lastedit ) ) $editarray['basetimestamp'] = $this->lastedit;
 		if( !is_null( $this->starttimestamp ) ) $editarray['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $section ) ) {
 			if( $section == 'new' ) {
@@ -1262,9 +1256,9 @@ class Page {
 
 		if( isset( $result['edit'] ) ) {
 			if( $result['edit']['result'] == "Success" ) {
-                                if (array_key_exists('nochange', $result['edit'])) {
-                                    return (int)$this->lastedit;
-                                }
+                if (array_key_exists('nochange', $result['edit'])) {
+                    return (int)$this->lastedit;
+                }
 
 				$this->__construct( $this->wiki, null, $this->pageid );
 
@@ -2040,7 +2034,7 @@ class Page {
 	protected function get_metadata( $pageInfoArray2 = null ) {
 		$pageInfoArray = array(
 			'action' => 'query',
-			'prop'   => "info|revisions" // Added revisions property in order to get the last timestamp edit of the page 
+			'prop'   => "info"
 		);
 		$pageInfoArray['inprop'] = 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle';
 
@@ -2072,13 +2066,11 @@ class Page {
 			if( $this->pageid > 0 ) {
 				$this->exists = true;
 				$this->lastedit = $info['touched'];
-				$this->touched = $info['touched'];
-				$this->lastedit = $info['revisions'][0]['timestamp'];
 				$this->hits = isset( $info['counter'] ) ? $info['counter'] : '';
 				$this->length = $info['length'];
 			} else {
 				$this->pageid = 0;
-				$this->lastedit = null;
+				$this->lastedit = '';
 				$this->hits = '';
 				$this->length = '';
 				$this->starttimestamp = '';
@@ -2092,8 +2084,8 @@ class Page {
 			$this->namespace_id = $info['ns'];
 
 			if( $this->namespace_id != 0) {
-                                $title_wo_namespace = explode(':', $this->title, 2);
-                                $this->title_wo_namespace = $title_wo_namespace[1];
+                $title_wo_namespace = explode(':', $this->title, 2);
+                $this->title_wo_namespace = $title_wo_namespace[1];
 			} else {
 				$this->title_wo_namespace = $this->title;
 			}
