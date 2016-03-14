@@ -710,7 +710,7 @@ class Wiki {
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true, $talktoOauth = false ) {
 
-		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData;
+		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData, $pgLogAPIError;
 		$requestid = mt_rand();
 		$header = "";
 		if( $talktoOauth === false ) {
@@ -874,8 +874,9 @@ class Wiki {
 
 			Hooks::runHook( 'APIQueryCheckError', array( &$data['error'] ) );
 			if( isset( $data['error'] ) && $errorcheck ) {
-
-				pecho( "API Error...\n\nCode: {$data['error']['code']}\nText: {$data['error']['info']}\n\n", PECHO_FATAL );
+				$txtMsg = "API Error...\n\nCode: {$data['error']['code']}\nText: {$data['error']['info']}\n\n";
+				if( $pgLogAPIError ) file_put_contents( $pgIP . 'Includes/Communication_Logs/APIError.log', $txtMsg, FILE_APPEND );
+				pecho( $txtMsg, PECHO_FATAL );
 				return false;
 			}
 
