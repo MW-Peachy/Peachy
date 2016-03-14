@@ -1185,8 +1185,8 @@ class Page {
 		}
 
 		if( mb_strlen( $summary, '8bit' ) > 255 ) {
-			pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-			return false;
+			pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//			return false; // Not necessary, summary text is truncated if needed
 		}
 
 		$editarray = array(
@@ -1393,8 +1393,8 @@ class Page {
 		if( !is_null( $this->starttimestamp ) ) $params['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $summary ) ) {
 			if( mb_strlen( $summary, '8bit' ) > 255 ) {
-				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-				return false;
+				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//				return false; // Not necessary, summary text is truncated if needed
 			}
 			if( !$pgNotag ) $summary .= $pgTag;
 
@@ -2176,8 +2176,8 @@ class Page {
 
 		if( !is_null( $summary ) ) {
 			if( mb_strlen( $summary, '8bit' ) > 255 ) {
-				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-				return false;
+				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//				return false; // Not necessary, summary text is truncated if needed
 			}
 			if( !$pgNotag ) $summary .= $pgTag;
 
