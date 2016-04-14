@@ -14,6 +14,7 @@ $pgLogPostCommunicationData = true;
 $pgLogCommunicationData = true;
 $pgLogSuccessfulCommunicationData = true;
 $pgLogFailedCommunicationData = true;
+$pgLogAPIError = true;
 
 //Bot output
 $pgDisplayPostOutData = true;

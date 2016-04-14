@@ -63,6 +63,18 @@ class Page {
 	protected $redirectFollowed = false;
 
 	/**
+	 * When retriving the page information, it was a redirect followed, hence the new Title
+	 * @var string
+	 */
+	protected $redirectsTitle;
+
+	/**
+	 * When retriving the page information, the right title is normalized
+	 * @var string
+	 */
+	protected $normalizedTitle;
+
+	/**
 	 * The page title without the namespace bit
 	 * @var string
 	 */
@@ -117,9 +129,15 @@ class Page {
 
 	/**
 	 * Timestamp of the last edit
-     * @var int
+        * @var int
 	 */
 	protected $lastedit;
+
+	/**
+	 * Timestamp of the last page edit, permission changes, creation or deletion of linked pages, and alteration of contained templates.
+        * @var int
+	 */
+	protected $touch;
 
 	/**
 	 * Length of the page in bytes
@@ -314,9 +332,10 @@ class Page {
 	 * @param int $revid Revision ID to start from (default: null)
 	 * @param bool $rollback_token Should a rollback token be returned (default: false)
 	 * @param bool $recurse Used internally to provide more results than can be returned with a single API query
+	 * @param int $rvstart Timestamp to start from (default: null)
 	 * @return array Revision data
 	 */
-	public function history( $count = 1, $dir = "older", $content = false, $revid = null, $rollback_token = false, $recurse = false ) {
+	public function history( $count = 1, $dir = "older", $content = false, $revid = null, $rollback_token = false, $recurse = false, $rvstart = null ) {
 		if( !$this->exists ) return array();
 
 		$historyArray = array(
@@ -324,7 +343,7 @@ class Page {
 			'prop'   => 'revisions',
 			'titles' => $this->title,
 			'rvprop' => 'timestamp|ids|user|comment',
-            'rawcontinue' => 1,
+			'rawcontinue' => 1,
 			'rvdir'  => $dir,
 
 		);
@@ -332,6 +351,7 @@ class Page {
 		if( $content ) $historyArray['rvprop'] .= "|content";
 
 		if( !is_null( $revid ) ) $historyArray['rvstartid'] = $revid;
+		if( !is_null( $rvstart ) ) $historyArray['rvstart'] = $rvstart;
 		if( !is_null( $count ) ) $historyArray['rvlimit'] = $count;
 
 		if( $rollback_token ) $historyArray['rvtoken'] = 'rollback';
@@ -1165,18 +1185,18 @@ class Page {
 		}
 
 		if( mb_strlen( $summary, '8bit' ) > 255 ) {
-			pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-			return false;
+			pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//			return false; // Not necessary, summary text is truncated if needed
 		}
 
 		$editarray = array(
 			'title'         => $this->title,
 			'action'        => 'edit',
 			'token'         => $tokens['edit'],
-			'basetimestamp' => $this->lastedit,
 			'md5'           => md5( $text ),
 			'text'          => $text
 		);
+		if( !is_null( $this->lastedit ) ) $editarray['basetimestamp'] = $this->lastedit;
 		if( !is_null( $this->starttimestamp ) ) $editarray['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $section ) ) {
 			if( $section == 'new' ) {
@@ -1242,9 +1262,9 @@ class Page {
 
 		if( isset( $result['edit'] ) ) {
 			if( $result['edit']['result'] == "Success" ) {
-                if (array_key_exists('nochange', $result['edit'])) {
-                    return (int)$this->lastedit;
-                }
+                                if (array_key_exists('nochange', $result['edit'])) {
+                                    return (int)$this->lastedit;
+                                }
 
 				$this->__construct( $this->wiki, null, $this->pageid );
 
@@ -1373,8 +1393,8 @@ class Page {
 		if( !is_null( $this->starttimestamp ) ) $params['starttimestamp'] = $this->starttimestamp;
 		if( !is_null( $summary ) ) {
 			if( mb_strlen( $summary, '8bit' ) > 255 ) {
-				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-				return false;
+				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//				return false; // Not necessary, summary text is truncated if needed
 			}
 			if( !$pgNotag ) $summary .= $pgTag;
 
@@ -1923,13 +1943,22 @@ class Page {
 	 * Returns the page title
 	 *
 	 * @param bool $namespace Set to true to return the title with namespace, false to return it without the namespace. Default true.
+	 * @param bool $normalized Set to true to return the title from a redirect or normalisez. Default false, for backwards compatibility.
 	 * @return string Page title
 	 */
-	public function get_title( $namespace = true ) {
+	public function get_title( $namespace = true, $normalized = false ) {
 		if( !$namespace ) {
 			return $this->title_wo_namespace;
 		}
-		return $this->title;
+                $title = $this->title;
+                if ($normalized){
+                    if ( $this->redirectsTitle != NULL )
+                        $title = $this->redirectsTitle;
+                    else if ( $this->normalizedTitle != NULL )
+                        $title = $this->normalizedTitle;
+                }
+                                
+		return $title;
 	}
 
 	/**
@@ -2011,7 +2040,7 @@ class Page {
 	protected function get_metadata( $pageInfoArray2 = null ) {
 		$pageInfoArray = array(
 			'action' => 'query',
-			'prop'   => "info"
+			'prop'   => "info|revisions" // Added revisions property in order to get the last timestamp edit of the page 
 		);
 		$pageInfoArray['inprop'] = 'protection|talkid|watched|watchers|notificationtimestamp|subjectid|url|readable|preload|displaytitle';
 
@@ -2031,18 +2060,24 @@ class Page {
 
 		if( isset( $pageInfoRes['query']['redirects'][0] ) ) {
 			$this->redirectFollowed = true;
+			$this->redirectsTitle = $pageInfoRes['query']['redirects'][0]["to"]; 
+		}
+                
+                if( isset( $pageInfoRes['query']['normalized'][0] ) ) {
+			$this->normalizedTitle = $pageInfoRes['query']['normalized'][0]["to"]; 
 		}
 
 		foreach( $pageInfoRes['query']['pages'] as $key => $info ){
 			$this->pageid = $key;
 			if( $this->pageid > 0 ) {
 				$this->exists = true;
-				$this->lastedit = $info['touched'];
+				$this->touched = $info['touched'];
+				$this->lastedit = $info['revisions'][0]['timestamp'];
 				$this->hits = isset( $info['counter'] ) ? $info['counter'] : '';
 				$this->length = $info['length'];
 			} else {
 				$this->pageid = 0;
-				$this->lastedit = '';
+				$this->lastedit = null;
 				$this->hits = '';
 				$this->length = '';
 				$this->starttimestamp = '';
@@ -2056,8 +2091,8 @@ class Page {
 			$this->namespace_id = $info['ns'];
 
 			if( $this->namespace_id != 0) {
-                $title_wo_namespace = explode(':', $this->title, 2);
-                $this->title_wo_namespace = $title_wo_namespace[1];
+                                $title_wo_namespace = explode(':', $this->title, 2);
+                                $this->title_wo_namespace = $title_wo_namespace[1];
 			} else {
 				$this->title_wo_namespace = $this->title;
 			}
@@ -2141,8 +2176,8 @@ class Page {
 
 		if( !is_null( $summary ) ) {
 			if( mb_strlen( $summary, '8bit' ) > 255 ) {
-				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_FATAL );
-				return false;
+				pecho( "Summary is over 255 bytes, the maximum allowed.\n\n", PECHO_WARN );
+//				return false; // Not necessary, summary text is truncated if needed
 			}
 			if( !$pgNotag ) $summary .= $pgTag;
 

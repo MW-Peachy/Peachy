@@ -177,29 +177,31 @@ class Image {
 
 		if( is_array( $ii ) ) {
 
-			$this->title = $ii[0]['canonicaltitle'];
+                        $ii = $ii[0];
+			
+			$this->title = $ii['canonicaltitle'];
 			$this->rawtitle = $this->wiki->removeNamespace( $this->title );
 			$this->localname = str_replace( array( ' ', '+' ), array( '_', '_' ), urlencode( $this->rawtitle ) );
 			$this->page = & $this->wiki->initPage( $this->title, $pageid );
-			$this->mime = $ii[0]['mime'];
-			$this->bitdepth = $ii[0]['bitdepth'];
-			$this->hash = $ii[0]['sha1'];
-			$this->size = $ii[0]['size'];
-			$this->width = $ii[0]['width'];
-			$this->height = $ii[0]['height'];
-			$this->url = $ii[0]['url'];
-			$this->timestamp = $ii[0]['timestamp'];
-			$this->user = $ii[0]['user'];
+			$this->mime = $ii['mime'];
+			$this->bitdepth = $ii['bitdepth'];
+			$this->hash = $ii['sha1'];
+			$this->size = $ii['size'];
+			$this->width = $ii['width'];
+			$this->height = $ii['height'];
+			$this->url = $ii['url'];
+			$this->timestamp = $ii['timestamp'];
+			$this->user = $ii['user'];
 
-			if( is_array( $ii[0]['metadata'] ) ) {
-				foreach( $ii[0]['metadata'] as $metadata ){
+			if( is_array( $ii['metadata'] ) ) {
+				foreach( $ii['metadata'] as $metadata ){
 					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
 
-			} else {
-				$this->exists = false;
-			}
-		}
+        		}
+                } else {
+                        $this->exists = false;
+                }
 
 	}
 
@@ -274,7 +276,7 @@ class Image {
 
 		$imageInfo = $this->wiki->listHandler( $imageInfoArray );
 		if( count( $imageInfo ) > 0 ) {
-			return $imageInfo[0];
+			return $imageInfo;
 		} else {
 			// Does not exist
 			return false;
@@ -934,6 +936,15 @@ class Image {
 	 */
 	public function get_height() {
 		return $this->height;
+	}
+
+	/**
+	 * Whether or not the image is in landscape format (width greater than height)
+	 *
+	 * @return bool
+	 */
+	public function get_landscape() {
+		return ($this->width > $this->height);
 	}
 
 }

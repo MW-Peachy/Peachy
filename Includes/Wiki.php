@@ -710,7 +710,7 @@ class Wiki {
 	 */
 	public function apiQuery( $arrayParams = array(), $post = false, $errorcheck = true, $recursed = false, $assertcheck = true, $talktoOauth = false ) {
 
-		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData;
+		global $pgIP, $pgMaxAttempts, $pgThrowExceptions, $pgDisplayGetOutData, $pgLogSuccessfulCommunicationData, $pgLogFailedCommunicationData, $pgLogGetCommunicationData, $pgLogPostCommunicationData, $pgLogCommunicationData, $pgLogAPIError;
 		$requestid = mt_rand();
 		$header = "";
 		if( $talktoOauth === false ) {
@@ -874,8 +874,9 @@ class Wiki {
 
 			Hooks::runHook( 'APIQueryCheckError', array( &$data['error'] ) );
 			if( isset( $data['error'] ) && $errorcheck ) {
-
-				pecho( "API Error...\n\nCode: {$data['error']['code']}\nText: {$data['error']['info']}\n\n", PECHO_FATAL );
+				$txtMsg = "API Error...\n\nCode: {$data['error']['code']}\nText: {$data['error']['info']}\n\n";
+				if( $pgLogAPIError ) file_put_contents( $pgIP . 'Includes/Communication_Logs/APIError.log', $txtMsg, FILE_APPEND );
+				pecho( $txtMsg, PECHO_FATAL );
 				return false;
 			}
 
@@ -2430,6 +2431,21 @@ class Wiki {
 	 */
 	public function prefixindex( $prefix = null, $namespace = array( 0 ), $limit = 50 ) {
 		return $this->allpages( $namespace, $prefix, null, 'all', null, null, array(), array(), 'ascending', 'all', $limit );
+	}
+
+	/**
+	 * Returns the normalized (or redirected) title of the Page class as specified by $title or $pageid
+	 *
+	 * @access public
+	 * @param mixed $title Title of the page (default: null)
+	 * @param mixed $pageid ID of the page (default: null)
+	 * @return Page title resolution
+	 * @package initFunctions
+	 */
+	public function &resolveTitle( $title = null, $pageid = null ) {
+		$page = new Page( $this, $title, $pageid, true, true );
+                $title = $page->get_title(true, true);
+		return $title;
 	}
 
 	/**
