@@ -911,7 +911,7 @@ class Wiki {
 		                                // We're using secret key signatures here.
 		                                'oauth_signature_method' => 'HMAC-SHA1',
 		                            );
-		            $signature = $this->generateSignature( 'GET', ( $talktoOauth ? $talktoOauth : $this->base_url ), $arrayParams + $headerArr );
+		            $signature = $this->generateSignature( 'GET', ( $talktoOauth ? $talktoOauth : $this->base_url ).(!empty( $arrayParams ) ? '?' . http_build_query( $arrayParams ) : "" ), $headerArr );
 		            $headerArr['oauth_signature'] = $signature; 
 
 		            $header = array();
@@ -1036,13 +1036,13 @@ class Wiki {
 		} else {
 			throw new BadEntryError( "listHandler", "Parameter _code is required." );
 		}
-		if( isset( $tArray['_limit'] ) || is_null( $tArray['_limit'] ) ) {
+		if( isset( $tArray['_limit'] ) ) {
 			$limit = $tArray['_limit'];
 			unset( $tArray['_limit'] );
 		} else {
 			$limit = null;
 		}
-		if( isset( $tArray['_lhtitle'] ) || is_null( $tArray['_limit'] ) ) {
+		if( isset( $tArray['_lhtitle'] ) ) {
 			$lhtitle = $tArray['_lhtitle'];
 			unset( $tArray['_lhtitle'] );
 		} else {
