@@ -63,12 +63,11 @@ class Autoloader
     );
 
     /**
-     * Takes a class name and attempt to load it
+     * Takes a class name and attempt to load it.  Class name must be found in {@link $pgAutoloader}.
      *
-     * @param $class_name String: name of class we're looking for.
-     * @return boolean|null Returning false is important on failure as
-     *        it allows Zend to try and look in other registered autoloaders
-     *        as well.
+     * @param string $class_name Name of class we're looking for.
+     * @return boolean|null Returns true if the function successfully loads the class. Otherwise returns false.
+     * Returning false is important on failure as it allows Zend to try and look in other registered autoloaders as well.
      */
     public static function autoload($class_name)
     {
