@@ -23,7 +23,8 @@ Peachy is not responsible for any damage caused to the system running it.
  * @file
  * Main Peachy file
  * Defines constants, initializes global variables
- * Stores Peachy class
+ * Stores Peachy
+ * @license GPL
  */
 
 /**
