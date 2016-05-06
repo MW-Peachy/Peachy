@@ -63,7 +63,7 @@ class Autoloader
     );
 
     /**
-     * Takes a class name and attempt to load it.  Class name must be found in {@link $pgAutoloader}.
+     * Takes a class name and attempt to load it.  Class name must be found in $pgAutoloader.
      *
      * @param string $class_name Name of class we're looking for.
      * @return boolean|null Returns true if the function successfully loads the class. Otherwise returns false.
