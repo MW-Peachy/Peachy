@@ -126,18 +126,28 @@ class User {
 		$this->wiki = & $wikiClass;
 
 		pecho( "Getting user information for $pgUsername...\n\n", PECHO_NORMAL );
-
-		$uiRes = $this->wiki->apiQuery(
-			array(
-				'action'  => 'query',
-				'list'    => 'users|logevents',
-				'ususers' => $pgUsername,
-				'letype'  => 'block',
-				'letitle' => "User:" . $pgUsername,
-				'lelimit' => 1,
-				'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
-			)
-		);
+		if(is_numeric(ip2long( $pgUsername))) {
+			$uiRes = $this->wiki->apiQuery(
+				array(
+					'action'  => 'query',
+					'list'    => 'users|blocks',
+					'ususers' => $pgUsername,
+					'bkip' => $pgUsername,
+					'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
+				)
+			);
+		}
+		else {
+			$uiRes = $this->wiki->apiQuery(
+					array(
+							'action'  => 'query',
+							'list'    => 'users|blocks',
+							'ususers' => $pgUsername,
+							'bkusers' => $pgUsername,
+							'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
+					)
+			);
+		}
 
 		if ( !$uiRes ) {
 			$this->username = $pgUsername;
@@ -148,17 +158,17 @@ class User {
 
 		$this->username = $uiRes['query']['users'][0]['name'];
 
-		if( long2ip( ip2long( $this->username ) ) == $this->username ) {
+		if(is_numeric(ip2long( $pgUsername))) {
 			$this->exists = false;
 			$this->ip = true;
 
-			if( isset( $uiRes['query']['logevents'][0]['block']['expiry'] ) && strtotime( $uiRes['query']['logevents'][0]['block']['expiry'] ) > time() ) {
+			if( isset( $uiRes['query']['blocks'][0]['expiry'] ) && isset($uiRes['query']['blocks'][0])) {
 				$this->blocked = true;
 				$this->blockinfo = array(
-					'by'     => $uiRes['query']['logevents'][0]['user'],
-					'when'   => $uiRes['query']['logevents'][0]['timestamp'],
-					'reason' => $uiRes['query']['logevents'][0]['comment'],
-					'expiry' => $uiRes['query']['logevents'][0]['block']['expiry']
+					'by'     => $uiRes['query']['blocks'][0]['by'],
+					'when'   => $uiRes['query']['blocks'][0]['timestamp'],
+					'reason' => $uiRes['query']['blocks'][0]['reason'],
+					'expiry' => $uiRes['query']['blocks'][0]['expiry']
 				);
 			} else {
 				$this->blocked = false;
@@ -175,13 +185,13 @@ class User {
 				$this->groups = $uiRes['query']['users'][0]['groups'];
 			}
 
-			if( isset( $uiRes['query']['users'][0]['blockedby'] ) ) {
+			if( isset( $uiRes['query']['blocks'][0]['expiry'] ) && isset($uiRes['query']['blocks'][0])) {
 				$this->blocked = true;
 				$this->blockinfo = array(
-					'by'     => $uiRes['query']['users'][0]['blockedby'],
-					'when'   => $uiRes['query']['logevents'][0]['timestamp'],
-					'reason' => $uiRes['query']['users'][0]['blockreason'],
-					'expiry' => $uiRes['query']['users'][0]['blockexpiry']
+					'by'     => $uiRes['query']['blocks'][0]['by'],
+					'when'   => $uiRes['query']['blocks'][0]['timestamp'],
+					'reason' => $uiRes['query']['blocks'][0]['reason'],
+					'expiry' => $uiRes['query']['blocks'][0]['expiry']
 				);
 			} else {
 				$this->blocked = false;
