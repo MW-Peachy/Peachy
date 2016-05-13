@@ -112,8 +112,6 @@ class User {
 	/**
 	 * Construction method for the User class
 	 *
-	 * @fixme    Return in constructor method.
-	 *
 	 * @access public
 	 * @param Wiki $wikiClass
 	 * @param mixed $pgUsername Username
@@ -167,7 +165,7 @@ class User {
 		} elseif( isset( $uiRes['query']['users'][0]['missing'] ) || isset( $uiRes['query']['users'][0]['invalid'] ) ) {
 			$this->exists = false;
 
-			return false;
+			return;
 		} else {
 			$this->editcount = $uiRes['query']['users'][0]['editcount'];
 

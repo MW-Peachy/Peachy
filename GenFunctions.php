@@ -292,15 +292,13 @@ function &initPage( $title = null, $pageid = null, $followRedir = true, $normali
  * Returns an instance of the User class as specified by $pgUsername
  *
  * @param mixed $pgUsername Username
- * @return User
+ * @return User|false
  * @package initFunctions
  */
 function &initUser( $pgUsername ) {
 	$wiki = getSiteObject();
 	if( !$wiki ) return false;
-
-	$user = new User( $wiki, $pgUsername );
-	return $user;
+	return new User( $wiki, $pgUsername );
 }
 
 /**

@@ -2458,8 +2458,7 @@ class Wiki {
 	 * @package initFunctions
 	 */
 	public function &initUser( $pgUsername ) {
-		$user = new User( $this, $pgUsername );
-		return $user;
+		return new User( $this, $pgUsername );
 	}
 
 	/**
