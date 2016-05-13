@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Class Autoloader
+ * Class AutoLoader
  *
  * @todo Changes to this file may require further testing.
  * @todo Use PSR-0 or PSR-4 based autoloading in the future, or through Composer
  */
-class Autoloader
+class AutoLoader
 {
 
-    private static $pgAutoloader = array(
+    private static $pgAutoLoader = array(
         'Wiki' => 'Includes/Wiki.php',
         'User' => 'Includes/User.php',
         'Page' => 'Includes/Page.php',
@@ -63,7 +63,7 @@ class Autoloader
     );
 
     /**
-     * Takes a class name and attempt to load it.  Class name must be found in $pgAutoloader.
+     * Takes a class name and attempt to load it.  Class name must be found in $pgAutoLoader.
      *
      * @param string $class_name Name of class we're looking for.
      * @return boolean|null Returns true if the function successfully loads the class. Otherwise returns false.
@@ -73,8 +73,8 @@ class Autoloader
     {
         global $pgIP;
 
-        if (isset(self::$pgAutoloader[$class_name]) && is_file($pgIP . self::$pgAutoloader[$class_name])) {
-            require_once($pgIP . self::$pgAutoloader[$class_name]);
+        if (isset(self::$pgAutoLoader[$class_name]) && is_file($pgIP . self::$pgAutoLoader[$class_name])) {
+            require_once($pgIP . self::$pgAutoLoader[$class_name]);
 
             return true;
         }
@@ -91,11 +91,7 @@ class Autoloader
 if( function_exists( 'spl_autoload_register' ) ) {
     spl_autoload_register(array('AutoLoader', 'autoload'));
 } else {
-    /**
-     * @param $class
-     */
-    function __autoload($class)
-    {
+    function __autoload($class) {
         AutoLoader::autoload($class);
     }
 
