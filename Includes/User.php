@@ -126,28 +126,18 @@ class User {
 		$this->wiki = & $wikiClass;
 
 		pecho( "Getting user information for $pgUsername...\n\n", PECHO_NORMAL );
+		$uiProps = 	array(
+			'action'  => 'query',
+			'list'    => 'users|blocks',
+			'ususers' => $pgUsername,
+			'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
+		);
 		if(is_numeric(ip2long( $pgUsername))) {
-			$uiRes = $this->wiki->apiQuery(
-				array(
-					'action'  => 'query',
-					'list'    => 'users|blocks',
-					'ususers' => $pgUsername,
-					'bkip' => $pgUsername,
-					'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
-				)
-			);
+			$uiProps['bkip'] = $pgUsername;
+		} else {
+			$uiProps['bkusers'] = $pgUsername;
 		}
-		else {
-			$uiRes = $this->wiki->apiQuery(
-					array(
-							'action'  => 'query',
-							'list'    => 'users|blocks',
-							'ususers' => $pgUsername,
-							'bkusers' => $pgUsername,
-							'usprop'  => 'editcount|groups|blockinfo|emailable|registration'
-					)
-			);
-		}
+		$uiRes = $this->wiki->apiQuery( $uiProps );
 
 		if ( !$uiRes ) {
 			$this->username = $pgUsername;
