@@ -33,7 +33,8 @@ class Peachy {
 			$config_params = array(
 				'username' => $pgUsername,
 				'password' => $password,
-				'baseurl'  => $base_url
+				'baseurl'  => $base_url,
+				'method'   => 'legacy'
 			);
 
 		}
