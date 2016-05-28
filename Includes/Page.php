@@ -960,7 +960,7 @@ class Page {
 		$tRes = $this->wiki->apiQuery( $tArray );
 
 		if( isset( $tRes['query']['pages'][$this->pageid]['notificationtimestamp'] ) ) {
-            $this->watchlisttimestamp = (int)$tRes['query']['pages'][$this->pageid]['notificationtimestamp'];
+            $this->watchlisttimestamp = $tRes['query']['pages'][$this->pageid]['notificationtimestamp'];
 		} else $this->watchlisttimestamp = 0;
 
 		return $this->watchlisttimestamp;
@@ -1138,8 +1138,6 @@ class Page {
 	 * @param string $sectiontitle The title for a new section. Default null.
 	 * @param string|bool $watch Unconditionally add or remove the page from your watchlist, use preferences or do not change watch. Default: go by user preference.
 	 * @return string|int|bool The revision id of the successful edit, false on failure.
-	 *
-	 * @fixme: Cast return $this->lastedit; as integer, not string?
 	 */
 	public function edit(
 		$text,
@@ -1243,7 +1241,7 @@ class Page {
 		if( isset( $result['edit'] ) ) {
 			if( $result['edit']['result'] == "Success" ) {
                 if (array_key_exists('nochange', $result['edit'])) {
-                    return (int)$this->lastedit;
+                    return $this->lastedit;
                 }
 
 				$this->__construct( $this->wiki, null, $this->pageid );
@@ -1407,7 +1405,7 @@ class Page {
 		$result = $this->wiki->apiQuery( $params, true );
 
 		if( $result['edit']['result'] == "Success") {
-            if (array_key_exists('nochange', $result['edit'])) return (int)$this->lastedit;
+            if (array_key_exists('nochange', $result['edit'])) return $this->lastedit;
 
 			$this->__construct( $this->wiki, null, $this->pageid );
 
@@ -1970,12 +1968,12 @@ class Page {
 	 * Returns the timestamp of the last edit
      *
      * @param   bool $force Regenerate the cached value (default: false)
-     * @return  int
+     * @return  string
 	 */
 	public function get_lastedit( $force = false ) {
 		if( $force ) $this->get_metadata();
 
-        return (int)$this->lastedit;
+        return $this->lastedit;
 	}
 
 	/**
