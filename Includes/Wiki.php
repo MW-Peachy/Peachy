@@ -428,9 +428,13 @@ class Wiki {
 		if( isset( $configuration['method'] ) && $configuration['method'] == 'legacy' ) {
 			$lgarray = array(
 				'lgname'     => $this->username,
-				'lgpassword' => $configuration['password'],
 				'action'     => 'login',
 			);
+
+			// Password may not be set (for example, where nologin is being used)
+			if( isset( $configuration['password'] ) ) {
+				$lgarray['lgpassword'] = $configuration['password'];
+			}
 
 			if( !is_null( $token ) ) {
 				$lgarray['lgtoken'] = $token;
