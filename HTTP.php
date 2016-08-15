@@ -110,7 +110,6 @@ class HTTP {
 		$this->setCookieJar( $this->cookie_jar );
 
 		curl_setopt( $this->curl_instance, CURLOPT_MAXCONNECTS, 100 );
-		curl_setopt( $this->curl_instance, CURLOPT_CLOSEPOLICY, CURLCLOSEPOLICY_LEAST_RECENTLY_USED );
 		curl_setopt( $this->curl_instance, CURLOPT_MAXREDIRS, 10 );
 		$this->setCurlHeaders();
 		curl_setopt( $this->curl_instance, CURLOPT_ENCODING, 'gzip' );
