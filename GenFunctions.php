@@ -230,8 +230,10 @@ function cecho( $text, $return = false ) {
 
 	if( !isset( $pgColorizer ) ) $pgColorizer = new lime_colorizer( true );
 
-	$text = preg_replace( '/\[(.+?)\|(\w+)\]/se', '$pgColorizer->colorize("$1", "$2")', $text );
-
+	$text = preg_replace_callback( '/\[(.+?)\|(\w+)\]/s', function ($m) {
+                    global $pgColorizer;
+                    return $pgColorizer->colorize($m[1], $m[2]);
+                }, $text );
 	if( $return ) return $text;
 
 	echo $text;
