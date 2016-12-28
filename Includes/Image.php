@@ -197,9 +197,9 @@ class Image {
 					$this->metadata[$metadata['name']] = $metadata['value'];
 				}
 
-			} else {
-				$this->exists = false;
-			}
+        		}
+                } else {
+                        $this->exists = false;
 		}
 
 	}
