@@ -1168,7 +1168,7 @@ class Page {
 		}
 
 		$editarray = array(
-			'title'         => $this->title,
+			'pageid'         => $this->pageid,
 			'action'        => 'edit',
 			'token'         => $tokens['edit'],
 			'basetimestamp' => $this->lastedit,
