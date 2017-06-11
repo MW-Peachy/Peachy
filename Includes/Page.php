@@ -1155,7 +1155,9 @@ class Page {
 
 		$tokens = $this->wiki->get_tokens();
 
-		if( !$pgNotag ) $summary .= $pgTag;
+		if( !$pgNotag ) {
+			$summary = substr( $summary . $pgTag, 0, 255 );
+		}
 
 		if( $tokens['edit'] == '' ) {
 			pecho( "User is not allowed to edit {$this->title}\n\n", PECHO_FATAL );
