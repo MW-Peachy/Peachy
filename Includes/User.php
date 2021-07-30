@@ -689,8 +689,8 @@ class User {
 	public function userrights( $add = array(), $remove = array(), $reason = '' ) {
 		global $pgNotag, $pgTag;
 
-        $tokens = $this->wiki->get_tokens();
-        
+		$tokens = $this->wiki->get_tokens();
+
 		if( !$pgNotag ) $reason .= $pgTag;
 		$apiArr = array(
 			'action' => 'userrights',
