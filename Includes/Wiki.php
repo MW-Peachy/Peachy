@@ -2330,12 +2330,13 @@ class Wiki {
 				'action'  => 'query',
 				'list'    => 'users',
 				'ususers' => $this->username,
-				'ustoken' => 'userrights'
+				'meta' => 'tokens',
+				'type' => 'userrights',
 			)
 		);
 
-		if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
-			$this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
+		if( isset( $token['query']['users']['tokens']['userrightstoken'] ) ) {
+			$this->tokens['userrights'] = $token['query']['tokens']['userrightstoken'];
 		} else {
 			pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
 			return array();
