@@ -2314,12 +2314,13 @@ class Wiki {
 
 		$tokens = $this->apiQuery(
 			array(
-				'action' => 'tokens',
-				'type'   => 'block|delete|deleteglobalaccount|edit|email|import|move|options|patrol|protect|setglobalaccountstatus|unblock|watch'
+				'action' => 'query',
+				'meta' => 'tokens',
+				'type'   => 'deleteglobalaccount|patrol|setglobalaccountstatus|watch|csrf'
 			)
 		);
 
-		foreach( $tokens['tokens'] as $y => $z ){
+		foreach( $tokens['query']['tokens'] as $y => $z ){
 			if( in_string( 'token', $y ) ) {
 				$this->tokens[str_replace( 'token', '', $y )] = $z;
 			}
@@ -2328,14 +2329,14 @@ class Wiki {
 		$token = $this->apiQuery(
 			array(
 				'action'  => 'query',
-				'list'    => 'users',
+				'meta'    => 'tokens',
 				'ususers' => $this->username,
-				'ustoken' => 'userrights'
+				'type' => 'userrights'
 			)
 		);
 
-		if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
-			$this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
+		if( isset( $token['query']['users']['userrightstoken'] ) ) {
+			$this->tokens['userrights'] = $token['query']['users']['userrightstoken'];
 		} else {
 			pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
 			return array();
