@@ -16,5 +16,5 @@ If you have feature requests please file a bug.
 For a more modern set of libraries please consider taking a look at the addwiki PHP libraries.
 
 * GitHub: https://github.com/addwiki
-* Docs: https://addwiki.readthedocs.io
+* Docs: https://www.thevesign.com
 * Issue tracker: https://phabricator.wikimedia.org/project/profile/1490/
