@@ -16,5 +16,5 @@ If you have feature requests please file a bug.
 For a more modern set of libraries please consider taking a look at the addwiki PHP libraries.
 
 * GitHub: https://github.com/addwiki
-* Docs: https://addwiki.readthedocs.io
-* Issue tracker: https://phabricator.wikimedia.org/project/profile/1490/
+* Docs: https://addwiki.github.io/
+* Packagist: https://packagist.org/packages/addwiki/
