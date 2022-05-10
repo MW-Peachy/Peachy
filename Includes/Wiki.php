@@ -2312,31 +2312,21 @@ class Wiki {
 
 		if( !$force && !empty( $this->tokens ) ) return $this->tokens;
 
-		$tokens = $this->apiQuery(
+		$query = $this->apiQuery(
 			array(
-				'action' => 'tokens',
-				'type'   => 'block|delete|deleteglobalaccount|edit|email|import|move|options|patrol|protect|setglobalaccountstatus|unblock|watch'
+				'action' => 'query',
+				'meta'   => 'tokens',
+				'type'   => 'createaccount|csrf|deleteglobalaccount|login|patrol|rollback|setglobalaccountstatus|userrights|watch'
 			)
 		);
 
-		foreach( $tokens['tokens'] as $y => $z ){
+		foreach( $query['query']['tokens'] as $y => $z ){
 			if( in_string( 'token', $y ) ) {
 				$this->tokens[str_replace( 'token', '', $y )] = $z;
 			}
 		}
 
-		$token = $this->apiQuery(
-			array(
-				'action'  => 'query',
-				'list'    => 'users',
-				'ususers' => $this->username,
-				'ustoken' => 'userrights'
-			)
-		);
-
-		if( isset( $token['query']['users'][0]['userrightstoken'] ) ) {
-			$this->tokens['userrights'] = $token['query']['users'][0]['userrightstoken'];
-		} else {
+		if( !isset( $this->tokens['userrights'] ) ) {
 			pecho( "Error retrieving userrights token...\n\n", PECHO_FATAL );
 			return array();
 		}

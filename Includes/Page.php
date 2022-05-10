@@ -1159,7 +1159,7 @@ class Page {
 			$summary = substr( $summary . $pgTag, 0, 255 );
 		}
 
-		if( $tokens['edit'] == '' ) {
+		if( $tokens['csrf'] == '' ) {
 			pecho( "User is not allowed to edit {$this->title}\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -1172,7 +1172,7 @@ class Page {
 		$editarray = array(
 			'title'         => $this->title,
 			'action'        => 'edit',
-			'token'         => $tokens['edit'],
+			'token'         => $tokens['csrf'],
 			'basetimestamp' => $this->lastedit,
 			'md5'           => md5( $text ),
 			'text'          => $text
@@ -1354,10 +1354,10 @@ class Page {
 
 		$tokens = $this->wiki->get_tokens();
 
-		if( $tokens['edit'] == '+\\' ) {
+		if( $tokens['csrf'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
 			return false;
-		} elseif( $tokens['edit'] == '' ) {
+		} elseif( $tokens['csrf'] == '' ) {
 			pecho( "User is not allowed to edit {$this->title}\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -1365,7 +1365,7 @@ class Page {
 		$params = array(
 			'title'         => $this->title,
 			'action'        => 'edit',
-			'token'         => $tokens['edit'],
+			'token'         => $tokens['csrf'],
 			'basetimestamp' => $this->lastedit,
 			'undo'          => $oldrev,
 			'undoafter'     => $newrev

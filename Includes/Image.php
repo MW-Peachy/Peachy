@@ -412,7 +412,7 @@ class Image {
 		if( !$pgNotag ) $comment .= $pgTag;
 		$apiArray = array(
 			'action'   => 'filerevert',
-			'token'    => $tokens['edit'],
+			'token'    => $tokens['csrf'],
 			'comment'  => $comment,
 			'filename' => $this->rawtitle
 		);
@@ -460,7 +460,7 @@ class Image {
 
 		$apiArray = array(
 			'action' => 'imagerotate',
-			'token'  => $tokens['edit'],
+			'token'  => $tokens['csrf'],
 			'titles' => $this->title
 		);
 		pecho( "Rotating image(s) $degree degrees...\n\n", PECHO_NOTICE );
@@ -571,7 +571,7 @@ class Image {
 			'filename'       => $this->rawtitle,
 			'comment'        => $comment,
 			'text'           => $text,
-			'token'          => $tokens['edit'],
+			'token'          => $tokens['csrf'],
 			'ignorewarnings' => intval( $ignorewarnings )
 		);
 

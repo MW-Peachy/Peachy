@@ -54,7 +54,7 @@ class FlaggedRevs {
 
 		$tokens = $this->wiki->get_tokens();
 
-		if( $tokens['edit'] == '+\\' ) {
+		if( $tokens['csrf'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -69,7 +69,7 @@ class FlaggedRevs {
 		$editarray = array(
 			'flag_accuracy' => $status,
 			'action'        => 'review',
-			'token'         => $tokens['edit'],
+			'token'         => $tokens['csrf'],
 			'revid'         => $revid
 		);
 
@@ -118,7 +118,7 @@ class FlaggedRevs {
 
 		$tokens = $this->wiki->get_tokens();
 
-		if( $tokens['edit'] == '+\\' ) {
+		if( $tokens['csrf'] == '+\\' ) {
 			pecho( "User has logged out.\n\n", PECHO_FATAL );
 			return false;
 		}
@@ -133,7 +133,7 @@ class FlaggedRevs {
 		$editarray = array(
 			'action'       => 'review',
 			'title'        => $title,
-			'token'        => $tokens['edit'],
+			'token'        => $tokens['csrf'],
 			'protectlevel' => $level
 		);
 
