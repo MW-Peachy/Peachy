@@ -1,21 +1,21 @@
 <?php
 
-/*
-This file is part of Peachy MediaWiki Bot API
-
-Peachy is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/**
+ * This file is part of Peachy MediaWiki Bot API
+ *
+ * Peachy is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /**
  * @file
@@ -428,9 +428,13 @@ class Wiki {
 		if( isset( $configuration['method'] ) && $configuration['method'] == 'legacy' ) {
 			$lgarray = array(
 				'lgname'     => $this->username,
-				'lgpassword' => $configuration['password'],
 				'action'     => 'login',
 			);
+
+			// Password may not be set (for example, where nologin is being used)
+			if( isset( $configuration['password'] ) ) {
+				$lgarray['lgpassword'] = $configuration['password'];
+			}
 
 			if( !is_null( $token ) ) {
 				$lgarray['lgtoken'] = $token;
@@ -487,45 +491,45 @@ class Wiki {
 				$loginRes = $this->apiQuery( array(), false, true, false, false, $this->oauth_url."/identify" );
 				if ( !$loginRes ) {
 					throw new LoginError( ( array( 'BadData', 'The server returned unparsable data' ) ) );
-	            }
-	            $err = json_decode( $loginRes );
-	            if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
-	                // We're not authorized!
-	                throw new LoginError( ( array( 'AuthFailure', 'Missing authorization or authorization failed' ) ) );
-	            }
+				}
+				$err = json_decode( $loginRes );
+				if ( is_object( $err ) && isset( $err->error ) && $err->error === 'mwoauthdatastore-access-token-not-found' ) {
+					// We're not authorized!
+					throw new LoginError( ( array( 'AuthFailure', 'Missing authorization or authorization failed' ) ) );
+				}
 
-	            // There are three fields in the response
-	            $fields = explode( '.', $loginRes );
-	            if ( count( $fields ) !== 3 ) {
-	                throw new LoginError( ( array( 'BadResponse', 'Invalid identify response: ' . htmlspecialchars( $loginRes ) ) ) );
-	            }
+				// There are three fields in the response
+				$fields = explode( '.', $loginRes );
+				if ( count( $fields ) !== 3 ) {
+					throw new LoginError( ( array( 'BadResponse', 'Invalid identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+				}
 
-	            // Validate the header. MWOAuth always returns alg "HS256".
-	            $header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
-	            if ( $header !== false ) {
-	                $header = json_decode( $header );
-	            }
-	            if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
-	                throw new LoginError( ( array( 'BadHeader', 'Invalid header in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
-	            }
+				// Validate the header. MWOAuth always returns alg "HS256".
+				$header = base64_decode( strtr( $fields[0], '-_', '+/' ), true );
+				if ( $header !== false ) {
+					$header = json_decode( $header );
+				}
+				if ( !is_object( $header ) || $header->typ !== 'JWT' || $header->alg !== 'HS256' ) {
+					throw new LoginError( ( array( 'BadHeader', 'Invalid header in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+				}
 
-	            // Verify the signature
-	            $sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
-	            $check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], $this->consumerSecret, true );
-	            if ( $sig !== $check ) {
-	                throw new LoginError( ( array( 'BadSignature', 'JWT signature validation failed: ' . htmlspecialchars( $loginRes ) ) ) );
-	            }
+				// Verify the signature
+				$sig = base64_decode( strtr( $fields[2], '-_', '+/' ), true );
+				$check = hash_hmac( 'sha256', $fields[0] . '.' . $fields[1], $this->consumerSecret, true );
+				if ( $sig !== $check ) {
+					throw new LoginError( ( array( 'BadSignature', 'JWT signature validation failed: ' . htmlspecialchars( $loginRes ) ) ) );
+				}
 
-	            // Decode the payload
-	            $payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
-	            if ( $payload !== false ) {
-	                $payload = json_decode( $payload );
-	            }
-	            if ( !is_object( $payload ) ) {
-	                throw new LoginError( ( array( 'BadPayload', 'Invalid payload in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
-	            }
-	            
-	            pecho( "Successfully logged in to {$this->base_url} as {$payload->username}\n\n", PECHO_NORMAL );
+				// Decode the payload
+				$payload = base64_decode( strtr( $fields[1], '-_', '+/' ), true );
+				if ( $payload !== false ) {
+					$payload = json_decode( $payload );
+				}
+				if ( !is_object( $payload ) ) {
+					throw new LoginError( ( array( 'BadPayload', 'Invalid payload in identify response: ' . htmlspecialchars( $loginRes ) ) ) );
+				}
+				
+				pecho( "Successfully logged in to {$this->base_url} as {$payload->username}\n\n", PECHO_NORMAL );
 
 				$this->runSuccess( $configuration );
 			}
@@ -643,55 +647,60 @@ class Wiki {
 	public function set_runpage( $page = null ) {
 		$this->runpage = $page;
 	}
-    
-    /**
-     * Sets a specific taskname to comply with the nobots template.
-     *
-     * @param string $taskname Name of bot task. Default null.
-     * @access public
-     * @return void
-     */
-    public function set_taskname( $taskname = null ) {
-        $this->nobotsTaskname = $taskname;
-    }
-    
-    private function generateSignature( $method, $url, $params = array() ) {
-	    $parts = parse_url( $url );
 
-	    // We need to normalize the endpoint URL
-	    $scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'http';
-	    $host = isset( $parts['host'] ) ? $parts['host'] : '';
-	    $port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
-	    $path = isset( $parts['path'] ) ? $parts['path'] : '';
-	    if ( ( $scheme == 'https' && $port != '443' ) ||
-	        ( $scheme == 'http' && $port != '80' ) 
-	    ) {
-	        // Only include the port if it's not the default
-	        $host = "$host:$port";
-	    }
+	/**
+	 * Sets a specific taskname to comply with the nobots template.
+	 *
+	 * @param string $taskname Name of bot task. Default null.
+	 *
+	 * @access public
+	 * @return void
+	 */
+	public function set_taskname( $taskname = null ) {
+		$this->nobotsTaskname = $taskname;
+	}
 
-	    // Also the parameters
-	    $pairs = array();
-	    parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
-	    $query += $params;
-	    unset( $query['oauth_signature'] );
-	    if ( $query ) {
-	        $query = array_combine(
-	            // rawurlencode follows RFC 3986 since PHP 5.3
-	            array_map( 'rawurlencode', array_keys( $query ) ),
-	            array_map( 'rawurlencode', array_values( $query ) )
-	        );
-	        ksort( $query, SORT_STRING );
-	        foreach ( $query as $k => $v ) {
-	            $pairs[] = "$k=$v";
-	        }
-	    }
+	private function generateSignature( $method, $url, $params = array() ) {
 
-	    $toSign = rawurlencode( strtoupper( $method ) ) . '&' .
-	        rawurlencode( "$scheme://$host$path" ) . '&' .
-	        rawurlencode( join( '&', $pairs ) );
-	    $key = rawurlencode( $this->consumerSecret ) . '&' . rawurlencode( $this->accessTokenSecret );
-	    return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
+		$parts = parse_url( $url );
+
+		// We need to normalize the endpoint URL
+		$scheme = isset( $parts['scheme'] ) ? $parts['scheme'] : 'http';
+		$host = isset( $parts['host'] ) ? $parts['host'] : '';
+		$port = isset( $parts['port'] ) ? $parts['port'] : ( $scheme == 'https' ? '443' : '80' );
+		$path = isset( $parts['path'] ) ? $parts['path'] : '';
+		if ( ( $scheme == 'https' && $port != '443' ) || ( $scheme == 'http' && $port != '80' ) ) {
+			// Only include the port if it's not the default
+			$host = "$host:$port";
+		}
+
+		// Also the parameters
+		$pairs = array();
+		parse_str( isset( $parts['query'] ) ? $parts['query'] : '', $query );
+		$query += $params;
+		unset( $query['oauth_signature'] );
+		if ( $query ) {
+			$query = array_combine(
+			// rawurlencode follows RFC 3986 since PHP 5.3
+				array_map( 'rawurlencode', array_keys( $query ) ),
+				array_map( 'rawurlencode', array_values( $query ) )
+			);
+			ksort( $query, SORT_STRING );
+			foreach ( $query as $k => $v ) {
+				$pairs[] = "$k=$v";
+			}
+		}
+
+		$toSign = rawurlencode( strtoupper( $method ) ) .
+			'&' .
+			rawurlencode( "$scheme://$host$path" ) .
+			'&' .
+			rawurlencode( join( '&', $pairs ) );
+		$key = rawurlencode( $this->consumerSecret ) .
+			'&' .
+			rawurlencode( $this->accessTokenSecret );
+
+		return base64_encode( hash_hmac( 'sha1', $toSign, $key, true ) );
 	}
 
 	/**
@@ -743,25 +752,29 @@ class Wiki {
 			for( $i = 0; $i < $attempts; $i++ ){
 				if( $this->oauthEnabled ) {
 					$headerArr = array(
-                                // OAuth information
-		                                'oauth_consumer_key' => $this->consumerKey,
-		                                'oauth_token' => $this->accessToken,
-		                                'oauth_version' => '1.0',
-		                                'oauth_nonce' => md5( microtime() . mt_rand() ),
-		                                'oauth_timestamp' => time(),
+						// OAuth information
+						'oauth_consumer_key' => $this->consumerKey,
+						'oauth_token' => $this->accessToken,
+						'oauth_version' => '1.0',
+						'oauth_nonce' => md5( microtime() . mt_rand() ),
+						'oauth_timestamp' => time(),
 
-		                                // We're using secret key signatures here.
-		                                'oauth_signature_method' => 'HMAC-SHA1',
-		                            );
-		            $signature = $this->generateSignature( 'POST', ( $talktoOauth ? $talktoOauth : $this->base_url ), $headerArr  );
-		            $headerArr['oauth_signature'] = $signature; 
+						// We're using secret key signatures here.
+						'oauth_signature_method' => 'HMAC-SHA1',
+					);
+					$signature = $this->generateSignature(
+						'POST',
+						( $talktoOauth ? $talktoOauth : $this->base_url ),
+						$headerArr
+					);
+					$headerArr['oauth_signature'] = $signature;
 
-		            $header = array();
-		            foreach ( $headerArr as $k => $v ) {
-		                $header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
-		            }
-		            $header = 'Authorization: OAuth ' . join( ', ', $header );
-		            unset( $headerArr );
+					$header = array();
+					foreach ( $headerArr as $k => $v ) {
+						$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+					}
+					$header = 'Authorization: OAuth ' . join( ', ', $header );
+					unset( $headerArr );
 				}
 				$logdata = "Date/Time: " . date( 'r' ) . "\nMethod: POST\nURL: {$this->base_url} (Parameters masked for security)\nRaw Data: ";
 				$data = $this->get_http()->post(
@@ -899,27 +912,31 @@ class Wiki {
 			Hooks::runHook( 'PreAPIGetQuery', array( &$arrayParams ) );
 
 			for( $i = 0; $i < $attempts; $i++ ){
-				if( $this->oauthEnabled ) {
+				if ( $this->oauthEnabled ) {
 					$headerArr = array(
-		                                // OAuth information
-		                                'oauth_consumer_key' => $this->consumerKey,
-		                                'oauth_token' => $this->accessToken,
-		                                'oauth_version' => '1.0',
-		                                'oauth_nonce' => md5( microtime() . mt_rand() ),
-		                                'oauth_timestamp' => time(),
+						// OAuth information
+						'oauth_consumer_key' => $this->consumerKey,
+						'oauth_token' => $this->accessToken,
+						'oauth_version' => '1.0',
+						'oauth_nonce' => md5( microtime() . mt_rand() ),
+						'oauth_timestamp' => time(),
 
-		                                // We're using secret key signatures here.
-		                                'oauth_signature_method' => 'HMAC-SHA1',
-		                            );
-		            $signature = $this->generateSignature( 'GET', ( $talktoOauth ? $talktoOauth : $this->base_url ), $arrayParams + $headerArr );
-		            $headerArr['oauth_signature'] = $signature; 
+						// We're using secret key signatures here.
+						'oauth_signature_method' => 'HMAC-SHA1',
+					);
+					$signature = $this->generateSignature( 'GET',
+						( $talktoOauth ? $talktoOauth : $this->base_url ) .
+						( !empty( $arrayParams ) ? '?' . http_build_query( $arrayParams ) : "" ),
+						$headerArr
+					);
+					$headerArr['oauth_signature'] = $signature;
 
-		            $header = array();
-		            foreach ( $headerArr as $k => $v ) {
-		                $header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
-		            }
-		            $header = 'Authorization: OAuth ' . join( ', ', $header );
-		            unset( $headerArr );
+					$header = array();
+					foreach ( $headerArr as $k => $v ) {
+						$header[] = rawurlencode( $k ) . '="' . rawurlencode( $v ) . '"';
+					}
+					$header = 'Authorization: OAuth ' . join( ', ', $header );
+					unset( $headerArr );
 				}
 				$logdata = "Date/Time: " . date( 'r' ) . "\nMethod: GET\nURL: {$this->base_url}\nParameters: " . print_r( $arrayParams, true ) . "\nRaw Data: ";
 				$data = $this->get_http()->get(
@@ -1025,7 +1042,7 @@ class Wiki {
 	 * @link http://wiki.peachy.compwhizii.net/wiki/Manual/Wiki::listHandler
 	 * @param array $tArray Parameters given to query with (default: array()). In addition to those recognised by the API, ['_code'] should be set to the first two characters of all the parameters in a list=XXX API call - for example, with allpages, the parameters start with 'ap', with recentchanges, the parameters start with 'rc' -  and is required; ['_limit'] imposes a hard limit on the number of results returned (optional) and ['_lhtitle'] simplifies a multidimensional result into a unidimensional result - lhtitle is the key of the sub-array to return. (optional)
 	 * @param array $resume Parameter passed back at the end of a list-handler operation.  Pass parameter back through to resume listhandler operation. (optional)
-     * @throws BadEntryError
+	 * @throws BadEntryError
 	 * @return array Returns an array with the API result
 	 */
 	public function listHandler( $tArray = array(), &$resume = null ) {
@@ -1036,27 +1053,27 @@ class Wiki {
 		} else {
 			throw new BadEntryError( "listHandler", "Parameter _code is required." );
 		}
-		if( isset( $tArray['_limit'] ) || is_null( $tArray['_limit'] ) ) {
+		if( isset( $tArray['_limit'] ) ) {
 			$limit = $tArray['_limit'];
 			unset( $tArray['_limit'] );
 		} else {
 			$limit = null;
 		}
-		if( isset( $tArray['_lhtitle'] ) || is_null( $tArray['_limit'] ) ) {
+		if( isset( $tArray['_lhtitle'] ) ) {
 			$lhtitle = $tArray['_lhtitle'];
 			unset( $tArray['_lhtitle'] );
 		} else {
 			$lhtitle = null;
 		}
-        if( !is_null( $resume ) ) {
-            $tArray = array_merge( $tArray, $resume );
-        } else {
-            $resume = array();
-        }
+		if ( !is_null( $resume ) ) {
+			$tArray = array_merge( $tArray, $resume );
+		} else {
+			$resume = array();
+		}
 
 		$tArray['action'] = 'query';
 		$tArray[$code . 'limit'] = 'max';
-        $tArray['rawcontinue'] = 1;
+		$tArray['rawcontinue'] = 1;
 
 		if( isset( $limit ) && !is_null( $limit ) ) {
 			if( !is_numeric( $limit ) ) {
@@ -1100,19 +1117,22 @@ class Wiki {
 			$tRes = $this->apiQuery( $tArray );
 			if( !isset( $tRes['query'] ) ) break;
 
-			foreach( $tRes['query'] as $x ){
-				foreach( $x as $y ){
-					if( !is_null( $lhtitle ) ) {
-						if( isset( $y[$lhtitle] ) ) {
+			foreach ( $tRes['query'] as $x ) {
+				foreach ( $x as $y ) {
+					if ( !is_null( $lhtitle ) ) {
+						if ( isset( $y[$lhtitle] ) ) {
 							$y = $y[$lhtitle];
-                            if( is_array( $y ) ) $endArray = array_merge( $endArray, $y );
-                            else $endArray[] = $y;
-						    continue;
-                        } else {
+							if ( is_array( $y ) ) {
+								$endArray = array_merge( $endArray, $y );
+							} else {
+								$endArray[] = $y;
+							}
+							continue;
+						} else {
 							continue;
 						}
 					}
-                    $endArray[] = $y;
+					$endArray[] = $y;
 				}
 			}
 
@@ -1132,13 +1152,13 @@ class Wiki {
                 $resume = array();
 				break;
 			}
-            
-            if( !is_null( $limit ) && $limit != 'max' ) {
-                if( count( $endArray ) >= $limit ) {
-                    $endArray = array_slice( $endArray, 0, $limit );
-                    break;
-                }
-            }
+
+			if ( !is_null( $limit ) && $limit != 'max' ) {
+				if ( count( $endArray ) >= $limit ) {
+					$endArray = array_slice( $endArray, 0, $limit );
+					break;
+				}
+			}
 
 		}
 
@@ -1816,46 +1836,45 @@ class Wiki {
 		return $this->listHandler( $tgArray );
 	}
 
-    /**
-     * @FIXME   Implement this method
-     *
-     * @param null $minor
-     * @param null $bot
-     * @param null $anon
-     * @param null $patrolled
-     * @param null $namespace
-     * @param null $user
-     * @param null $excludeuser
-     * @param null $start
-     * @param null $end
-     * @param array $prop
-     * @param int $limit
-     */
-    public function get_watchlist(
-        $minor = null,
-        $bot = null,
-        $anon = null,
-        $patrolled = null,
-        $namespace = null,
-        $user = null,
-        $excludeuser = null,
-        $start = null,
-        $end = null,
-        $prop = array(
-		'ids', 'title', 'flags', 'user', 'comment', 'parsedcomment', 'timestamp', 'patrol', 'sizes',
-		'notificationtimestamp'
-	), $limit = 50 ) {
+	/**
+	 * @FIXME   Implement this method
+	 *
+	 * @param null $minor
+	 * @param null $bot
+	 * @param null $anon
+	 * @param null $patrolled
+	 * @param null $namespace
+	 * @param null $user
+	 * @param null $excludeuser
+	 * @param null $start
+	 * @param null $end
+	 * @param array $prop
+	 * @param int $limit
+	 */
+	public function get_watchlist(
+		$minor = null,
+		$bot = null,
+		$anon = null,
+		$patrolled = null,
+		$namespace = null,
+		$user = null,
+		$excludeuser = null,
+		$start = null,
+		$end = null,
+		$prop = array( 'ids', 'title', 'flags', 'user', 'comment', 'parsedcomment', 'timestamp', 'patrol', 'sizes', 'notificationtimestamp' ),
+		$limit = 50
+	) {
+
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
-    /**
-     * @FIXME   Implement this method
-     *
-     * @param null $namespace
-     * @param null $changed
-     */
-    public function get_watchlistraw($namespace = null, $changed = null)
-    {
+	/**
+	 * @FIXME   Implement this method
+	 *
+	 * @param null $namespace
+	 * @param null $changed
+	 */
+	public function get_watchlistraw( $namespace = null, $changed = null ) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1892,17 +1911,16 @@ class Wiki {
 
 	}
 
-    /**
-     * @FIXME   Implement this method
-     *
-     * @param array $users
-     * @param array $prop
-     */
-    public function users(
-        $users = array(),
-        $prop = array(
-		'blockinfo', 'groups', 'editcount', 'registration', 'emailable', 'gender'
-	) ) {
+	/**
+	 * @FIXME   Implement this method
+	 *
+	 * @param array $users
+	 * @param array $prop
+	 */
+	public function users(
+		$users = array(),
+		$prop = array( 'blockinfo', 'groups', 'editcount', 'registration', 'emailable', 'gender' )
+	) {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -1932,13 +1950,13 @@ class Wiki {
 		return $this->listHandler( $rnArray );
 	}
 
-    /**
-     * @FIXME   Implement this method
-     *
-     * @param array $namespace
-     */
-    public function protectedtitles($namespace = array(0))
-    {
+	/**
+	 * @FIXME   Implement this method
+	 *
+	 * @param array $namespace
+	 */
+	public function protectedtitles( $namespace = array( 0 ) ) {
+
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
@@ -2205,19 +2223,21 @@ class Wiki {
 		pecho( "Error: " . __METHOD__ . " has not been programmed as of yet.\n\n", PECHO_ERROR );
 	}
 
-
 	/**
 	 * Generate a diff between two or three revision IDs
 	 *
 	 * @access public
-	 * @param string $method Revision method. Options: unified, inline, context, threeway, raw (default: 'unified')
+	 *
+	 * @param string $method Revision method. Options: unified, inline, context, threeway, raw
+	 *     (default: 'unified')
 	 * @param mixed $rev1
 	 * @param mixed $rev2
 	 * @param mixed $rev3
+	 *
 	 * @return string|bool False on failure
 	 * @see Diff::load
-     *
-     * @fixme: this uses Diff::load, which has been deprecated and Plugin removed from codebase
+	 *
+	 * @fixme: this uses Diff::load, which has been deprecated and Plugin removed from codebase
 	 */
 	public function diff( $method = 'unified', $rev1, $rev2, $rev3 = null ) {
 		$r1array = array(
@@ -2458,8 +2478,7 @@ class Wiki {
 	 * @package initFunctions
 	 */
 	public function &initUser( $pgUsername ) {
-		$user = new User( $this, $pgUsername );
-		return $user;
+		return new User( $this, $pgUsername );
 	}
 
 	/**
@@ -2622,18 +2641,19 @@ class Wiki {
 		return $this->SSH;
 	}
 
-    /**
-     * Performs nobots checking, new message checking, etc
-     *
-     * @param       string $action Name of action.
-     * @param       null|string $title Name of page to check for nobots
-     * @param       null $pageidp
-     * @throws      AssertFailure
-     * @throws      EditError
-     * @throws      LoggedOut
-     * @throws      MWAPIError
-     * @access      public
-     */
+	/**
+	 * Performs nobots checking, new message checking, etc
+	 *
+	 * @param       string $action Name of action.
+	 * @param       null|string $title Name of page to check for nobots
+	 * @param       null $pageidp
+	 *
+	 * @throws      AssertFailure
+	 * @throws      EditError
+	 * @throws      LoggedOut
+	 * @throws      MWAPIError
+	 * @access      public
+	 */
 	public function preEditChecks( $action = "Edit", $title = null, $pageidp = null ) {
 		global $pgDisablechecks, $pgMasterrunpage;
 		if( $pgDisablechecks ) return;

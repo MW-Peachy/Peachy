@@ -23,7 +23,8 @@ Peachy is not responsible for any damage caused to the system running it.
  * @file
  * Main Peachy file
  * Defines constants, initializes global variables
- * Stores Peachy class
+ * Stores Peachy
+ * @license GPL
  */
 
 /**
@@ -75,7 +76,7 @@ $pgIP = dirname( __FILE__ ) . DIRECTORY_SEPARATOR;
 
 //If out /tmp directory doesnt exist, make it!
 if( !file_exists( __DIR__ . '/tmp' ) ) {
-	mkdir( __DIR__ . '/tmp' );
+    mkdir(__DIR__ . '/tmp');
 }
 
 require_once( $pgIP . 'Includes/Exceptions.php' );
@@ -93,6 +94,7 @@ require_once( $pgIP . 'Includes/Autoloader.php' );
 require_once( $pgIP . 'GenFunctions.php' );
 require_once( $pgIP . 'config.inc.php' );
 require_once( $pgIP . 'Includes/SSH.php' );
+require_once($pgIP . 'Includes/lime.php');
 
 $pgVerbose = array();
 if( $pgDisplayPechoVerbose ) $pgVerbose[] = -1;
@@ -108,7 +110,7 @@ $pgIRCTrigger = array( '!', '.' );
 $tmp = null;
 
 if( function_exists( 'mb_internal_encoding' ) ) {
-	mb_internal_encoding( "UTF-8" );
+    mb_internal_encoding("UTF-8");
 }
 
 // Suppress warnings if timezone not set on server
@@ -116,10 +118,12 @@ date_default_timezone_set( @date_default_timezone_get() );
 
 //Check for updates before loading Peachy.
 if( !$pgDisableUpdates && !defined( 'PEACHY_PHPUNIT_TESTS' ) ) {
-	//the below MUST have its own Http object or else things will break
-	$updater = new AutoUpdate(new HTTP());
-	$Uptodate = $updater->Checkforupdate();
-	if( !$Uptodate ) $updater->updatePeachy();
+    //the below MUST have its own Http object or else things will break
+    $updater = new AutoUpdate(new HTTP());
+    $Uptodate = $updater->Checkforupdate();
+    if (!$Uptodate) {
+        $updater->updatePeachy();
+    }
 }
 
 require_once( $pgIP . 'Includes/Peachy.php' );
@@ -130,8 +134,9 @@ require_once( $pgIP . 'Includes/Peachy.php' );
  * @throws DependencyError
  * @return void
  */
-function peachyCheckPHPVersion( $check_version ) {
-	if( version_compare( PHP_VERSION, $check_version, '<' ) ) {
-		throw new DependencyError( "PHP " . $check_version, "http://php.net/downloads.php" );
-	}
+function peachyCheckPHPVersion( $check_version )
+{
+    if (version_compare(PHP_VERSION, $check_version, '<')) {
+        throw new DependencyError("PHP " . $check_version, "http://php.net/downloads.php");
+    }
 }

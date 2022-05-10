@@ -230,8 +230,10 @@ function cecho( $text, $return = false ) {
 
 	if( !isset( $pgColorizer ) ) $pgColorizer = new lime_colorizer( true );
 
-	$text = preg_replace( '/\[(.+?)\|(\w+)\]/se', '$pgColorizer->colorize("$1", "$2")', $text );
-
+	$text = preg_replace_callback( '/\[(.+?)\|(\w+)\]/s', function ($m) {
+                    global $pgColorizer;
+                    return $pgColorizer->colorize($m[1], $m[2]);
+                }, $text );
 	if( $return ) return $text;
 
 	echo $text;
@@ -292,15 +294,13 @@ function &initPage( $title = null, $pageid = null, $followRedir = true, $normali
  * Returns an instance of the User class as specified by $pgUsername
  *
  * @param mixed $pgUsername Username
- * @return User
+ * @return User|false
  * @package initFunctions
  */
 function &initUser( $pgUsername ) {
 	$wiki = getSiteObject();
 	if( !$wiki ) return false;
-
-	$user = new User( $wiki, $pgUsername );
-	return $user;
+	return new User( $wiki, $pgUsername );
 }
 
 /**
